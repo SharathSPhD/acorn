@@ -1,0 +1,49 @@
+# OAK Shared Deny Patterns
+# Read by BOTH tool-proxy.sh (Layer 1) and pre-tool-use.sh (Layer 2).
+# One pattern per line. Lines starting with # are comments.
+# Patterns are matched case-insensitively against the full command string.
+# Both bash scripts use grep -qi; the Python validation chain uses re.search(flags=re.I).
+#
+# IMPORTANT: Any change to this file is reflected in BOTH deny layers at runtime.
+# Do NOT maintain separate pattern lists in the scripts themselves.
+
+# Filesystem destruction
+rm -rf /
+rm -rf ~
+rm -fr /
+
+# Database destruction
+DROP TABLE
+DROP DATABASE
+TRUNCATE TABLE
+DROP SCHEMA
+
+# Filesystem truncation
+truncate /
+> /dev/
+
+# Permissions escalation
+chmod 777
+chmod -R 777
+chown -R root
+
+# Shell injection via download-and-execute
+# Patterns use grep -qiE (extended regex) in hook scripts — | is literal OR, no backslash needed
+curl .* \| .* sh
+wget .* \| .* sh
+bash <\(curl
+bash <\(wget
+curl.*\| *bash
+wget.*\| *bash
+curl.*\| *python
+
+# Direct disk writes
+>/dev/sda
+>/dev/nvme
+
+# OAK business rules (Layer 2 / pre-tool-use.sh only enforces these for context;
+# Layer 1 / tool-proxy.sh skips lines starting with OAK:)
+OAK: git push.*main
+OAK: git push.*oak/agents
+OAK: git push.*oak/skills
+OAK: git push.*oak/ui

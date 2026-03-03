@@ -1,0 +1,23 @@
+# OAK Cloud GPU profile (vLLM backend)
+version: "3.9"
+
+include:
+  - docker/docker-compose.base.yml
+
+services:
+  oak-vllm:
+    image: vllm/vllm-openai:latest
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "11434:8000"  # expose on Ollama-compatible port
+    command: ["--model", "Qwen/Qwen2.5-Coder-32B-Instruct", "--served-model-name", "qwen3-coder"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes: {}

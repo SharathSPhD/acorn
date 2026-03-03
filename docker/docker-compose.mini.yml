@@ -1,0 +1,31 @@
+# OAK Mac Mini M4 profile
+version: "3.9"
+
+include:
+  - docker/docker-compose.base.yml
+
+services:
+  oak-ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    # Metal backend — no GPU reservations needed on macOS
+
+  oak-ui:
+    image: oak/ui:latest
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "8501:8501"
+    environment:
+      OAK_API_URL: http://oak-api:8000
+      OAK_MODE: mini
+    depends_on:
+      - oak-api
+
+volumes:
+  ollama-models:

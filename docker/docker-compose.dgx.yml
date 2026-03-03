@@ -1,0 +1,36 @@
+# OAK DGX Spark profile
+version: "3.9"
+
+include:
+  - docker/docker-compose.base.yml
+
+services:
+  oak-ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  oak-ui:
+    image: oak/ui:latest
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "8501:8501"
+    environment:
+      OAK_API_URL: http://oak-api:8000
+    depends_on:
+      - oak-api
+
+volumes:
+  ollama-models:

@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/oak",
+        "/mnt/oak-data",
+        "/mnt/oak-skills"
+      ]
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://oak:oak@oak-postgres:5432/oak"
+      ]
+    },
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git", "--repository", "/home/oak"]
+    },
+    "oak-memory": {
+      "command": "python3",
+      "args": ["/home/oak/oak_mcp/oak-memory-mcp/server.py"]
+    },
+    "oak-skills": {
+      "command": "python3",
+      "args": ["/home/oak/oak_mcp/oak-skills-mcp/server.py"]
+    }
+  }
+}
