@@ -28,14 +28,12 @@ chmod -R 777
 chown -R root
 
 # Shell injection via download-and-execute
-# Patterns use grep -qiE (extended regex) in hook scripts — | is literal OR, no backslash needed
-curl .* \| .* sh
-wget .* \| .* sh
+# Patterns are ERE (grep -qiE) AND Python re.search compatible.
+# Use (sh|bash|python) grouping — avoid \| which is OR in Python re.
+curl.*\| *(sh|bash|python)
+wget.*\| *(sh|bash|python)
 bash <\(curl
 bash <\(wget
-curl.*\| *bash
-wget.*\| *bash
-curl.*\| *python
 
 # Direct disk writes
 >/dev/sda

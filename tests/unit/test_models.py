@@ -1,6 +1,6 @@
 """Unit tests for Pydantic model validation."""
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from api.models import (
@@ -34,7 +34,7 @@ def test_models__problem_response__from_attributes():
         title="T",
         description="D",
         status="pending",
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
     )
     assert p.status == "pending"
     assert p.solution_url is None
