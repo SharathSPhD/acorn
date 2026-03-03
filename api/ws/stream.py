@@ -3,9 +3,13 @@ __pattern__ = "EventDriven"
 import asyncio
 import os
 
-import redis.asyncio as aioredis
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.routing import APIRouter
+
+try:
+    import redis.asyncio as aioredis  # available at runtime inside Docker
+except ImportError:  # pragma: no cover — redis absent only in bare test envs
+    aioredis = None  # type: ignore[assignment]
 
 router = APIRouter()
 
