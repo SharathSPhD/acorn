@@ -130,6 +130,29 @@ class InternalEvent(BaseModel):
     )
 
 
+# ── Mailbox ──────────────────────────────────────────────────────────────────
+
+class MailboxMessageCreate(BaseModel):
+    problem_id: UUID
+    from_agent: str
+    to_agent: str
+    subject: str | None = None
+    body: str
+
+
+class MailboxMessageResponse(BaseModel):
+    id: UUID
+    problem_id: UUID
+    from_agent: str
+    to_agent: str
+    subject: str | None
+    body: str
+    read_at: datetime | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 # ── Judge ────────────────────────────────────────────────────────────────────
 
 class JudgeVerdictCreate(BaseModel):
