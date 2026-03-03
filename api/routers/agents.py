@@ -17,8 +17,18 @@ async def spawn_agent(
     problem_uuid: UUID,
     settings: OAKSettings = Depends(get_settings),
 ):
-    """Spawn an agent for a problem via AgentFactory. Returns container ID."""
-    raise HTTPException(status_code=501, detail="Phase 1: not yet implemented")
+    """Spawn an agent for a problem via DGXAgentFactory. Returns container ID."""
+    from api.factories.agent_factory import DGXAgentFactory, ResourceCapExceeded
+    from api.services.agent_registry import AgentRegistry
+    try:
+        factory = DGXAgentFactory()
+        spec = factory.create(role, str(problem_uuid))
+        container_id = factory.launch(spec)
+        registry = AgentRegistry(str(settings.redis_url))
+        await registry.register(spec.agent_id, role, str(problem_uuid), container_id)
+        return {"agent_id": spec.agent_id, "container_id": container_id, "role": role}
+    except ResourceCapExceeded as e:
+        raise HTTPException(status_code=503, detail=str(e))
 
 
 @router.get("/status", response_model=list[AgentStatusResponse])
