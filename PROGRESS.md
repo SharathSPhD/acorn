@@ -80,6 +80,44 @@ pytest tests/integration/ -v  # test_phase2_e2e.py needs real DB
 
 ---
 
+## Phase 3 — Memory, Skill Library, and Hub
+
+### Status: CODE COMPLETE — awaiting Docker stack + pgvector + Streamlit Cloud deploy
+
+| Exit Criterion | Status | Notes |
+|---|---|---|
+| `memory/skill_repository.py` — PostgreSQL SkillRepository + pgvector | ✅ Done | `PromotionThresholdNotMet` enforced; `find_by_keywords` + `promote` |
+| `memory/episodic_repository.py` — EpisodicMemoryRepository + pgvector | ✅ Done | cosine similarity (`<=>`) + `store/retrieve_similar/mark_retrieved` |
+| `GET /api/skills?query=...` — semantic/keyword skill search | ✅ Done | `api/routers/skills.py` implemented |
+| `POST /api/skills/{id}/promote` — promotion gate | ✅ Done | 409 if threshold not met |
+| `oak-memory-mcp` — MCP tools: store_episode, retrieve_similar | ✅ Done | `oak_mcp/oak-memory-mcp/server.py` |
+| `oak-skills-mcp` — MCP tools: find_skills, add_skill_use, request_promotion | ✅ Done | `oak_mcp/oak-skills-mcp/server.py` |
+| WebSocket stream — Redis pub/sub `oak:stream:{uuid}` | ✅ Done | `api/ws/stream.py` — EventDriven pattern |
+| Streamlit Hub — 5 pages (submit, status, gallery, skills, telemetry) | ✅ Done | `ui/app.py` + `ui/pages/02–05` |
+| 99 unit + integration + contract tests passing | ✅ Done | `pytest tests/` — 99 passed, 4 skipped (Redis) |
+| Skill extracted from Problem 1 reused on Problem 2 | ⏳ Needs running stack | Requires pgvector + seed skills loaded |
+| Hub accessible at public Streamlit Cloud URL | ⏳ Deploy pending | `ui/app.py` ready; deploy to Streamlit Cloud from `oak/ui` branch |
+
+### Integration Branch
+`feat/phase3-integration` → merged to `main` via fast-forward.
+
+### Remaining Gates
+```bash
+# Start stack + enable pgvector
+docker compose -f docker/docker-compose.dgx.yml up -d
+
+# Load seed skills into DB
+psql $DATABASE_URL < scripts/seed_skills.sql
+
+# Test skill search (requires running Postgres)
+curl "http://localhost:8000/api/skills?query=csv"
+
+# Deploy Hub to Streamlit Cloud:
+# Point Streamlit Cloud to oak/ui branch, main file = ui/app.py
+```
+
+---
+
 ## Git Worktree Workflow
 
 OAK uses Git worktrees to isolate concerns. Each worktree is checked out on its own branch.
