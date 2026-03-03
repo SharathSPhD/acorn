@@ -20,4 +20,23 @@ services:
               count: all
               capabilities: [gpu]
 
+  oak-api-proxy:
+    environment:
+      OLLAMA_BASE_URL: http://oak-vllm:8000
+      REDIS_URL: redis://oak-redis:6379
+      ROUTING_STRATEGY: passthrough
+
+  oak-api:
+    environment:
+      OAK_MODE: cloud
+      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
+      REDIS_URL: redis://oak-redis:6379
+      DEFAULT_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
+      CODER_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
+      ANALYSIS_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
+      MAX_AGENTS_PER_PROBLEM: "5"
+      MAX_CONCURRENT_PROBLEMS: "3"
+      MAX_HARNESS_CONTAINERS: "15"
+      CONCURRENT_PROBLEMS_ENABLED: "true"
+
 volumes: {}

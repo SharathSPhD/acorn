@@ -20,22 +20,47 @@ async def spawn_agent(
     """Spawn an agent for a problem via DGXAgentFactory. Returns container ID."""
     from api.factories.agent_factory import DGXAgentFactory, ResourceCapExceeded
     from api.services.agent_registry import AgentRegistry
+
+    registry = AgentRegistry(str(settings.redis_url))
+    all_agents = await registry.get_all()
+
+    # Enforce MAX_HARNESS_CONTAINERS
+    if len(all_agents) >= settings.max_harness_containers:
+        raise HTTPException(
+            status_code=503,
+            detail=f"MAX_HARNESS_CONTAINERS ({settings.max_harness_containers}) reached",
+        )
+
+    # Enforce MAX_AGENTS_PER_PROBLEM
+    agents_for_problem = [a for a in all_agents if a.problem_uuid == str(problem_uuid)]
+    if len(agents_for_problem) >= settings.max_agents_per_problem:
+        raise HTTPException(
+            status_code=503,
+            detail=f"MAX_AGENTS_PER_PROBLEM ({settings.max_agents_per_problem}) reached for {problem_uuid}",
+        )
+
+    # Enforce MAX_CONCURRENT_PROBLEMS (only if this is a new problem)
+    active_problems = {a.problem_uuid for a in all_agents if a.problem_uuid}
+    if str(problem_uuid) not in active_problems and len(active_problems) >= settings.max_concurrent_problems:
+        raise HTTPException(
+            status_code=503,
+            detail=f"MAX_CONCURRENT_PROBLEMS ({settings.max_concurrent_problems}) reached",
+        )
+
     try:
         factory = DGXAgentFactory()
         spec = factory.create(role, str(problem_uuid))
         container_id = factory.launch(spec)
-        registry = AgentRegistry(str(settings.redis_url))
         await registry.register(spec.agent_id, role, str(problem_uuid), container_id)
         return {"agent_id": spec.agent_id, "container_id": container_id, "role": role}
     except ResourceCapExceeded as e:
         raise HTTPException(status_code=503, detail=str(e))
 
 
-@router.get("/status", response_model=list[AgentStatusResponse])
-async def get_agents_status(
-    settings: OAKSettings = Depends(get_settings),
-) -> list[AgentStatusResponse]:
-    """Returns status of all active agent sessions from Redis."""
+@router.get("/status")
+async def get_agents_status(settings: OAKSettings = Depends(get_settings)):
+    """Return status of all running agents from registry."""
     from api.services.agent_registry import AgentRegistry
     registry = AgentRegistry(str(settings.redis_url))
-    return await registry.get_all()
+    agents = await registry.get_all()
+    return {"agents": [a.model_dump() for a in agents]}

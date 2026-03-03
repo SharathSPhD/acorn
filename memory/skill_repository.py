@@ -43,20 +43,23 @@ class PostgreSQLSkillRepository(SkillRepository):
     async def promote(self, skill_id: UUID) -> None:
         conn = await asyncpg.connect(self._conn_str)
         try:
-            row = await conn.fetchrow(
-                "SELECT verified_on_problems FROM skills WHERE id = $1", skill_id
-            )
-            if row is None:
-                raise ValueError(f"Skill {skill_id} not found")
-            threshold = settings.oak_skill_promo_threshold
-            verified = row["verified_on_problems"] or []
-            if len(verified) < threshold:
-                raise PromotionThresholdNotMet(
-                    f"Need {threshold} verified problems, have {len(verified)}"
+            async with conn.transaction():
+                row = await conn.fetchrow(
+                    "SELECT verified_on_problems FROM skills WHERE id = $1 FOR UPDATE",
+                    skill_id,
                 )
-            await conn.execute(
-                "UPDATE skills SET status='permanent', updated_at=NOW() WHERE id=$1", skill_id
-            )
+                if row is None:
+                    raise ValueError(f"Skill {skill_id} not found")
+                threshold = settings.oak_skill_promo_threshold
+                verified = row["verified_on_problems"] or []
+                if len(verified) < threshold:
+                    raise PromotionThresholdNotMet(
+                        f"Need {threshold} verified problems, have {len(verified)}"
+                    )
+                await conn.execute(
+                    "UPDATE skills SET status='permanent', updated_at=NOW() WHERE id=$1",
+                    skill_id,
+                )
         finally:
             await conn.close()
 

@@ -68,6 +68,10 @@ async def test_skill_repository__promote__below_threshold__raises_promotion_thre
     with patch("asyncpg.connect") as mock_connect:
         mock_conn = AsyncMock()
         mock_connect.return_value = mock_conn
+        mock_tx = MagicMock()
+        mock_tx.__aenter__ = AsyncMock(return_value=None)
+        mock_tx.__aexit__ = AsyncMock(return_value=False)
+        mock_conn.transaction = MagicMock(return_value=mock_tx)
         mock_conn.fetchrow.return_value = {"verified_on_problems": [uuid4()]}  # Only 1, threshold is 2
 
         repo = PostgreSQLSkillRepository()
@@ -85,6 +89,10 @@ async def test_skill_repository__promote__at_threshold__executes_update():
     with patch("asyncpg.connect") as mock_connect:
         mock_conn = AsyncMock()
         mock_connect.return_value = mock_conn
+        mock_tx = MagicMock()
+        mock_tx.__aenter__ = AsyncMock(return_value=None)
+        mock_tx.__aexit__ = AsyncMock(return_value=False)
+        mock_conn.transaction = MagicMock(return_value=mock_tx)
         mock_conn.fetchrow.return_value = {"verified_on_problems": [uuid4(), uuid4()]}  # 2 verified
 
         repo = PostgreSQLSkillRepository()
