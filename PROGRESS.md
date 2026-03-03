@@ -158,6 +158,44 @@ curl http://localhost:9000/health
 
 ---
 
+## Phase 5 — Concurrency Hardening + Cloud
+
+### Status: CODE COMPLETE — awaiting cloud GPU hardware + live concurrent run verification
+
+| Exit Criterion | Status | Notes |
+|---|---|---|
+| Resource caps enforced in spawn endpoint | ✅ Done | `api/routers/agents.py` — 503 on `MAX_HARNESS_CONTAINERS`, `MAX_AGENTS_PER_PROBLEM`, `MAX_CONCURRENT_PROBLEMS` |
+| Atomic `promote()` with row lock | ✅ Done | `memory/skill_repository.py` — `SELECT … FOR UPDATE` inside `conn.transaction()` |
+| `docker-compose.cloud.yml` — vLLM backend + api overrides | ✅ Done | `oak-api-proxy` → `oak-vllm:8000`; `oak-api` with cloud model names + raised caps |
+| Resource cap unit tests | ✅ Done | `tests/unit/test_resource_caps.py` — 5 pass (all 3 cap types + happy path + existing-problem exemption) |
+| Concurrent isolation unit tests | ✅ Done | `tests/unit/test_concurrent_isolation.py` — 3 pass (key scoping, FOR UPDATE, threshold guard) |
+| 115 unit + integration + contract tests passing | ✅ Done | `pytest tests/` — 115 passed, 4 skipped (Redis) |
+| 3 concurrent problems, zero cross-problem leakage | ⏳ Needs cloud stack | Requires live multi-GPU node + 3 parallel `new-problem.sh` runs |
+| vLLM 70B with 2 concurrent requests, no OOM | ⏳ Needs cloud GPU | `docker-compose.cloud.yml` ready; needs A100/H100 node |
+| Skill library race condition proof under load | ⏳ Needs load test | `FOR UPDATE` lock is in place; concurrent stress test needed |
+| < 1 failure per 10 concurrent runs | ⏳ Needs live traffic | Reliability gate requires E2E runs |
+
+### Integration Branch
+`feat/phase5-isolation` → merged to `main` via fast-forward.
+
+### Remaining Gates
+```bash
+# Start cloud stack (on A100/H100 node)
+docker compose -f docker/docker-compose.cloud.yml up -d
+
+# Launch 3 concurrent problems
+for i in 1 2 3; do bash scripts/new-problem.sh $(uuidgen) &; done
+
+# Verify no cross-problem data leakage
+pytest tests/integration/ -k concurrent -v
+
+# Check resource caps are observable
+curl http://localhost:8000/api/agents/status
+curl http://localhost:8000/api/telemetry
+```
+
+---
+
 ## Git Worktree Workflow
 
 OAK uses Git worktrees to isolate concerns. Each worktree is checked out on its own branch.
