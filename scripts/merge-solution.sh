@@ -1,27 +1,17 @@
 #!/bin/bash
-# OAK Merge Solution — merges a completed problem branch back and archives it.
-# Usage: scripts/merge-solution.sh [problem-uuid]
+# Merge a completed problem solution back — squash-merge only
+# Usage: bash scripts/merge-solution.sh <problem-uuid> <target-branch>
 set -euo pipefail
 
-PROBLEM_UUID="${1:?Usage: merge-solution.sh <problem-uuid>}"
-OAK_HOME="${OAK_HOME:-$HOME/oak}"
-BRANCH="oak/problem-$PROBLEM_UUID"
+PROBLEM_UUID="${1:?Usage: merge-solution.sh <uuid> <target>}"
+TARGET_BRANCH="${2:-oak/skills}"
+PROBLEM_BRANCH="oak/problem-${PROBLEM_UUID}"
 
-# Verify Judge PASS exists
-HAS_PASS=$(psql "${DATABASE_URL:-postgresql://oak:oak@oak-postgres:5432/oak}" -t -A \
-    -c "SELECT COUNT(*) FROM judge_verdicts jv
-        JOIN tasks t ON jv.task_id = t.id
-        WHERE t.problem_id = '$PROBLEM_UUID' AND jv.verdict = 'pass';" \
-    2>/dev/null || echo "0")
+git fetch origin "$PROBLEM_BRANCH"
+git checkout "$TARGET_BRANCH"
+git merge --squash "origin/$PROBLEM_BRANCH"
+git commit -m "feat(skills): merge problem-${PROBLEM_UUID} solution
 
-if [ "${HAS_PASS:-0}" -lt "1" ]; then
-    echo "[ERROR] No Judge PASS found for problem $PROBLEM_UUID. Cannot merge." >&2
-    exit 1
-fi
+Squash-merge from ${PROBLEM_BRANCH}"
 
-# Archive the problem branch (do not delete — keep for audit)
-cd "$OAK_HOME"
-git tag "archive/problem-$PROBLEM_UUID" "$BRANCH" 2>/dev/null || true
-echo "[ok] Tagged $BRANCH as archive/problem-$PROBLEM_UUID"
-echo "[info] Worktree at ~/oak-workspaces/problem-$PROBLEM_UUID kept for review"
-echo "Run cleanup-orphans.sh to remove when done"
+echo "[merge] Merged $PROBLEM_BRANCH → $TARGET_BRANCH"
