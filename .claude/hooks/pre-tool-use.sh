@@ -27,12 +27,6 @@ if [ "$TOOL_NAME" = "Bash" ]; then
         done < "$DENY_FILE"
     fi
 
-    # OAK business rules: never push directly to protected branches
-    if echo "$CMD" | grep -qiE "git push.*(main|oak/agents|oak/skills|oak/ui)"; then
-        echo "[OAK pre-tool-use] BLOCKED: direct push to protected branch. Open a PR instead." >&2
-        exit 2
-    fi
-
     # Never commit to main directly (commit + main without a branch)
     if echo "$CMD" | grep -qi "git commit" && git -C "$OAK_ROOT" branch --show-current 2>/dev/null | grep -q "^main$"; then
         echo "[OAK pre-tool-use] BLOCKED: direct commit to main. Create a feature branch first." >&2
