@@ -26,6 +26,9 @@ node_modules/
 # Docker
 docker-compose.override.yml
 
+# Streamlit secrets
+.streamlit/secrets.toml
+
 # IDE
 .vscode/
 .idea/

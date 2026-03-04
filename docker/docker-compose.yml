@@ -6,6 +6,10 @@
 #
 # Core services (postgres, redis) always run; all others are profile-specific.
 # Each profile includes its own api, api-proxy, ui, and ollama/vllm.
+#
+# Meta Agent Activation:
+#   META_AGENT_ENABLED=true docker compose --profile dgx up oak-api
+# Or set META_AGENT_ENABLED=true in .env before running compose.
 
 x-oak-harness: &oak-harness-defaults
   image: oak/harness:latest
@@ -99,6 +103,7 @@ services:
     environment:
       DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
       REDIS_URL: redis://oak-redis:6379
+      META_AGENT_ENABLED: ${META_AGENT_ENABLED:-false}
     depends_on:
       oak-postgres:
         condition: service_healthy
@@ -177,6 +182,7 @@ services:
       MAX_AGENTS_PER_PROBLEM: "3"
       MAX_CONCURRENT_PROBLEMS: "1"
       MAX_HARNESS_CONTAINERS: "4"
+      META_AGENT_ENABLED: ${META_AGENT_ENABLED:-false}
     depends_on:
       oak-postgres:
         condition: service_healthy
@@ -263,6 +269,7 @@ services:
       MAX_CONCURRENT_PROBLEMS: "3"
       MAX_HARNESS_CONTAINERS: "15"
       CONCURRENT_PROBLEMS_ENABLED: "true"
+      META_AGENT_ENABLED: ${META_AGENT_ENABLED:-false}
     depends_on:
       oak-postgres:
         condition: service_healthy

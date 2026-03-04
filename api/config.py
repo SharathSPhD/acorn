@@ -70,6 +70,7 @@ class OAKSettings(BaseSettings):
     # -- Feature flags ------------------------------------------------------------
     skill_extraction_enabled: bool    = True
     judge_required: bool              = True
+    # Set META_AGENT_ENABLED=true in .env to enable prompt evolution proposals
     meta_agent_enabled: bool          = False
     ui_evolution_enabled: bool        = False
     concurrent_problems_enabled: bool = False
