@@ -5,6 +5,7 @@ __pattern__ = "Repository"
 import asyncio
 import json
 import os
+
 import asyncpg
 import mcp.types as types
 from mcp.server import Server
@@ -20,12 +21,17 @@ async def list_tools() -> list[types.Tool]:
     return [
         types.Tool(
             name="find_skills",
-            description="Search skill library by keyword. Always call this before writing new code.",
+            description=(
+                "Search skill library by keyword. Always call this before writing new code."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "query": {"type": "string"},
-                    "category": {"type": "string", "enum": ["etl", "analysis", "ml", "ui", "infra"]},
+                    "category": {
+                        "type": "string",
+                        "enum": ["etl", "analysis", "ml", "ui", "infra"],
+                    },
                     "top_k": {"type": "integer", "default": 5},
                 },
                 "required": ["query"],
@@ -78,9 +84,15 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                     query, f"%{query}%", top_k,
                 )
             results = [
-                {"id": str(r["id"]), "name": r["name"], "category": r["category"],
-                 "description": r["description"], "trigger_keywords": list(r["trigger_keywords"] or []),
-                 "status": r["status"], "use_count": r["use_count"]}
+                {
+                    "id": str(r["id"]),
+                    "name": r["name"],
+                    "category": r["category"],
+                    "description": r["description"],
+                    "trigger_keywords": list(r["trigger_keywords"] or []),
+                    "status": r["status"],
+                    "use_count": r["use_count"],
+                }
                 for r in rows
             ]
             return [types.TextContent(type="text", text=json.dumps(results))]
@@ -102,7 +114,11 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                 "SELECT verified_on_problems FROM skills WHERE id = $1", skill_id
             )
             if row is None:
-                return [types.TextContent(type="text", text=json.dumps({"error": "skill not found"}))]
+                return [
+                    types.TextContent(
+                        type="text", text=json.dumps({"error": "skill not found"})
+                    )
+                ]
             verified = row["verified_on_problems"] or []
             if len(verified) < SKILL_PROMO_THRESHOLD:
                 return [types.TextContent(type="text", text=json.dumps({

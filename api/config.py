@@ -1,17 +1,18 @@
 __pattern__ = "Configuration"
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from enum import StrEnum
+
 from pydantic import Field, model_validator
-from enum import Enum
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class OAKMode(str, Enum):
+class OAKMode(StrEnum):
     DGX   = "dgx"
     MINI  = "mini"
     CLOUD = "cloud"
 
 
-class RoutingStrategy(str, Enum):
+class RoutingStrategy(StrEnum):
     PASSTHROUGH  = "passthrough"
     STALL        = "stall"
     CONFIDENCE   = "confidence"
@@ -32,6 +33,7 @@ class OAKSettings(BaseSettings):
     default_model: str          = "llama3.3:70b"
     coder_model: str            = "qwen3-coder"
     analysis_model: str         = "glm-4.7"
+    reasoning_model: str        = "llama3.3:70b"   # Orchestration, Judge, Meta
 
     # -- Routing strategy ---------------------------------------------------------
     routing_strategy: RoutingStrategy = RoutingStrategy.PASSTHROUGH
@@ -71,6 +73,16 @@ class OAKSettings(BaseSettings):
     meta_agent_enabled: bool          = False
     ui_evolution_enabled: bool        = False
     concurrent_problems_enabled: bool = False
+
+    def model_for_role(self, role: str) -> str:
+        """Return the Ollama model name appropriate for the given agent role."""
+        analysis_roles = {"data-scientist", "skill-extractor"}
+        reasoning_roles = {"orchestrator", "judge-agent", "meta-agent", "software-architect"}
+        if role in analysis_roles:
+            return self.analysis_model
+        if role in reasoning_roles:
+            return self.reasoning_model
+        return self.coder_model  # data-engineer, ml-engineer, default
 
     @model_validator(mode="after")
     def validate_escalation_config(self) -> "OAKSettings":

@@ -1,18 +1,19 @@
 __pattern__ = "Observer"
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 
 from api.config import settings
-from api.routers import problems, tasks, agents, skills, telemetry, judge
+from api.dependencies import get_event_bus
+from api.routers import agents, judge, problems, skills, tasks, telemetry
 from api.routers.mailbox import router as mailbox_router
 from api.ws import stream
-from api.dependencies import get_event_bus
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI):
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     get_event_bus()  # Register EventBus subscribers on startup
     yield
 
@@ -37,7 +38,7 @@ app.include_router(stream.router)
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict[str, object]:
     return {
         "status": "healthy",
         "oak_mode": settings.oak_mode,
@@ -61,7 +62,7 @@ async def health():
 
 
 @app.post("/internal/events")
-async def receive_event(request: Request):
+async def receive_event(request: Request) -> dict[str, str]:
     """Hook relay endpoint. Receives AgentEvent from post-tool-use.sh and publishes to EventBus."""
     from api.events.bus import AgentEvent as BusEvent
     body = await request.json()

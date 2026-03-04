@@ -1,12 +1,13 @@
 __pattern__ = "Repository"
 
+from typing import Any
 from uuid import UUID
 
 import asyncpg
 from fastapi import APIRouter, HTTPException, Query
 
 from api.config import settings
-from memory.interfaces import PromotionThresholdNotMet
+from memory.interfaces import PromotionThresholdNotMetError
 from memory.skill_repository import PostgreSQLSkillRepository, _row_to_skill
 
 router = APIRouter(prefix="/api/skills", tags=["skills"])
@@ -18,7 +19,7 @@ async def list_skills(
     category: str | None = Query(default=None),
     status: str = Query(default="permanent"),
     top_k: int = Query(default=10, ge=1, le=50),
-) -> list[dict]:  # noqa: ANN202
+) -> list[dict[str, Any]]:
     repo = PostgreSQLSkillRepository()
     try:
         if query:
@@ -26,7 +27,7 @@ async def list_skills(
         else:
             conn = await asyncpg.connect(settings.database_url)
             try:
-                params: list = [status]
+                params: list[str] = [status]
                 q = "SELECT * FROM skills WHERE status = $1"
                 if category:
                     params.append(category)
@@ -51,14 +52,14 @@ async def list_skills(
 
 
 @router.post("/{skill_id}/promote")
-async def promote_skill(skill_id: UUID) -> dict:  # noqa: ANN202
+async def promote_skill(skill_id: UUID) -> dict[str, str]:
     repo = PostgreSQLSkillRepository()
     try:
         await repo.promote(skill_id)
         return {"status": "promoted", "skill_id": str(skill_id)}
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except PromotionThresholdNotMet as exc:
+    except PromotionThresholdNotMetError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc

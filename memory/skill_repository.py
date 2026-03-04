@@ -5,7 +5,7 @@ from uuid import UUID
 import asyncpg
 
 from api.config import settings
-from memory.interfaces import PromotionThresholdNotMet, Skill, SkillRepository
+from memory.interfaces import PromotionThresholdNotMetError, Skill, SkillRepository
 
 
 class PostgreSQLSkillRepository(SkillRepository):
@@ -53,7 +53,7 @@ class PostgreSQLSkillRepository(SkillRepository):
                 threshold = settings.oak_skill_promo_threshold
                 verified = row["verified_on_problems"] or []
                 if len(verified) < threshold:
-                    raise PromotionThresholdNotMet(
+                    raise PromotionThresholdNotMetError(
                         f"Need {threshold} verified problems, have {len(verified)}"
                     )
                 await conn.execute(

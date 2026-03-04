@@ -1,15 +1,14 @@
 __pattern__ = "StateMachine"
 
-import json
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.connection import get_db
 from api.models import TaskCreate, TaskResponse, TaskStatusUpdate
-from api.state_machines.task import TaskStateMachine, TaskStatus, IllegalTransitionError
+from api.state_machines.task import IllegalTransitionError, TaskStateMachine, TaskStatus
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
@@ -23,9 +22,14 @@ async def create_task(
     blocked_by_strs = [str(uid) for uid in body.blocked_by]
     result = await db.execute(
         text("""
-            INSERT INTO tasks (id, problem_id, title, description, task_type, status, assigned_to, blocked_by)
-            VALUES (:id, :problem_id, :title, :description, :task_type, 'pending', :assigned_to, :blocked_by)
-            RETURNING id, problem_id, title, description, task_type, status, assigned_to, blocked_by, created_at, updated_at
+            INSERT INTO tasks
+            (id, problem_id, title, description, task_type, status, assigned_to,
+            blocked_by)
+            VALUES
+            (:id, :problem_id, :title, :description, :task_type, 'pending',
+            :assigned_to, :blocked_by)
+            RETURNING id, problem_id, title, description, task_type, status, assigned_to,
+            blocked_by, created_at, updated_at
         """),
         {
             "id": str(task_id),
@@ -51,7 +55,8 @@ async def list_tasks(
 ) -> list[TaskResponse]:
     result = await db.execute(
         text("""
-            SELECT id, problem_id, title, description, task_type, status, assigned_to, blocked_by, created_at, updated_at
+            SELECT id, problem_id, title, description, task_type, status, assigned_to,
+            blocked_by, created_at, updated_at
             FROM tasks WHERE problem_id = :problem_id ORDER BY created_at
         """),
         {"problem_id": str(problem_id)},
@@ -83,12 +88,13 @@ async def update_task_status(
     try:
         sm.transition(TaskStatus(body.status.value))
     except IllegalTransitionError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
     updated = await db.execute(
         text("""
             UPDATE tasks SET status = :status, updated_at = NOW() WHERE id = :id
-            RETURNING id, problem_id, title, description, task_type, status, assigned_to, blocked_by, created_at, updated_at
+            RETURNING id, problem_id, title, description, task_type, status, assigned_to,
+            blocked_by, created_at, updated_at
         """),
         {"status": sm.state.value, "id": str(task_id)},
     )

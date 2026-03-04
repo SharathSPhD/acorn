@@ -1,16 +1,16 @@
 __pattern__ = "Repository"
 
 import time
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.connection import get_db
-from api.models import ProblemCreate, ProblemResponse
 from api.dependencies import get_event_bus
-from api.events.bus import EventBus, AgentEvent
+from api.events.bus import AgentEvent, EventBus
+from api.models import ProblemCreate, ProblemResponse
 
 router = APIRouter(prefix="/api/problems", tags=["problems"])
 
@@ -25,9 +25,11 @@ async def create_problem(
     problem_id = uuid4()
     result = await db.execute(
         text("""
-            INSERT INTO problems (id, title, description, status, idempotency_key)
+            INSERT INTO problems
+            (id, title, description, status, idempotency_key)
             VALUES (:id, :title, :description, 'pending', :idempotency_key)
-            RETURNING id, title, description, status, solution_url, idempotency_key, created_at, updated_at
+            RETURNING id, title, description, status, solution_url,
+            idempotency_key, created_at, updated_at
         """),
         {
             "id": str(problem_id),
@@ -56,7 +58,8 @@ async def get_problem(
     """Get problem by ID."""
     result = await db.execute(
         text("""
-            SELECT id, title, description, status, solution_url, idempotency_key, created_at, updated_at
+            SELECT id, title, description, status, solution_url,
+            idempotency_key, created_at, updated_at
             FROM problems WHERE id = :id
         """),
         {"id": str(problem_id)},

@@ -3,13 +3,14 @@ __pattern__ = "Repository"
 
 import json
 import time
+
 from api.models import AgentStatusResponse
 
 try:
     import redis.asyncio as aioredis
     _REDIS_AVAILABLE = True
 except ImportError:
-    aioredis = None  # type: ignore
+    aioredis = None
     _REDIS_AVAILABLE = False
 
 
@@ -25,7 +26,9 @@ class AgentRegistry:
         else:
             self._redis = None
 
-    async def register(self, agent_id: str, role: str, problem_uuid: str = "", container_id: str = "") -> None:
+    async def register(
+        self, agent_id: str, role: str, problem_uuid: str = "", container_id: str = ""
+    ) -> None:
         if self._redis is None:
             return
         key = f"{self.KEY_PREFIX}{agent_id}"

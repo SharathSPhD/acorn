@@ -19,7 +19,8 @@ class RedisWorkingMemoryRepository(WorkingMemoryRepository):
         await self._client.setex(self._key(agent_id, key), self._ttl, value)
 
     async def get(self, agent_id: str, key: str) -> str | None:
-        return await self._client.get(self._key(agent_id, key))
+        result = await self._client.get(self._key(agent_id, key))
+        return result if isinstance(result, str) else None
 
     async def restore_session(self, agent_id: str) -> SessionState:
         prefix = f"oak:session:{agent_id}:"

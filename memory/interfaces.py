@@ -3,22 +3,21 @@ __pattern__ = "Repository"
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 
 @dataclass
 class Episode:
     id: UUID
-    problem_id: Optional[UUID]
+    problem_id: UUID | None
     agent_id: str
     event_type: str
     content: str
-    embedding: Optional[list[float]] = None
+    embedding: list[float] | None = None
     retrieved_count: int = 0
-    last_retrieved_at: Optional[datetime] = None
-    archived_at: Optional[datetime] = None
-    created_at: Optional[datetime] = None
+    last_retrieved_at: datetime | None = None
+    archived_at: datetime | None = None
+    created_at: datetime | None = None
 
 
 @dataclass
@@ -28,14 +27,14 @@ class Skill:
     category: str
     description: str
     trigger_keywords: list[str] = field(default_factory=list)
-    embedding: Optional[list[float]] = None
+    embedding: list[float] | None = None
     status: str = "probationary"
     use_count: int = 0
     verified_on_problems: list[UUID] = field(default_factory=list)
-    filesystem_path: Optional[str] = None
-    deprecated_reason: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    filesystem_path: str | None = None
+    deprecated_reason: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 @dataclass
@@ -44,7 +43,7 @@ class SessionState:
     keys: dict[str, str] = field(default_factory=dict)
 
 
-class PromotionThresholdNotMet(Exception):
+class PromotionThresholdNotMetError(Exception):
     pass
 
 

@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 from datetime import datetime
 from memory.skill_repository import PostgreSQLSkillRepository
-from memory.interfaces import PromotionThresholdNotMet
+from memory.interfaces import PromotionThresholdNotMetError
 
 
 @pytest.mark.asyncio
@@ -75,7 +75,7 @@ async def test_skill_repository__promote__below_threshold__raises_promotion_thre
         mock_conn.fetchrow.return_value = {"verified_on_problems": [uuid4()]}  # Only 1, threshold is 2
 
         repo = PostgreSQLSkillRepository()
-        with pytest.raises(PromotionThresholdNotMet):
+        with pytest.raises(PromotionThresholdNotMetError):
             await repo.promote(skill_id)
 
         mock_conn.close.assert_called_once()

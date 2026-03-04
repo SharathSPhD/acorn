@@ -1,23 +1,22 @@
 __pattern__ = "Repository"
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-
 # ── Enums (matching schema CHECK constraints) ────────────────────────────────
 
-class ProblemStatus(str, Enum):
+class ProblemStatus(StrEnum):
     PENDING = "pending"
     ACTIVE = "active"
     COMPLETE = "complete"
     FAILED = "failed"
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     INGEST = "ingest"
     ANALYSE = "analyse"
     MODEL = "model"
@@ -25,7 +24,7 @@ class TaskType(str, Enum):
     VALIDATE = "validate"
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     PENDING = "pending"
     CLAIMED = "claimed"
     COMPLETE = "complete"
@@ -124,8 +123,8 @@ class TelemetryEventCreate(BaseModel):
     agent_id: str
     event_type: str  # e.g. "tool_called", "agent_spawned", "agent_terminated", "escalation"
     tool_name: str | None = None
-    tool_input: dict | None = None
-    tool_response: dict | None = None
+    tool_input: dict[str, Any] | None = None
+    tool_response: dict[str, Any] | None = None
     duration_ms: int | None = None
     escalated: bool = False
 
@@ -137,7 +136,7 @@ class TelemetryResponse(BaseModel):
     escalation_rate_pct: float  # escalations / total_events * 100
     events_by_type: dict[str, int]
     active_problems: int
-    recent_events: list[dict]  # last 20 events (id, agent_id, event_type, created_at)
+    recent_events: list[dict[str, Any]]  # last 20 events (id, agent_id, event_type, created_at)
 
 
 # ── Internal Events (hook relay) ────────────────────────────────────────────

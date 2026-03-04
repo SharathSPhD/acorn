@@ -4,7 +4,7 @@ from uuid import uuid4
 from datetime import datetime
 from fastapi.testclient import TestClient
 from api.main import app
-from memory.interfaces import PromotionThresholdNotMet
+from memory.interfaces import PromotionThresholdNotMetError
 
 
 client = TestClient(app)
@@ -77,7 +77,7 @@ def test_skills_router__promote__threshold_not_met__returns_409():
     with patch("api.routers.skills.PostgreSQLSkillRepository") as mock_repo_class:
         mock_repo = MagicMock()
         mock_repo_class.return_value = mock_repo
-        mock_repo.promote = AsyncMock(side_effect=PromotionThresholdNotMet("Need 2, have 1"))
+        mock_repo.promote = AsyncMock(side_effect=PromotionThresholdNotMetError("Need 2, have 1"))
 
         response = client.post(f"/api/skills/{skill_id}/promote")
 

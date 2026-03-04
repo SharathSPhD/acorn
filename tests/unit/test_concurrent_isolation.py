@@ -71,7 +71,7 @@ async def test_promote__uses_for_update__prevents_double_promotion():
 async def test_promote__threshold_not_met__raises_and_does_not_update():
     """promote() under threshold raises PromotionThresholdNotMet and never calls UPDATE."""
     from memory.skill_repository import PostgreSQLSkillRepository
-    from memory.interfaces import PromotionThresholdNotMet
+    from memory.interfaces import PromotionThresholdNotMetError
 
     skill_id = uuid4()
     mock_conn = AsyncMock()
@@ -88,7 +88,7 @@ async def test_promote__threshold_not_met__raises_and_does_not_update():
         mock_settings.oak_skill_promo_threshold = 2
 
         repo = PostgreSQLSkillRepository("postgresql://localhost/oak")
-        with pytest.raises(PromotionThresholdNotMet):
+        with pytest.raises(PromotionThresholdNotMetError):
             await repo.promote(skill_id)
 
     mock_conn.execute.assert_not_called()

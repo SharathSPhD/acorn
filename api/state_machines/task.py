@@ -1,10 +1,10 @@
 __pattern__ = "StateMachine"
 
-from enum import Enum
-from typing import Callable
+from collections.abc import Callable
+from enum import StrEnum
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     PENDING  = "pending"
     CLAIMED  = "claimed"
     COMPLETE = "complete"
@@ -25,8 +25,11 @@ class IllegalTransitionError(Exception):
 
 
 class TaskStateMachine:
-    def __init__(self, initial: TaskStatus,
-                 on_transition: Callable[[TaskStatus, TaskStatus], None] | None = None):
+    def __init__(
+        self,
+        initial: TaskStatus,
+        on_transition: Callable[[TaskStatus, TaskStatus], None] | None = None,
+    ) -> None:
         self._state = initial
         self._on_transition = on_transition
 

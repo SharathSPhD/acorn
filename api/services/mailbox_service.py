@@ -3,7 +3,6 @@ __pattern__ = "Repository"
 
 import json
 import time
-from uuid import UUID
 
 try:
     import redis.asyncio as aioredis

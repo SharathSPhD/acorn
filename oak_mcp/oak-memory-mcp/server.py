@@ -5,6 +5,7 @@ __pattern__ = "Repository"
 import asyncio
 import json
 import os
+
 import asyncpg
 import mcp.types as types
 from mcp.server import Server
@@ -27,7 +28,10 @@ async def list_tools() -> list[types.Tool]:
                     "agent_id": {"type": "string"},
                     "problem_uuid": {"type": "string"},
                     "event_type": {"type": "string"},
-                    "embedding": {"type": "array", "items": {"type": "number"}, "description": "Optional 1536-dim embedding"},
+                    "embedding": {
+                        "type": "array", "items": {"type": "number"},
+                        "description": "Optional 1536-dim embedding",
+                    },
                 },
                 "required": ["content", "agent_id", "event_type"],
             },

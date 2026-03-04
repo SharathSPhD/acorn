@@ -3,6 +3,7 @@ __pattern__ = "Strategy"
 
 from abc import ABC, abstractmethod
 
+
 class RoutingStrategy(ABC):
     """Decides, given a request and a local response, which backend to use."""
 
@@ -13,17 +14,21 @@ class RoutingStrategy(ABC):
 
 class PassthroughStrategy(RoutingStrategy):
     """Always returns False. Default in v1 — no escalation, fully local."""
-    async def should_escalate(self, request_body, local_response) -> bool:
+    async def should_escalate(
+        self, request_body: dict, local_response: dict
+    ) -> bool:
         return False
 
 class StallDetectionStrategy(RoutingStrategy):
     """Escalates on empty, too-short, or phrase-triggered responses.
     Enabled only when STALL_DETECTION_ENABLED=true."""
-    def __init__(self, min_tokens: int, stall_phrases: list[str]):
+    def __init__(self, min_tokens: int, stall_phrases: list[str]) -> None:
         self.min_tokens = min_tokens
         self.stall_phrases = stall_phrases
 
-    async def should_escalate(self, request_body, local_response) -> bool:
+    async def should_escalate(
+        self, request_body: dict, local_response: dict
+    ) -> bool:
         text = local_response.get("content", [{}])[0].get("text", "").lower().strip()
         if not text:
             return True
@@ -34,9 +39,11 @@ class StallDetectionStrategy(RoutingStrategy):
 class ConfidenceThresholdStrategy(RoutingStrategy):
     """Escalates when the model's self-reported confidence field drops below threshold.
     Used in mini profile where local model capability is more limited."""
-    def __init__(self, threshold: float):
+    def __init__(self, threshold: float) -> None:
         self.threshold = threshold
 
-    async def should_escalate(self, request_body, local_response) -> bool:
+    async def should_escalate(
+        self, request_body: dict, local_response: dict
+    ) -> bool:
         confidence = local_response.get("confidence", 1.0)
         return confidence < self.threshold

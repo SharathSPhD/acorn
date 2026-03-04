@@ -1,0 +1,326 @@
+# OAK Unified Docker Compose — single file with profiles
+# Usage:
+#   docker compose --profile dgx up      # DGX Spark with GPU + Ollama
+#   docker compose --profile mini up     # Mac Mini M4 with Metal Ollama
+#   docker compose --profile cloud up    # Cloud with vLLM backend
+#
+# Core services (postgres, redis) always run; all others are profile-specific.
+# Each profile includes its own api, api-proxy, ui, and ollama/vllm.
+
+x-oak-harness: &oak-harness-defaults
+  image: oak/harness:latest
+  restart: "no"
+  networks: [oak-net]
+  environment:
+    ANTHROPIC_BASE_URL: http://oak-api-proxy:9000
+    ANTHROPIC_AUTH_TOKEN: ollama
+    ANTHROPIC_API_KEY: ""
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
+    REDIS_URL: redis://oak-redis:6379
+    DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
+  volumes:
+    - oak-data:/mnt/oak-data:ro
+    - oak-skills:/mnt/oak-skills:ro
+    - ./scripts/deny-patterns.txt:/workspace/scripts/deny-patterns.txt:ro
+  depends_on:
+    - oak-api-proxy
+    - oak-redis
+    - oak-postgres
+
+services:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Core services — always-on (no profile)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  oak-postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    networks: [oak-net]
+    environment:
+      POSTGRES_USER: oak
+      POSTGRES_PASSWORD: oak
+      POSTGRES_DB: oak
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./api/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  oak-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks: [oak-net]
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # DGX Spark Profile (--profile dgx)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  oak-ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles: ["dgx"]
+
+  oak-api:
+    image: oak/api:latest
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
+      REDIS_URL: redis://oak-redis:6379
+    depends_on:
+      oak-postgres:
+        condition: service_healthy
+      oak-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    profiles: ["dgx"]
+
+  oak-api-proxy:
+    image: oak/api-proxy:latest
+    build:
+      context: ./oak_mcp/oak-api-proxy
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "9000:9000"
+    environment:
+      REDIS_URL: redis://oak-redis:6379
+      OLLAMA_BASE_URL: http://oak-ollama:11434
+      ROUTING_STRATEGY: passthrough
+    depends_on:
+      - oak-redis
+    profiles: ["dgx"]
+
+  oak-ui:
+    image: oak/ui:latest
+    build:
+      context: ./ui
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "8501:8501"
+    environment:
+      OAK_API_URL: http://oak-api:8000
+    depends_on:
+      - oak-api
+    profiles: ["dgx"]
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Mac Mini M4 Profile (--profile mini)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  oak-ollama-mini:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      OLLAMA_NUM_PARALLEL: "2"
+      OLLAMA_MAX_LOADED_MODELS: "2"
+    profiles: ["mini"]
+
+  oak-api-mini:
+    image: oak/api:latest
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
+      REDIS_URL: redis://oak-redis:6379
+      OAK_MODE: mini
+      DEFAULT_MODEL: llama3.2:3b
+      CODER_MODEL: qwen2.5-coder:7b
+      ANALYSIS_MODEL: llama3.2:3b
+      MAX_AGENTS_PER_PROBLEM: "3"
+      MAX_CONCURRENT_PROBLEMS: "1"
+      MAX_HARNESS_CONTAINERS: "4"
+    depends_on:
+      oak-postgres:
+        condition: service_healthy
+      oak-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    profiles: ["mini"]
+
+  oak-api-proxy-mini:
+    image: oak/api-proxy:latest
+    build:
+      context: ./oak_mcp/oak-api-proxy
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "9000:9000"
+    environment:
+      REDIS_URL: redis://oak-redis:6379
+      OLLAMA_BASE_URL: http://oak-ollama-mini:11434
+      ROUTING_STRATEGY: stall
+      STALL_DETECTION_ENABLED: "true"
+      STALL_MIN_TOKENS: "15"
+      LOCAL_CONFIDENCE_THRESHOLD: "0.75"
+    depends_on:
+      - oak-redis
+    profiles: ["mini"]
+
+  oak-ui-mini:
+    image: oak/ui:latest
+    build:
+      context: ./ui
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "8501:8501"
+    environment:
+      OAK_API_URL: http://oak-api-mini:8000
+      OAK_MODE: mini
+    depends_on:
+      - oak-api-mini
+    profiles: ["mini"]
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Cloud GPU Profile (--profile cloud)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  oak-vllm:
+    image: vllm/vllm-openai:latest
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "11434:8000"  # expose on Ollama-compatible port
+    command: ["--model", "Qwen/Qwen2.5-Coder-32B-Instruct", "--served-model-name", "qwen3-coder"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles: ["cloud"]
+
+  oak-api-cloud:
+    image: oak/api:latest
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
+      REDIS_URL: redis://oak-redis:6379
+      OAK_MODE: cloud
+      DEFAULT_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
+      CODER_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
+      ANALYSIS_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
+      MAX_AGENTS_PER_PROBLEM: "5"
+      MAX_CONCURRENT_PROBLEMS: "3"
+      MAX_HARNESS_CONTAINERS: "15"
+      CONCURRENT_PROBLEMS_ENABLED: "true"
+    depends_on:
+      oak-postgres:
+        condition: service_healthy
+      oak-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    profiles: ["cloud"]
+
+  oak-api-proxy-cloud:
+    image: oak/api-proxy:latest
+    build:
+      context: ./oak_mcp/oak-api-proxy
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "9000:9000"
+    environment:
+      REDIS_URL: redis://oak-redis:6379
+      OLLAMA_BASE_URL: http://oak-vllm:8000
+      ROUTING_STRATEGY: passthrough
+    depends_on:
+      - oak-redis
+    profiles: ["cloud"]
+
+  oak-ui-cloud:
+    image: oak/ui:latest
+    build:
+      context: ./ui
+    restart: unless-stopped
+    networks: [oak-net]
+    ports:
+      - "8501:8501"
+    environment:
+      OAK_API_URL: http://oak-api-cloud:8000
+    depends_on:
+      - oak-api-cloud
+    profiles: ["cloud"]
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Harness: spawned on-demand per problem (all profiles, restart: no)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  oak-harness:
+    <<: *oak-harness-defaults
+    profiles: ["dgx", "mini", "cloud"]
+
+networks:
+  oak-net:
+    driver: bridge
+    internal: false  # harness containers get external access blocked at Dockerfile level
+
+volumes:
+  postgres-data:
+  redis-data:
+  oak-data:
+  oak-skills:
+  ollama-models:
