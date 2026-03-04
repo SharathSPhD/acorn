@@ -1,17 +1,17 @@
 """Judge verdict router — Phase 2 gate."""
 __pattern__ = "Observer"
 
+import time
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.db.connection import get_db
 from api.dependencies import get_event_bus
-from api.events.bus import EventBus, AgentEvent
+from api.events.bus import AgentEvent, EventBus
 from api.models import JudgeVerdictCreate, JudgeVerdictResponse
-import time
 
 router = APIRouter(prefix="/api/judge_verdicts", tags=["judge"])
 

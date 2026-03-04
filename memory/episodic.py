@@ -2,13 +2,13 @@ __pattern__ = "Repository"
 
 from uuid import UUID
 
-from memory.interfaces import EpisodicMemoryRepository, Episode
+from memory.interfaces import Episode, EpisodicMemoryRepository
 
 
 class PostgresEpisodicMemoryRepository(EpisodicMemoryRepository):
     """Production: stores episodes in PostgreSQL with pgvector embeddings."""
 
-    def __init__(self, db_url: str):
+    def __init__(self, db_url: str) -> None:
         self._db_url = db_url
 
     async def store(self, episode: Episode) -> UUID:

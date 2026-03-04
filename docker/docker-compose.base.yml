@@ -1,5 +1,8 @@
+# ⚠️ DEPRECATED: This file is now included by the old profile files for backwards compatibility.
+# Use the unified docker/docker-compose.yml with --profile dgx|mini|cloud instead.
+#
 # OAK Base Docker Compose — shared service definitions
-# Do not use directly. Use docker-compose.{dgx,mini,cloud}.yml.
+# Do not use directly. Use docker-compose.{dgx,mini,cloud}.yml (or the new unified file).
 version: "3.9"
 
 x-oak-harness: &oak-harness-defaults

@@ -42,3 +42,8 @@ Thumbs.db
 
 # Git worktrees are managed externally — don't track worktree directories
 # oak-workspaces/ lives at ~/oak-workspaces/, not inside the repo root
+
+# Local-only artifacts — not pushed to remote
+docs/
+.serena/
+PROGRESS.md

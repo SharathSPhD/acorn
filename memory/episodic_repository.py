@@ -21,7 +21,7 @@ class PostgreSQLEpisodicRepository(EpisodicMemoryRepository):
                 episode.problem_id, episode.agent_id, episode.event_type,
                 episode.content, episode.embedding
             )
-            return row["id"]
+            return UUID(row["id"]) if isinstance(row["id"], str) else row["id"]
         finally:
             await conn.close()
 

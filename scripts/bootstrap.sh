@@ -9,14 +9,15 @@ OAK_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 MODE="${1:-dgx}"
 export OAK_MODE="$MODE"
-COMPOSE_FILE="${OAK_ROOT}/docker/docker-compose.${MODE}.yml"
+COMPOSE_FILE="${OAK_ROOT}/docker/docker-compose.yml"
 
 echo "[bootstrap] OAK root : $OAK_ROOT"
 echo "[bootstrap] Mode     : $MODE"
-echo "[bootstrap] Compose  : $COMPOSE_FILE"
+echo "[bootstrap] Compose  : $COMPOSE_FILE (profile: $MODE)"
 
 # --project-directory makes all relative paths in compose files resolve from OAK_ROOT
-DC="docker compose --project-directory ${OAK_ROOT} -f ${COMPOSE_FILE}"
+# --profile enables mode-specific services (dgx, mini, or cloud)
+DC="docker compose --project-directory ${OAK_ROOT} -f ${COMPOSE_FILE} --profile ${MODE}"
 
 # ── Build images ──────────────────────────────────────────────────────────────
 echo "[bootstrap] Building oak/api-proxy ..."
@@ -46,26 +47,54 @@ for i in $(seq 1 30); do
     sleep 2
 done
 
-# ── Start core services ───────────────────────────────────────────────────────
-echo "[bootstrap] Starting oak-api-proxy and oak-api ..."
-$DC up -d oak-api-proxy oak-api
+# ── Start profile-specific services ───────────────────────────────────────────
+# Service names differ per profile
+case "$MODE" in
+    dgx)
+        API_SVC="oak-api"
+        PROXY_SVC="oak-api-proxy"
+        UI_SVC="oak-ui"
+        LLM_SVC="oak-ollama"
+        LLM_CONTAINER="oak-ollama"
+        ;;
+    mini)
+        API_SVC="oak-api-mini"
+        PROXY_SVC="oak-api-proxy-mini"
+        UI_SVC="oak-ui-mini"
+        LLM_SVC="oak-ollama-mini"
+        LLM_CONTAINER="oak-ollama-mini"
+        ;;
+    cloud)
+        API_SVC="oak-api-cloud"
+        PROXY_SVC="oak-api-proxy-cloud"
+        UI_SVC="oak-ui-cloud"
+        LLM_SVC="oak-vllm"
+        LLM_CONTAINER="oak-vllm"
+        ;;
+    *)
+        echo "[error] Unknown mode: $MODE. Use: dgx, mini, or cloud"
+        exit 1
+        ;;
+esac
 
-# ── DGX-specific: Ollama + models ─────────────────────────────────────────────
-if [ "$MODE" = "dgx" ]; then
-    echo "[bootstrap] Starting oak-ollama (GPU) ..."
-    $DC up -d oak-ollama
+echo "[bootstrap] Starting $API_SVC and $PROXY_SVC ..."
+$DC up -d $PROXY_SVC $API_SVC
 
+echo "[bootstrap] Starting $LLM_SVC (LLM backend) ..."
+$DC up -d $LLM_SVC
+
+if [ "$MODE" = "dgx" ] || [ "$MODE" = "mini" ]; then
     echo "[bootstrap] Waiting for Ollama to start ..."
     sleep 10
 
     echo "[bootstrap] Pulling primary models (this may take a while on first run) ..."
-    docker exec oak-ollama ollama pull qwen3-coder || echo "[warn] qwen3-coder pull failed — retry: docker exec oak-ollama ollama pull qwen3-coder"
-    docker exec oak-ollama ollama pull glm-4.7    || echo "[warn] glm-4.7 pull failed"
+    docker exec $LLM_CONTAINER ollama pull qwen3-coder || echo "[warn] qwen3-coder pull failed — retry: docker exec $LLM_CONTAINER ollama pull qwen3-coder"
+    docker exec $LLM_CONTAINER ollama pull glm-4.7    || echo "[warn] glm-4.7 pull failed"
 fi
 
 # ── UI ────────────────────────────────────────────────────────────────────────
-echo "[bootstrap] Starting oak-ui ..."
-$DC up -d oak-ui
+echo "[bootstrap] Starting $UI_SVC ..."
+$DC up -d $UI_SVC
 
 # ── Seed skills DB ────────────────────────────────────────────────────────────
 echo "[bootstrap] Seeding skill library ..."

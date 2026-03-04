@@ -4,12 +4,12 @@ __pattern__ = "Repository"
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.config import OAKSettings
 from api.db.connection import get_db
 from api.dependencies import get_settings
-from api.config import OAKSettings
 from api.models import MailboxMessageCreate, MailboxMessageResponse
 from api.services.mailbox_service import MailboxService
 
@@ -52,7 +52,7 @@ async def get_inbox(
 ) -> list[MailboxMessageResponse]:
     """Return messages for an agent, optionally filtered by problem and read status."""
     filters = ["to_agent = :to_agent"]
-    params: dict = {"to_agent": to_agent}
+    params: dict[str, str] = {"to_agent": to_agent}
     if problem_id:
         filters.append("problem_id = :problem_id")
         params["problem_id"] = str(problem_id)
@@ -60,7 +60,10 @@ async def get_inbox(
         filters.append("read_at IS NULL")
     where = " AND ".join(filters)
     result = await db.execute(
-        text(f"SELECT id, problem_id, from_agent, to_agent, subject, body, read_at, created_at FROM mailbox WHERE {where} ORDER BY created_at DESC"),
+        text(
+            f"SELECT id, problem_id, from_agent, to_agent, subject, body, read_at, "
+            f"created_at FROM mailbox WHERE {where} ORDER BY created_at DESC"
+        ),
         params,
     )
     return [MailboxMessageResponse(**dict(row)) for row in result.mappings()]

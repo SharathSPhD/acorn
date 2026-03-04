@@ -63,16 +63,27 @@ bash scripts/bootstrap.sh        # Full DGX setup: builds harness + proxy, pulls
 ```
 
 ### Docker stack
+Use the unified compose file with profiles:
 ```bash
-# DGX Spark (primary)
-docker compose -f docker/docker-compose.dgx.yml up -d oak-postgres oak-redis oak-ollama oak-api-proxy oak-api oak-ui
+# DGX Spark (primary) — Ollama with NVIDIA GPU
+bash scripts/bootstrap.sh dgx
 
-# Mac Mini M4
-docker compose -f docker/docker-compose.mini.yml up -d ...
+# Mac Mini M4 — Ollama with Metal backend
+bash scripts/bootstrap.sh mini
 
-# Build harness images before first run
+# Cloud — vLLM backend
+bash scripts/bootstrap.sh cloud
+
+# Or manually with compose:
+docker compose --profile dgx up -d    # or --profile mini or cloud
+```
+
+All images are built by `bootstrap.sh`. For manual control:
+```bash
 docker build -t oak/api-proxy:latest ./oak_mcp/oak-api-proxy/
 docker build -t oak/harness:latest ./docker/claude-harness/
+docker build -t oak/api:latest -f ./docker/api/Dockerfile .
+docker build -t oak/ui:latest ./ui/
 ```
 
 ### Start a new problem

@@ -1,3 +1,8 @@
+# ⚠️ DEPRECATED: Use docker/docker-compose.yml with --profile dgx instead
+# This file is kept for backwards compatibility only.
+# Recommended: docker compose -f docker/docker-compose.yml --profile dgx up -d
+# Or use: bash scripts/bootstrap.sh dgx
+
 # OAK DGX Spark profile
 version: "3.9"
 

@@ -1,9 +1,9 @@
 __pattern__ = "ChainOfResponsibility"
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 import pathlib
 import re
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 from api.config import settings
 

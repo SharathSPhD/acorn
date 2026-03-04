@@ -1,5 +1,6 @@
 __pattern__ = "Observer"
 
+
 import asyncpg
 from fastapi import APIRouter, HTTPException
 
@@ -10,7 +11,7 @@ router = APIRouter(prefix="/api/telemetry", tags=["telemetry"])
 
 
 @router.get("", response_model=TelemetryResponse)
-async def get_telemetry():
+async def get_telemetry() -> TelemetryResponse:
     """Return aggregated telemetry metrics from agent_telemetry table."""
     conn = await asyncpg.connect(settings.database_url)
     try:
@@ -68,7 +69,7 @@ async def get_telemetry():
 
 
 @router.post("", status_code=201)
-async def record_event(event: TelemetryEventCreate):
+async def record_event(event: TelemetryEventCreate) -> dict[str, str]:
     """Record a telemetry event from an agent hook (post-tool-use.sh)."""
     conn = await asyncpg.connect(settings.database_url)
     try:

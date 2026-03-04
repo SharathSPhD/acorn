@@ -1,3 +1,8 @@
+# ⚠️ DEPRECATED: Use docker/docker-compose.yml with --profile mini instead
+# This file is kept for backwards compatibility only.
+# Recommended: docker compose -f docker/docker-compose.yml --profile mini up -d
+# Or use: bash scripts/bootstrap.sh mini
+
 # OAK Mac Mini M4 Pro profile
 # Differences from DGX: no GPU reservations, Metal backend (Ollama auto-detects),
 # STALL_DETECTION_ENABLED=true, smaller default models, lower resource caps.

@@ -9,7 +9,7 @@ from fastapi.routing import APIRouter
 try:
     import redis.asyncio as aioredis  # available at runtime inside Docker
 except ImportError:  # pragma: no cover — redis absent only in bare test envs
-    aioredis = None  # type: ignore[assignment]
+    aioredis = None
 
 router = APIRouter()
 

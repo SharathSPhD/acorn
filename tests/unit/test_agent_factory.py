@@ -1,7 +1,8 @@
 """Unit tests for AgentFactory implementations."""
 import pytest
 from unittest.mock import patch, MagicMock
-from api.factories.agent_factory import DGXAgentFactory, AgentSpec, ResourceCapExceeded
+from api.factories.agent_factory import DGXAgentFactory, AgentSpec, ResourceCapExceededError
+from api.config import OAKSettings
 
 
 @pytest.fixture
@@ -44,5 +45,31 @@ def test_agent_factory__launch__raises_on_docker_failure():
     spec = DGXAgentFactory().create("de", "p")
     mock_result = MagicMock(returncode=1, stderr="No such image")
     with patch("subprocess.run", return_value=mock_result):
-        with pytest.raises(ResourceCapExceeded):
+        with pytest.raises(ResourceCapExceededError):
             DGXAgentFactory().launch(spec)
+
+
+def test_agent_factory__launch__passes_model_env_var(mock_docker):
+    spec = DGXAgentFactory().create("ds", "prob-123")
+    spec.model = "glm-4.7"
+    DGXAgentFactory().launch(spec)
+    cmd = mock_docker.call_args[0][0]
+    assert "OAK_MODEL=glm-4.7" in cmd
+
+
+def test_config__model_for_role__coder_roles():
+    s = OAKSettings()
+    assert s.model_for_role("data-engineer") == s.coder_model
+    assert s.model_for_role("ml-engineer") == s.coder_model
+
+
+def test_config__model_for_role__analysis_roles():
+    s = OAKSettings()
+    assert s.model_for_role("data-scientist") == s.analysis_model
+    assert s.model_for_role("skill-extractor") == s.analysis_model
+
+
+def test_config__model_for_role__reasoning_roles():
+    s = OAKSettings()
+    assert s.model_for_role("orchestrator") == s.reasoning_model
+    assert s.model_for_role("judge-agent") == s.reasoning_model

@@ -5,16 +5,21 @@ Never modifies the proxy() function — all routing logic lives in RoutingStrate
 """
 __pattern__ = "Strategy"
 
-import os
-import httpx
 import json
+import os
+
+import httpx
+
 try:
     import redis as _redis_sync  # available at runtime inside Docker
 except ImportError:  # pragma: no cover — redis absent only in bare test envs
     _redis_sync = None  # type: ignore[assignment]
 from fastapi import FastAPI, Request, Response
 from strategies import (
-    PassthroughStrategy, StallDetectionStrategy, ConfidenceThresholdStrategy, RoutingStrategy
+    ConfidenceThresholdStrategy,
+    PassthroughStrategy,
+    RoutingStrategy,
+    StallDetectionStrategy,
 )
 
 app = FastAPI(title="OAK API Proxy", version="0.1.0")
@@ -38,7 +43,12 @@ def _build_strategy() -> RoutingStrategy:
         return PassthroughStrategy()
     cls = _STRATEGY_MAP.get(ROUTING_STRATEGY_NAME, PassthroughStrategy)
     if cls == StallDetectionStrategy:
-        stall_phrases = json.loads(os.environ.get("STALL_PHRASES", '["i cannot","i don\'t know how","i\'m unable","as an ai"]'))
+        stall_phrases = json.loads(
+            os.environ.get(
+                "STALL_PHRASES",
+                '["i cannot","i don\'t know how","i\'m unable","as an ai"]',
+            )
+        )
         return StallDetectionStrategy(min_tokens=STALL_MIN_TOKENS, stall_phrases=stall_phrases)
     if cls == ConfidenceThresholdStrategy:
         threshold = float(os.environ.get("LOCAL_CONFIDENCE_THRESHOLD", "0.8"))
@@ -127,7 +137,7 @@ async def proxy(request: Request, path: str) -> Response:
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict:
     return {
         "status": "healthy",
         "routing_strategy": ROUTING_STRATEGY_NAME,
@@ -138,5 +148,5 @@ async def health():
 
 
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-async def catch_all(request: Request, path: str):
+async def catch_all(request: Request, path: str) -> Response:
     return await proxy(request, path)
