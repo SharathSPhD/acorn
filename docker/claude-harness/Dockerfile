@@ -25,6 +25,11 @@ RUN chmod +x /usr/local/bin/tool-proxy
 COPY scripts/entrypoint.sh /usr/local/bin/oak-entrypoint
 RUN chmod +x /usr/local/bin/oak-entrypoint
 
+# Create non-root user (claude-code refuses --dangerously-skip-permissions as root)
+RUN useradd -m -s /bin/bash oak && \
+    mkdir -p /workspace /mnt/oak-data /mnt/oak-skills && \
+    chown -R oak:oak /workspace /mnt/oak-data /mnt/oak-skills
+
 # Workspace mount point
 WORKDIR /workspace
 VOLUME ["/workspace", "/mnt/oak-data", "/mnt/oak-skills"]
@@ -34,6 +39,8 @@ ENV ANTHROPIC_BASE_URL=http://oak-api-proxy:9000
 ENV ANTHROPIC_AUTH_TOKEN=ollama
 ENV ANTHROPIC_API_KEY="ollama"
 ENV CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+
+USER oak
 
 # Entrypoint: fetch problem details and start Claude Code with initial task
 ENTRYPOINT ["/usr/local/bin/oak-entrypoint"]
