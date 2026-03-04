@@ -29,7 +29,7 @@ def test_spawn__within_all_limits__returns_200():
     mock_spec = MagicMock()
     mock_spec.agent_id = "new-agent-id"
     mock_factory.create.return_value = mock_spec
-    mock_factory.launch.return_value = "container-abc"
+    mock_factory.launch = AsyncMock(return_value="container-abc")
 
     with patch("api.services.agent_registry.AgentRegistry", return_value=mock_registry), \
          patch("api.factories.agent_factory.DGXAgentFactory", return_value=mock_factory):
@@ -104,7 +104,7 @@ def test_spawn__existing_problem_at_concurrent_limit__allowed():
     mock_spec = MagicMock()
     mock_spec.agent_id = "new-agent-id"
     mock_factory.create.return_value = mock_spec
-    mock_factory.launch.return_value = "container-abc"
+    mock_factory.launch = AsyncMock(return_value="container-abc")
 
     with patch("api.services.agent_registry.AgentRegistry", return_value=mock_registry), \
          patch("api.factories.agent_factory.DGXAgentFactory", return_value=mock_factory):

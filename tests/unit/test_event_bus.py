@@ -1,50 +1,80 @@
-"""Unit tests for EventBus."""
-import asyncio
+"""Unit tests for api.events.bus EventBus and subscriber dispatch."""
 import time
-from api.events.bus import EventBus, AgentEvent, EventSubscriber
+
+import pytest
+
+from api.events.bus import AgentEvent, EventBus, EventSubscriber, TelemetrySubscriber
 
 
-class _RecordingSubscriber(EventSubscriber):
-    def __init__(self):
-        self.received: list[AgentEvent] = []
+class _CountingSubscriber(EventSubscriber):
+    def __init__(self) -> None:
+        self.events: list[AgentEvent] = []
 
     async def on_event(self, event: AgentEvent) -> None:
-        self.received.append(event)
+        self.events.append(event)
 
 
-def _make_event(**kwargs) -> AgentEvent:
-    defaults = dict(
-        agent_id="a1",
-        event_type="tool_called",
-        problem_uuid="prob-uuid-001",
+class _FailingSubscriber(EventSubscriber):
+    async def on_event(self, event: AgentEvent) -> None:
+        raise RuntimeError("boom")
+
+
+def _make_event(event_type: str = "test") -> AgentEvent:
+    return AgentEvent(
+        event_type=event_type,
+        agent_id="agent-1",
+        problem_uuid="p-1",
         payload={},
         timestamp_utc=time.time(),
     )
-    defaults.update(kwargs)
-    return AgentEvent(**defaults)
 
 
-def test_event_bus__subscribe__subscriber_added():
+def test_event_bus__subscribe__adds_subscriber():
     bus = EventBus()
-    sub = _RecordingSubscriber()
+    sub = _CountingSubscriber()
     bus.subscribe(sub)
-    assert sub in bus._subscribers
+    assert len(bus._subscribers) == 1
 
 
-def test_event_bus__publish__all_subscribers_notified():
+@pytest.mark.asyncio
+async def test_event_bus__publish__delivers_to_subscriber():
     bus = EventBus()
-    sub1 = _RecordingSubscriber()
-    sub2 = _RecordingSubscriber()
-    bus.subscribe(sub1)
-    bus.subscribe(sub2)
-    event = _make_event()
-    asyncio.get_event_loop().run_until_complete(bus.publish(event))
-    assert len(sub1.received) == 1
-    assert len(sub2.received) == 1
-    assert sub1.received[0] is event
+    sub = _CountingSubscriber()
+    bus.subscribe(sub)
+    await bus.publish(_make_event())
+    assert len(sub.events) == 1
 
 
-def test_event_bus__publish_no_subscribers__no_error():
+@pytest.mark.asyncio
+async def test_event_bus__publish__delivers_to_multiple():
     bus = EventBus()
-    event = _make_event()
-    asyncio.get_event_loop().run_until_complete(bus.publish(event))  # no raise
+    s1, s2 = _CountingSubscriber(), _CountingSubscriber()
+    bus.subscribe(s1)
+    bus.subscribe(s2)
+    await bus.publish(_make_event())
+    assert len(s1.events) == 1
+    assert len(s2.events) == 1
+
+
+@pytest.mark.asyncio
+async def test_event_bus__publish__failing_subscriber_doesnt_block():
+    bus = EventBus()
+    s1 = _FailingSubscriber()
+    s2 = _CountingSubscriber()
+    bus.subscribe(s1)
+    bus.subscribe(s2)
+    await bus.publish(_make_event())
+    assert len(s2.events) == 1
+
+
+@pytest.mark.asyncio
+async def test_telemetry_subscriber__on_event__ignores_unknown_type():
+    sub = TelemetrySubscriber()
+    event = _make_event(event_type="unknown_type")
+    await sub.on_event(event)
+
+
+def test_agent_event__creation():
+    e = _make_event("tool_called")
+    assert e.event_type == "tool_called"
+    assert e.agent_id == "agent-1"

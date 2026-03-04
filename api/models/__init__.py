@@ -65,6 +65,11 @@ class ProblemStatusUpdate(BaseModel):
     status: ProblemStatus
 
 
+class SpawnAgentRequest(BaseModel):
+    role: str
+    task_id: str | None = None
+
+
 # ── Tasks ────────────────────────────────────────────────────────────────────
 
 class TaskCreate(BaseModel):

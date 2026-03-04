@@ -6,12 +6,11 @@ set -euo pipefail
 
 PAYLOAD=$(cat)
 START_MS=${OAK_TOOL_START_MS:-0}
-NOW_MS=$(date +%s%3N 2>/dev/null || echo "0")
+NOW_MS=$(python3 -c "import time; print(int(time.time()*1000))" 2>/dev/null || echo "0")
 DURATION_MS=$(( NOW_MS - START_MS ))
+export DURATION_MS
 
 OAK_API="${OAK_API_URL:-http://oak-api:8000}"
-AGENT_ID="${OAK_AGENT_ID:-unknown}"
-PROBLEM_UUID="${OAK_PROBLEM_UUID:-}"
 
 TELEMETRY=$(python3 - <<'PYEOF' <<< "$PAYLOAD"
 import sys, json, os
@@ -40,8 +39,7 @@ PYEOF
 ) 2>/dev/null || true
 
 if [ -n "$TELEMETRY" ]; then
-    # POST to /api/telemetry — fire-and-forget, never block
-    DURATION_MS=$DURATION_MS curl -s -m 2 -X POST \
+    curl -s -m 2 -X POST \
         "$OAK_API/api/telemetry" \
         -H "Content-Type: application/json" \
         -d "$TELEMETRY" \

@@ -16,7 +16,14 @@ from api.config import OAKSettings
 from api.db.connection import get_db
 from api.dependencies import get_event_bus, get_settings
 from api.events.bus import AgentEvent, EventBus
-from api.models import ProblemCreate, ProblemResponse, ProblemStartResponse, ProblemStatusUpdate
+from api.factories.agent_factory import ResourceCapExceededError, get_agent_factory
+from api.models import (
+    ProblemCreate,
+    ProblemResponse,
+    ProblemStartResponse,
+    ProblemStatusUpdate,
+    SpawnAgentRequest,
+)
 
 router = APIRouter(prefix="/api/problems", tags=["problems"])
 
@@ -72,6 +79,49 @@ async def list_problems(
     return [ProblemResponse(**dict(r)) for r in rows]
 
 
+@router.post("/cleanup")
+async def cleanup_stale_problems(
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, int]:
+    """Find active/assembling problems whose harness containers have exited and mark as failed."""
+    result = await db.execute(
+        text("SELECT id, status FROM problems WHERE status IN ('active', 'assembling')"),
+    )
+    rows = result.mappings().all()
+    cleaned = 0
+
+    for row in rows:
+        container_name = f"oak-harness-{row['id']}"
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "docker", "inspect", "--format", "{{.State.Running}}", container_name,
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, _ = await proc.communicate()
+            running = stdout.decode().strip().lower()
+            if running != "true":
+                await db.execute(
+                    text(
+                        "UPDATE problems SET status = 'failed',"
+                        " updated_at = NOW() WHERE id = :id"
+                    ),
+                    {"id": str(row["id"])},
+                )
+                cleaned += 1
+        except Exception:
+            await db.execute(
+                text(
+                    "UPDATE problems SET status = 'failed',"
+                    " updated_at = NOW() WHERE id = :id"
+                ),
+                {"id": str(row["id"])},
+            )
+            cleaned += 1
+
+    await db.commit()
+    return {"cleaned": cleaned, "total_checked": len(rows)}
+
+
 @router.get("/{problem_id}", response_model=ProblemResponse)
 async def get_problem(
     problem_id: UUID,
@@ -110,11 +160,8 @@ async def start_problem(
     if row["status"] not in ("pending", "failed"):
         raise HTTPException(status_code=409, detail=f"Problem is already {row['status']}")
 
-    oak_root = settings.oak_root
-    workspace_base = settings.oak_workspace_base
-    workspace_path = f"{workspace_base}/problem-{problem_id}"
+    workspace_path = f"{settings.oak_workspace_base}/problem-{problem_id}"
     container_name = f"oak-harness-{problem_id}"
-    oak_network = settings.oak_network
 
     await db.execute(
         text("UPDATE problems SET status = 'active', updated_at = NOW() WHERE id = :id"),
@@ -127,7 +174,7 @@ async def start_problem(
 
     try:
         subprocess.run(
-            ["git", "-C", oak_root, "worktree", "add", "-b",
+            ["git", "-C", settings.oak_root, "worktree", "add", "-b",
              f"oak/problem-{problem_id}", workspace_path, "main"],
             capture_output=True, timeout=30,
         )
@@ -142,30 +189,19 @@ async def start_problem(
     except Exception:
         pass
 
-    cmd = [
-        "docker", "run", "-d",
-        "--name", container_name,
-        "--network", oak_network,
-        "-e", "ANTHROPIC_BASE_URL=http://oak-api-proxy:9000",
-        "-e", "ANTHROPIC_AUTH_TOKEN=ollama",
-        "-e", "ANTHROPIC_API_KEY=ollama",
-        "-e", "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1",
-        "-e", f"OAK_PROBLEM_UUID={problem_id}",
-        "-e", "OAK_API_URL=http://oak-api:8000",
-        "-e", "OAK_MODEL=claude-sonnet-4-6",
-        "-e", "REDIS_URL=redis://oak-redis:6379",
-        "-e", "DATABASE_URL=postgresql://oak:oak@oak-postgres:5432/oak",
-        "-v", f"{workspace_path}:/workspace",
-        "oak/harness:latest",
-    ]
-
-    proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+    factory = get_agent_factory()
+    spec = factory.create(
+        role="orchestrator",
+        problem_uuid=str(problem_id),
+        container_name=container_name,
     )
-    stdout, stderr = await proc.communicate()
+    spec.network = settings.oak_network
+    spec.workspace_path = workspace_path
 
-    if proc.returncode != 0:
-        raise HTTPException(status_code=500, detail=f"Failed to start harness: {stderr.decode()}")
+    try:
+        await factory.launch(spec)
+    except ResourceCapExceededError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to start harness: {e}") from e
 
     await bus.publish(AgentEvent(
         event_type="problem_started",
@@ -182,6 +218,48 @@ async def start_problem(
         workspace_path=workspace_path,
         message=f"Pipeline started in container {container_name}",
     )
+
+
+@router.post("/{problem_id}/spawn-agent")
+async def spawn_agent(
+    problem_id: UUID,
+    body: SpawnAgentRequest,
+    settings: OAKSettings = Depends(get_settings),
+) -> dict[str, str]:
+    """Spawn a specialist agent container for a specific role."""
+    workspace_path = f"{settings.oak_workspace_base}/problem-{problem_id}"
+    container_name = f"oak-{body.role}-{problem_id}"
+
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "docker", "rm", "-f", container_name,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        )
+        await proc.communicate()
+    except Exception:
+        pass
+
+    factory = get_agent_factory()
+    kwargs: dict[str, str] = {"container_name": container_name}
+    if body.task_id:
+        kwargs["task_id"] = body.task_id
+    spec = factory.create(role=body.role, problem_uuid=str(problem_id), **kwargs)
+    spec.network = settings.oak_network
+    spec.workspace_path = workspace_path
+
+    try:
+        container_id = await factory.launch(spec)
+    except ResourceCapExceededError as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to spawn {body.role}: {e}"
+        ) from e
+
+    return {
+        "container_name": container_name,
+        "container_id": container_id,
+        "role": body.role,
+        "model": spec.model,
+    }
 
 
 @router.post("/{problem_id}/upload")
@@ -330,46 +408,3 @@ async def delete_problem(
     )
     await db.execute(text("DELETE FROM problems WHERE id = :id"), {"id": str(problem_id)})
     await db.commit()
-
-
-@router.post("/cleanup")
-async def cleanup_stale_problems(
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, int]:
-    """Find active/assembling problems whose harness containers have exited and mark as failed."""
-    result = await db.execute(
-        text("SELECT id, status FROM problems WHERE status IN ('active', 'assembling')"),
-    )
-    rows = result.mappings().all()
-    cleaned = 0
-
-    for row in rows:
-        container_name = f"oak-harness-{row['id']}"
-        try:
-            proc = await asyncio.create_subprocess_exec(
-                "docker", "inspect", "--format", "{{.State.Running}}", container_name,
-                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-            )
-            stdout, _ = await proc.communicate()
-            running = stdout.decode().strip().lower()
-            if running != "true":
-                await db.execute(
-                    text(
-                        "UPDATE problems SET status = 'failed',"
-                        " updated_at = NOW() WHERE id = :id"
-                    ),
-                    {"id": str(row["id"])},
-                )
-                cleaned += 1
-        except Exception:
-            await db.execute(
-                text(
-                    "UPDATE problems SET status = 'failed',"
-                    " updated_at = NOW() WHERE id = :id"
-                ),
-                {"id": str(row["id"])},
-            )
-            cleaned += 1
-
-    await db.commit()
-    return {"cleaned": cleaned, "total_checked": len(rows)}

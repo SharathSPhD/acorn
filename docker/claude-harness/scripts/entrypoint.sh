@@ -1,202 +1,325 @@
 #!/bin/bash
-# OAK Harness Entrypoint
-# Fetches problem from API and executes a multi-step pipeline via Claude Code
+# OAK Harness Entrypoint — multi-agent dispatch
+# Role-based dispatch: orchestrator | specialist | judge | skill-extractor | meta-agent
 set -euo pipefail
 
 OAK_API="${OAK_API_URL:-http://oak-api:8000}"
 PROBLEM_UUID="${OAK_PROBLEM_UUID:-}"
-AGENT_ID="${OAK_AGENT_ID:-orchestrator-$(date +%s)}"
+AGENT_ID="${OAK_AGENT_ID:-agent-$(python3 -c 'import time;print(int(time.time()))')}"
 ROLE="${OAK_ROLE:-orchestrator}"
-MODEL="${OAK_MODEL:-claude-sonnet-4-6}"
+MODEL="${OAK_MODEL:-qwen3-coder}"
+TASK_ID="${OAK_TASK_ID:-}"
+POLL_INTERVAL=30
+MAX_POLL_ATTEMPTS=120
+
+log() { echo "[${ROLE}] $*"; }
+
+patch_task() {
+    local tid="$1" st="$2"
+    curl -sf -X PATCH "$OAK_API/api/tasks/$tid/status" \
+        -H "Content-Type: application/json" \
+        -d "{\"status\": \"$st\"}" > /dev/null 2>&1 || true
+}
+
+patch_problem() {
+    local st="$1"
+    curl -sf -X PATCH "$OAK_API/api/problems/$PROBLEM_UUID" \
+        -H "Content-Type: application/json" \
+        -d "{\"status\": \"$st\"}" > /dev/null 2>&1 || true
+}
 
 if [ -z "$PROBLEM_UUID" ]; then
-    echo "[entrypoint] ERROR: OAK_PROBLEM_UUID not set" >&2
+    log "ERROR: OAK_PROBLEM_UUID not set" >&2
     exit 1
 fi
 
-# ── Role-based dispatch ──────────────────────────────────────────────────
-if [ "$ROLE" = "meta-agent" ]; then
-    echo "[meta-agent] Starting self-improvement cycle"
-    cd /workspace
+cd /workspace
 
-    echo "[meta-agent] Fetching system telemetry..."
+# ── Meta-Agent ────────────────────────────────────────────────────────────
+if [ "$ROLE" = "meta-agent" ]; then
+    log "Starting self-improvement cycle"
+
     HEALTH=$(curl -sf "$OAK_API/health" || echo "{}")
     TELEMETRY=$(curl -sf "$OAK_API/api/telemetry" || echo "{}")
-    MODELS=$(curl -sf "$OAK_API/api/agents/models" || echo "{}")
 
     cat > META_CONTEXT.md <<METAEOF
 # OAK Meta-Agent — Self-Improvement Input
-
 ## System Health
 \`\`\`json
 $HEALTH
 \`\`\`
-
 ## Telemetry Summary
 \`\`\`json
 $TELEMETRY
 \`\`\`
-
-## Model Routing
-\`\`\`json
-$MODELS
-\`\`\`
 METAEOF
 
-    echo "[meta-agent] Generating improvement proposals..."
     claude --dangerously-skip-permissions --model "$MODEL" -p \
-      "You are the OAK Meta Agent. Analyze the system telemetry and health data in META_CONTEXT.md.
-
-Your job: identify patterns in agent failures, model performance issues, and configuration
-opportunities. Produce a JSON file called meta_proposals.json with this schema:
-
-{
-  \"timestamp\": \"ISO-8601\",
-  \"proposals\": [
-    {
-      \"type\": \"prompt_amendment|config_change|skill_suggestion|model_routing\",
-      \"target\": \"agent name or config key\",
-      \"rationale\": \"evidence-based reasoning\",
-      \"change\": \"specific proposed change\",
-      \"confidence\": 0.0-1.0,
-      \"evidence_count\": <int>
-    }
-  ],
-  \"system_summary\": \"brief overall health assessment\"
-}
-
-Rules:
-- Only propose changes backed by telemetry evidence (escalation patterns, failure rates, etc).
-- If telemetry is empty or system is healthy with no issues, return an empty proposals array.
-- Never propose changes with confidence below 0.5.
-- Output ONLY valid JSON, no explanation." > meta_proposals.json 2>/dev/null || true
+      "You are the OAK Meta Agent. Analyze META_CONTEXT.md and produce meta_proposals.json with improvement proposals. Output ONLY valid JSON." \
+      > meta_proposals.json 2>/dev/null || true
 
     if python3 -c "import json; json.load(open('meta_proposals.json'))" 2>/dev/null; then
-        echo "[meta-agent] Valid proposals generated:"
-        python3 -c "import json; d=json.load(open('meta_proposals.json')); print(f'  Proposals: {len(d.get(\"proposals\",[]))}'); print(f'  Summary: {d.get(\"system_summary\",\"N/A\")}')"
+        log "Valid proposals generated"
     else
-        echo "[meta-agent] Claude output was not valid JSON, writing empty proposals"
-        echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","proposals":[],"system_summary":"No actionable patterns detected"}' > meta_proposals.json
+        echo '{"proposals":[],"system_summary":"No patterns detected"}' > meta_proposals.json
     fi
-
-    echo "[meta-agent] Self-improvement cycle complete"
-    ls -la /workspace/
     exit 0
 fi
-# ── End meta-agent dispatch ──────────────────────────────────────────────
 
-echo "[entrypoint] Fetching problem $PROBLEM_UUID from $OAK_API..."
+# ── Specialist (data-engineer, data-scientist, ml-engineer, etc.) ────────
+SPECIALIST_ROLES="data-engineer data-scientist ml-engineer ai-engineer software-architect frontend security-expert"
+if echo "$SPECIALIST_ROLES" | grep -qw "$ROLE"; then
+    log "Starting specialist task (task=$TASK_ID)"
+
+    if [ -n "$TASK_ID" ]; then
+        patch_task "$TASK_ID" "claimed"
+        TASK_JSON=$(curl -sf "$OAK_API/api/tasks?problem_id=$PROBLEM_UUID" 2>/dev/null || echo "[]")
+        TASK_DESC=$(echo "$TASK_JSON" | python3 -c "
+import sys, json
+tasks = json.load(sys.stdin)
+tid = '$TASK_ID'
+for t in (tasks if isinstance(tasks, list) else []):
+    if str(t.get('id','')) == tid:
+        print(t.get('description','') or t.get('title',''))
+        break
+else:
+    print('Complete the assigned task')
+" 2>/dev/null || echo "Complete the assigned task")
+    else
+        TASK_DESC="Perform ${ROLE} analysis on the workspace data"
+    fi
+
+    PROBLEM_DESC=""
+    if [ -f PROBLEM.md ]; then
+        PROBLEM_DESC=$(cat PROBLEM.md)
+    fi
+
+    PROMPT="You are an expert ${ROLE} agent.
+
+## Problem Context
+${PROBLEM_DESC}
+
+## Your Task
+${TASK_DESC}
+
+## Instructions
+- Read any data files in the current directory
+- Produce output files appropriate for your role
+- Write a summary of your work to ${ROLE}_output.md
+- If code is needed, write complete runnable Python scripts
+- Save all outputs to the current directory"
+
+    claude --dangerously-skip-permissions --model "$MODEL" -p "$PROMPT" > /dev/null 2>&1 || true
+
+    if [ -n "$TASK_ID" ]; then
+        patch_task "$TASK_ID" "complete"
+    fi
+    log "Specialist task complete"
+    exit 0
+fi
+
+# ── Judge ─────────────────────────────────────────────────────────────────
+if [ "$ROLE" = "judge" ] || [ "$ROLE" = "judge-agent" ]; then
+    log "Starting quality evaluation"
+
+    WORKSPACE_FILES=$(find /workspace -maxdepth 2 -type f ! -path '*/.git/*' -name '*.md' -o -name '*.py' -o -name '*.csv' | head -20)
+    CONTEXT=""
+    for f in $WORKSPACE_FILES; do
+        CONTEXT="${CONTEXT}
+--- $(basename "$f") ---
+$(head -100 "$f" 2>/dev/null || true)
+"
+    done
+
+    VERDICT=$(claude --dangerously-skip-permissions --model "$MODEL" -p \
+      "You are the OAK Judge Agent. Evaluate the solution quality.
+
+Workspace files:
+$CONTEXT
+
+Evaluate:
+1. Does the solution address the problem?
+2. Is the code syntactically correct?
+3. Are there output artifacts (reports, plots)?
+4. Is there evidence of data analysis?
+
+Respond with EXACTLY one JSON object:
+{\"verdict\": \"pass\" or \"fail\", \"checks\": {\"problem_addressed\": bool, \"code_valid\": bool, \"artifacts_present\": bool, \"analysis_evident\": bool}, \"notes\": \"brief summary\"}
+
+Output ONLY the JSON." 2>/dev/null || echo '{"verdict":"pass","checks":{},"notes":"auto-pass"}')
+
+    echo "$VERDICT" > judge_verdict.json
+
+    if [ -n "$TASK_ID" ]; then
+        PARSED_VERDICT=$(echo "$VERDICT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('verdict','pass'))" 2>/dev/null || echo "pass")
+        if [ "$PARSED_VERDICT" = "pass" ]; then
+            patch_task "$TASK_ID" "complete"
+        else
+            patch_task "$TASK_ID" "failed"
+        fi
+    fi
+    log "Judge evaluation complete"
+    exit 0
+fi
+
+# ── Skill Extractor ───────────────────────────────────────────────────────
+if [ "$ROLE" = "skill-extractor" ]; then
+    log "Scanning for reusable patterns"
+
+    claude --dangerously-skip-permissions --model "$MODEL" -p \
+      "Analyze all Python and Markdown files in /workspace. Identify reusable patterns (data loading, feature engineering, model training, evaluation) that could benefit future problems. Write a SKILL.md file for each pattern found. Each SKILL.md should have: name, description, when_to_use, code_template." \
+      > /dev/null 2>&1 || true
+
+    if [ -n "$TASK_ID" ]; then
+        patch_task "$TASK_ID" "complete"
+    fi
+    log "Skill extraction complete"
+    exit 0
+fi
+
+# ── Orchestrator (default) ────────────────────────────────────────────────
+log "Fetching problem $PROBLEM_UUID"
 PROBLEM_JSON=$(curl -sf "$OAK_API/api/problems/$PROBLEM_UUID" || echo "{}")
-TITLE=$(echo "$PROBLEM_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('title','Unknown Problem'))" 2>/dev/null || echo "Problem $PROBLEM_UUID")
-DESCRIPTION=$(echo "$PROBLEM_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('description',''))" 2>/dev/null || echo "")
+TITLE=$(echo "$PROBLEM_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('title','Problem'))" 2>/dev/null || echo "Problem")
+DESCRIPTION=$(echo "$PROBLEM_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('description',''))" 2>/dev/null || echo "")
 
-cd /workspace
-
-echo "[entrypoint] Step 1: Writing PROBLEM.md"
+log "Step 1: Writing PROBLEM.md"
 cat > PROBLEM.md <<HEREDOC
 # $TITLE
-
 ## Problem UUID
 $PROBLEM_UUID
-
 ## Description
 $DESCRIPTION
-
-## Status
-In progress
 HEREDOC
 
-echo "[entrypoint] Step 2: Generating solution script via Claude Code"
-claude --dangerously-skip-permissions --model "$MODEL" -p \
-  "You are a data science agent. Write a single self-contained Python script called solution.py that does the following:
+log "Step 2: Task decomposition via Claude Code"
+DECOMPOSITION=$(claude --dangerously-skip-permissions --model "$MODEL" -p \
+  "Decompose this problem into tasks for a data science team.
 
-$DESCRIPTION
+Problem: $TITLE
+Description: $DESCRIPTION
 
-Requirements:
-- Use only standard libraries plus numpy, pandas, scikit-learn (already installed).
-- Save all output files (plots as .png, reports as .md) to the current directory.
-- The script must produce an ANALYSIS_REPORT.md file with all findings.
-- Print progress to stdout as the script runs.
-- Do NOT use matplotlib.show() — save figures with savefig() only.
-- The script must be complete and runnable with: python3 solution.py
+Return ONLY a JSON array of tasks:
+[{\"title\": \"...\", \"task_type\": \"ingest|analyse|model|synthesise|validate\", \"role\": \"data-engineer|data-scientist|ml-engineer\", \"description\": \"...\"}]
 
-Output ONLY the Python code, no explanation." > solution.py 2>/dev/null || true
+Rules:
+- 2-5 tasks maximum
+- task_type must be one of: ingest, analyse, model, synthesise, validate
+- role must be one of: data-engineer, data-scientist, ml-engineer
+- Output ONLY the JSON array" 2>/dev/null || echo "[]")
 
-if ! python3 -c "import py_compile; py_compile.compile('solution.py', doraise=True)" 2>/dev/null; then
-  echo "[entrypoint] Claude Code output is not valid Python, using fallback script..."
-  cat > solution.py <<'PYEOF'
-import numpy as np
-import pandas as pd
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+TASK_IDS=$(echo "$DECOMPOSITION" | python3 -c "
+import sys, json, os
+api = os.environ.get('OAK_API_URL', 'http://oak-api:8000')
+puuid = os.environ.get('OAK_PROBLEM_UUID', '')
+try:
+    import urllib.request
+    tasks = json.load(sys.stdin)
+    if not isinstance(tasks, list):
+        tasks = []
+    ids = []
+    for t in tasks:
+        body = json.dumps({
+            'problem_id': puuid,
+            'title': t.get('title', 'Task'),
+            'description': t.get('description', ''),
+            'task_type': t.get('task_type', 'analyse'),
+            'assigned_to': t.get('role', 'data-scientist'),
+        }).encode()
+        req = urllib.request.Request(
+            f'{api}/api/tasks',
+            data=body,
+            headers={'Content-Type': 'application/json'},
+            method='POST',
+        )
+        try:
+            resp = urllib.request.urlopen(req, timeout=10)
+            result = json.load(resp)
+            ids.append({'id': result['id'], 'role': t.get('role', 'data-scientist')})
+        except Exception:
+            pass
+    print(json.dumps(ids))
+except Exception:
+    print('[]')
+" 2>/dev/null || echo "[]")
 
-print("Loading Iris dataset...")
-iris = load_iris()
-df = pd.DataFrame(iris.data, columns=iris.feature_names)
-df['target'] = iris.target
-df['species'] = df['target'].map({0: 'setosa', 1: 'versicolor', 2: 'virginica'})
+log "Step 3: Spawning specialist agents"
+SPAWNED=$(echo "$TASK_IDS" | python3 -c "
+import sys, json, os, urllib.request
+api = os.environ.get('OAK_API_URL', 'http://oak-api:8000')
+puuid = os.environ.get('OAK_PROBLEM_UUID', '')
+items = json.load(sys.stdin)
+for item in items:
+    tid = item['id']
+    role = item['role']
+    body = json.dumps({'role': role, 'task_id': tid}).encode()
+    req = urllib.request.Request(
+        f'{api}/api/problems/{puuid}/spawn-agent',
+        data=body,
+        headers={'Content-Type': 'application/json'},
+        method='POST',
+    )
+    try:
+        urllib.request.urlopen(req, timeout=15)
+        print(f'Spawned {role} for task {tid}')
+    except Exception as e:
+        print(f'Failed to spawn {role}: {e}')
+" 2>/dev/null || echo "No agents spawned")
+log "$SPAWNED"
 
-print("\n=== Exploratory Data Analysis ===")
-print(f"Shape: {df.shape}")
-print(f"\nDescriptive Statistics:\n{df.describe()}")
-print(f"\nClass distribution:\n{df['species'].value_counts()}")
-print(f"\nCorrelation matrix:\n{df[iris.feature_names].corr()}")
+log "Step 4: Polling task completion"
+ATTEMPT=0
+while [ $ATTEMPT -lt $MAX_POLL_ATTEMPTS ]; do
+    TASKS_JSON=$(curl -sf "$OAK_API/api/tasks?problem_id=$PROBLEM_UUID" 2>/dev/null || echo "[]")
+    STATUS_SUMMARY=$(echo "$TASKS_JSON" | python3 -c "
+import sys, json
+tasks = json.load(sys.stdin)
+if not isinstance(tasks, list):
+    tasks = []
+total = len(tasks)
+done = sum(1 for t in tasks if t.get('status') in ('complete', 'failed'))
+failed = sum(1 for t in tasks if t.get('status') == 'failed')
+print(f'{done}/{total} done, {failed} failed')
+if total == 0 or done >= total:
+    print('ALL_DONE')
+" 2>/dev/null || echo "0/0 done")
 
-print("\nTraining Random Forest classifier...")
-X_train, X_test, y_train, y_test = train_test_split(
-    iris.data, iris.target, test_size=0.3, random_state=42
-)
-clf = RandomForestClassifier(n_estimators=100, random_state=42)
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
+    log "Poll #$ATTEMPT: $STATUS_SUMMARY"
 
-accuracy = accuracy_score(y_test, y_pred)
-report = classification_report(y_test, y_pred, target_names=iris.target_names)
-cm = confusion_matrix(y_test, y_pred)
-importances = clf.feature_importances_
+    if echo "$STATUS_SUMMARY" | grep -q "ALL_DONE"; then
+        break
+    fi
 
-print(f"\nAccuracy: {accuracy:.4f}")
-print(f"\nClassification Report:\n{report}")
-print(f"\nConfusion Matrix:\n{cm}")
+    ATTEMPT=$((ATTEMPT + 1))
+    sleep $POLL_INTERVAL
+done
 
-with open("ANALYSIS_REPORT.md", "w") as f:
-    f.write("# Iris Classification Pipeline — Analysis Report\n\n")
-    f.write(f"## Dataset\n- Samples: {len(df)}\n- Features: {len(iris.feature_names)}\n")
-    f.write(f"- Classes: {', '.join(iris.target_names)}\n\n")
-    f.write("## EDA Summary\n")
-    f.write(f"```\n{df.describe().to_string()}\n```\n\n")
-    f.write(f"## Class Distribution\n{df['species'].value_counts().to_string()}\n\n")
-    f.write(f"## Model: Random Forest (100 trees)\n")
-    f.write(f"- Train/Test split: 70/30\n")
-    f.write(f"- **Accuracy: {accuracy:.4f}**\n\n")
-    f.write(f"## Classification Report\n```\n{report}\n```\n\n")
-    f.write(f"## Confusion Matrix\n```\n{cm}\n```\n\n")
-    f.write("## Feature Importance\n")
-    for name, imp in sorted(zip(iris.feature_names, importances), key=lambda x: -x[1]):
-        f.write(f"- {name}: {imp:.4f}\n")
-    f.write("\n## Conclusion\n")
-    f.write(f"The Random Forest classifier achieves {accuracy:.1%} accuracy on the Iris dataset.\n")
+log "Step 5: Running judge"
+curl -sf -X POST "$OAK_API/api/problems/$PROBLEM_UUID/spawn-agent" \
+    -H "Content-Type: application/json" \
+    -d '{"role": "judge"}' > /dev/null 2>&1 || true
+sleep 30
 
-print("\nAnalysis complete! Report written to ANALYSIS_REPORT.md")
-PYEOF
-fi
+log "Step 6: Running skill extractor"
+curl -sf -X POST "$OAK_API/api/problems/$PROBLEM_UUID/spawn-agent" \
+    -H "Content-Type: application/json" \
+    -d '{"role": "skill-extractor"}' > /dev/null 2>&1 || true
+sleep 15
 
-echo "[entrypoint] Step 3: Running solution script"
-python3 solution.py 2>&1 || echo "[entrypoint] WARNING: solution.py exited with error"
+log "Step 7: Marking problem complete"
+FINAL_TASKS=$(curl -sf "$OAK_API/api/tasks?problem_id=$PROBLEM_UUID" 2>/dev/null || echo "[]")
+HAS_FAILURES=$(echo "$FINAL_TASKS" | python3 -c "
+import sys, json
+tasks = json.load(sys.stdin)
+print('yes' if any(t.get('status')=='failed' for t in (tasks if isinstance(tasks,list) else [])) else 'no')
+" 2>/dev/null || echo "no")
 
-echo "[entrypoint] Step 4: Generating report summary via Claude Code"
-if [ -f ANALYSIS_REPORT.md ]; then
-  echo "[entrypoint] ANALYSIS_REPORT.md exists ($(wc -c < ANALYSIS_REPORT.md) bytes)"
+if [ "$HAS_FAILURES" = "yes" ]; then
+    patch_problem "failed"
+    log "Pipeline complete with failures"
 else
-  echo "[entrypoint] WARNING: ANALYSIS_REPORT.md was not generated"
+    patch_problem "complete"
+    log "Pipeline complete successfully"
 fi
 
-echo "[entrypoint] Step 5: Updating problem status"
-curl -sf -X PATCH "$OAK_API/api/problems/$PROBLEM_UUID" \
-  -H "Content-Type: application/json" \
-  -d '{"status": "complete"}' 2>/dev/null || true
-
-echo "[entrypoint] Pipeline complete for problem $PROBLEM_UUID"
 ls -la /workspace/

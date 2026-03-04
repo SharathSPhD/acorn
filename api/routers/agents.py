@@ -57,7 +57,7 @@ async def spawn_agent(
         factory = DGXAgentFactory()
         spec = factory.create(role, str(problem_uuid))
         spec.model = settings.model_for_role(role)
-        container_id = factory.launch(spec)
+        container_id = await factory.launch(spec)
         await registry.register(spec.agent_id, role, str(problem_uuid), container_id)
         return {"agent_id": spec.agent_id, "container_id": container_id, "role": role,
                 "model": spec.model}

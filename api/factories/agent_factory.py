@@ -1,10 +1,12 @@
 """AgentFactory implementations for launching harness containers."""
 __pattern__ = "Factory"
 
-import subprocess
+import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from uuid import uuid4
+
+from api.config import OAKMode, settings
 
 
 class ResourceCapExceededError(Exception):
@@ -22,61 +24,113 @@ class AgentSpec:
     resource_limits: dict[str, str] = field(
         default_factory=lambda: {"memory": "4g", "cpus": "2.0"}
     )
+    network: str = "oak_oak-net"
+    workspace_path: str = ""
+    task_id: str = ""
+    extra_env: dict[str, str] = field(default_factory=dict)
 
 
 class AgentFactory(ABC):
     """Abstract factory for agent session creation."""
 
     @abstractmethod
-    def create(self, role: str, problem_uuid: str) -> AgentSpec:
+    def create(self, role: str, problem_uuid: str, **kwargs: str) -> AgentSpec:
         """Produce an agent spec; does not launch the container."""
 
     @abstractmethod
-    def launch(self, spec: AgentSpec) -> str:
+    async def launch(self, spec: AgentSpec) -> str:
         """Launch the harness container; return container ID."""
 
 
 class DGXAgentFactory(AgentFactory):
     """Concrete factory for DGX Spark profile."""
 
-    def create(self, role: str, problem_uuid: str) -> AgentSpec:
-        return AgentSpec(agent_id=str(uuid4()), role=role, problem_uuid=problem_uuid)
+    def create(self, role: str, problem_uuid: str, **kwargs: str) -> AgentSpec:
+        model = settings.model_for_role(role)
+        spec = AgentSpec(
+            agent_id=kwargs.get("container_name", str(uuid4())),
+            role=role,
+            problem_uuid=problem_uuid,
+            model=model,
+        )
+        if "task_id" in kwargs:
+            spec.task_id = kwargs["task_id"]
+        return spec
 
-    def launch(self, spec: AgentSpec) -> str:
-        cmd = [
+    async def launch(self, spec: AgentSpec) -> str:
+        env_pairs: list[str] = []
+
+        base_env = {
+            "ANTHROPIC_BASE_URL": "http://oak-api-proxy:9000",
+            "ANTHROPIC_AUTH_TOKEN": "ollama",
+            "ANTHROPIC_API_KEY": "ollama",
+            "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+            "OAK_PROBLEM_UUID": spec.problem_uuid,
+            "OAK_AGENT_ID": spec.agent_id,
+            "OAK_ROLE": spec.role,
+            "OAK_API_URL": "http://oak-api:8000",
+            "OAK_MODEL": spec.model,
+            "REDIS_URL": settings.redis_url,
+            "DATABASE_URL": settings.database_url,
+        }
+        if spec.task_id:
+            base_env["OAK_TASK_ID"] = spec.task_id
+
+        base_env.update(spec.extra_env)
+
+        for k, v in base_env.items():
+            env_pairs.extend(["-e", f"{k}={v}"])
+
+        cmd: list[str] = [
             "docker", "run", "-d",
             "--name", spec.agent_id,
+            "--network", spec.network,
             "--memory", spec.resource_limits.get("memory", "4g"),
             "--cpus", spec.resource_limits.get("cpus", "2.0"),
-            "-e", f"OAK_AGENT_ID={spec.agent_id}",
-            "-e", f"OAK_PROBLEM_UUID={spec.problem_uuid}",
-            "-e", f"OAK_ROLE={spec.role}",
-            "-e", "ANTHROPIC_BASE_URL=http://oak-api-proxy:9000",
-            "-e", "ANTHROPIC_AUTH_TOKEN=ollama",
-            "-e", f"OAK_MODEL={spec.model}",
-            spec.harness_image,
+            *env_pairs,
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            raise ResourceCapExceededError(result.stderr.strip())
-        return result.stdout.strip()
+
+        if spec.workspace_path:
+            cmd.extend(["-v", f"{spec.workspace_path}:/workspace"])
+
+        cmd.append(spec.harness_image)
+
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+
+        if proc.returncode != 0:
+            raise ResourceCapExceededError(stderr.decode().strip())
+        return stdout.decode().strip()
 
 
 class MiniAgentFactory(AgentFactory):
     """Concrete factory for Mac Mini M4 profile. Phase 4."""
 
-    def create(self, role: str, problem_uuid: str) -> AgentSpec:
+    def create(self, role: str, problem_uuid: str, **kwargs: str) -> AgentSpec:
         raise NotImplementedError("Phase 4")
 
-    def launch(self, spec: AgentSpec) -> str:
+    async def launch(self, spec: AgentSpec) -> str:
         raise NotImplementedError("Phase 4")
 
 
 class CloudAgentFactory(AgentFactory):
     """Concrete factory for cloud GPU profile. Phase 5."""
 
-    def create(self, role: str, problem_uuid: str) -> AgentSpec:
+    def create(self, role: str, problem_uuid: str, **kwargs: str) -> AgentSpec:
         raise NotImplementedError("Phase 5")
 
-    def launch(self, spec: AgentSpec) -> str:
+    async def launch(self, spec: AgentSpec) -> str:
         raise NotImplementedError("Phase 5")
+
+
+def get_agent_factory() -> AgentFactory:
+    """Return the appropriate factory for the current OAK_MODE."""
+    if settings.oak_mode == OAKMode.MINI:
+        return MiniAgentFactory()
+    if settings.oak_mode == OAKMode.CLOUD:
+        return CloudAgentFactory()
+    return DGXAgentFactory()
