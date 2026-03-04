@@ -1,9 +1,10 @@
 """OAK Hub — Page 02: Live Agent Status."""
+import os
 import streamlit as st
 import httpx
 import time
 
-API_BASE = "http://localhost:8000"
+API_BASE = os.environ.get("OAK_API_URL", "http://localhost:8000")
 
 st.set_page_config(page_title="Agent Status — OAK Hub", layout="wide")
 st.title("🤖 Live Agent Status")

@@ -1,9 +1,9 @@
 FROM python:3.11-slim
 WORKDIR /app
 
-# System deps for asyncpg (C extension) and healthcheck curl
+# System deps for asyncpg, healthcheck, git worktrees, and harness launch
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc libpq-dev curl \
+    gcc libpq-dev curl git docker.io \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies

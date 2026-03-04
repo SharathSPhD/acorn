@@ -1,8 +1,9 @@
 """OAK Hub — Page 05: Agent Telemetry."""
+import os
 import streamlit as st
 import httpx
 
-API_BASE = "http://localhost:8000"
+API_BASE = os.environ.get("OAK_API_URL", "http://localhost:8000")
 
 st.set_page_config(page_title="Telemetry — OAK Hub", layout="wide")
 st.title("📊 Agent Telemetry")
@@ -33,7 +34,7 @@ try:
     else:
         st.error(f"Health check failed: {health_resp.status_code}")
 except httpx.ConnectError:
-    st.error("Cannot connect to OAK API at http://localhost:8000. Is the stack running?")
+    st.error("Cannot connect to OAK API. Is the stack running?")
 
 st.divider()
 # Telemetry data from API (Phase 3+)

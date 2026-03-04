@@ -1,9 +1,18 @@
-"""OAK Hub — Page 03: Problem Gallery."""
-import streamlit as st
-import httpx
-import pandas as pd
+"""OAK Hub — Problem Gallery."""
+import os
 
-API_BASE = "http://localhost:8000"
+import httpx
+import streamlit as st
+
+API_BASE = os.environ.get("OAK_API_URL", "http://localhost:8000")
+
+STATUS_COLORS = {
+    "pending": "🔘",
+    "assembling": "🔵",
+    "active": "🟢",
+    "complete": "✅",
+    "failed": "🔴",
+}
 
 st.set_page_config(page_title="Problem Gallery — OAK Hub", layout="wide")
 st.title("Problem Gallery")
@@ -13,20 +22,35 @@ try:
     if resp.status_code == 200:
         problems = resp.json()
         if not problems:
-            st.info("No problems submitted yet. Go to Submit to create one.")
+            st.info("No problems submitted yet. Go to **Submit** to create one.")
         else:
-            df = pd.DataFrame(problems)
-            df["id"] = df["id"].astype(str).str[:8] + "..."
-            if "created_at" in df.columns:
-                df["created_at"] = pd.to_datetime(df["created_at"]).dt.strftime("%Y-%m-%d %H:%M")
-            display_cols = [c for c in ["id", "title", "status", "created_at"] if c in df.columns]
-            st.dataframe(df[display_cols], use_container_width=True, hide_index=True)
-
-            st.divider()
-            st.subheader("Details")
             for p in problems:
-                with st.expander(f"{p.get('title', 'Untitled')} — {p.get('status', '?')}"):
-                    st.json(p)
+                status = p.get("status", "?")
+                icon = STATUS_COLORS.get(status, "⬜")
+                col1, col2, col3, col4 = st.columns([0.5, 3, 1, 1.5])
+                with col1:
+                    st.write(icon)
+                with col2:
+                    st.markdown(f"**{p.get('title', 'Untitled')}**")
+                    st.caption(f"`{p['id'][:8]}...` — {p.get('created_at', '?')[:16]}")
+                with col3:
+                    st.write(status.upper())
+                with col4:
+                    if st.button("View", key=f"view_{p['id']}"):
+                        st.session_state["selected_problem"] = p["id"]
+                        st.switch_page("pages/06_problem.py")
+                    if status == "pending":
+                        if st.button("Start", key=f"start_{p['id']}", type="primary"):
+                            try:
+                                start_resp = httpx.post(f"{API_BASE}/api/problems/{p['id']}/start", timeout=60)
+                                if start_resp.status_code == 200:
+                                    st.success("Pipeline started!")
+                                    st.rerun()
+                                else:
+                                    st.error(f"Failed: {start_resp.text}")
+                            except Exception as e:
+                                st.error(str(e))
+                st.divider()
     else:
         st.error(f"API error {resp.status_code}: {resp.text}")
 except httpx.ConnectError:

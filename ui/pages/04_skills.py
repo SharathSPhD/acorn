@@ -1,8 +1,9 @@
 """OAK Hub — Page 04: Skill Library."""
+import os
 import streamlit as st
 import httpx
 
-API_BASE = "http://localhost:8000"
+API_BASE = os.environ.get("OAK_API_URL", "http://localhost:8000")
 
 st.set_page_config(page_title="Skills — OAK Hub", layout="wide")
 st.title("🧠 Skill Library")

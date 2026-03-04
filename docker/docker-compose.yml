@@ -106,6 +106,13 @@ services:
       DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
       REDIS_URL: redis://oak-redis:6379
       META_AGENT_ENABLED: ${META_AGENT_ENABLED:-false}
+      OAK_ROOT: /home/sharaths/projects/oak
+      OAK_WORKSPACE_BASE: /home/sharaths/oak-workspaces
+      OAK_NETWORK: oak_oak-net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /home/sharaths/oak-workspaces:/home/sharaths/oak-workspaces
+      - /home/sharaths/projects/oak:/home/sharaths/projects/oak:ro
     depends_on:
       oak-postgres:
         condition: service_healthy

@@ -1,8 +1,9 @@
 """OAK Hub — Page 01: Submit a new problem."""
+import os
 import streamlit as st
 import httpx
 
-API_BASE = "http://localhost:8000"
+API_BASE = os.environ.get("OAK_API_URL", "http://localhost:8000")
 
 st.set_page_config(page_title="OAK Hub", page_icon="🌳", layout="wide")
 st.title("🌳 OAK — Orchestrated Agent Kernel")
@@ -29,7 +30,7 @@ if submitted and title:
             else:
                 st.error(f"API error {resp.status_code}: {resp.text}")
         except httpx.ConnectError:
-            st.error("Cannot connect to OAK API at http://localhost:8000. Is the stack running?")
+            st.error("Cannot connect to OAK API. Is the stack running?")
 
 st.divider()
 st.caption("Navigate using the sidebar pages →")

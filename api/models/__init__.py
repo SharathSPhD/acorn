@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 class ProblemStatus(StrEnum):
     PENDING = "pending"
+    ASSEMBLING = "assembling"
     ACTIVE = "active"
     COMPLETE = "complete"
     FAILED = "failed"
@@ -50,6 +51,14 @@ class ProblemResponse(BaseModel):
     updated_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+
+class ProblemStartResponse(BaseModel):
+    id: UUID
+    status: str
+    container_name: str
+    workspace_path: str
+    message: str
 
 
 # ── Tasks ────────────────────────────────────────────────────────────────────
