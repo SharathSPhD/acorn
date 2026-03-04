@@ -26,7 +26,7 @@ docker run -d \
     --network "${OAK_NETWORK}" \
     -e ANTHROPIC_BASE_URL=http://oak-api-proxy:9000 \
     -e ANTHROPIC_AUTH_TOKEN=ollama \
-    -e ANTHROPIC_API_KEY="" \
+    -e ANTHROPIC_API_KEY="ollama" \
     -e OAK_PROBLEM_UUID="$PROBLEM_UUID" \
     -e OAK_API_URL=http://oak-api:8000 \
     -v "${WORKTREE_PATH}:/workspace" \

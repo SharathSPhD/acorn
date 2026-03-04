@@ -32,7 +32,7 @@ VOLUME ["/workspace", "/mnt/oak-data", "/mnt/oak-skills"]
 # Environment (values injected at container start via docker-compose)
 ENV ANTHROPIC_BASE_URL=http://oak-api-proxy:9000
 ENV ANTHROPIC_AUTH_TOKEN=ollama
-ENV ANTHROPIC_API_KEY=""
+ENV ANTHROPIC_API_KEY="ollama"
 ENV CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 # Entrypoint: fetch problem details and start Claude Code with initial task

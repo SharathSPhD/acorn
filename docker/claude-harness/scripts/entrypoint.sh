@@ -29,4 +29,4 @@ Your task: Follow the OAK agent lifecycle (RESTORE → ORIENT → SKILL_QUERY �
 Begin now."
 
 echo "[entrypoint] Starting Claude Code orchestrator for problem $PROBLEM_UUID"
-exec tool-proxy claude --dangerously-skip-permissions -p "$INITIAL_PROMPT"
+exec claude --dangerously-skip-permissions -p "$INITIAL_PROMPT"
