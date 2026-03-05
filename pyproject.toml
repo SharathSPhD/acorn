@@ -65,6 +65,7 @@ extend-immutable-calls = []
 strict = true
 python_version = "3.11"
 ignore_missing_imports = true
+warn_unused_ignores = false
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

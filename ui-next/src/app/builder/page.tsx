@@ -212,6 +212,7 @@ export default function BuilderPage() {
                         className="h-2 rounded-full bg-acorn-500 transition-all"
                         style={{ width: `${Math.min(pct, 100)}%` }}
                       />
+                    </div>
                   </div>
                 );
               })}
