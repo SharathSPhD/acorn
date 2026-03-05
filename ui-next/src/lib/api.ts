@@ -98,6 +98,45 @@ export interface WorkspaceFile {
   size: number;
 }
 
+export interface BuilderStatus {
+  status: string;
+  builder_enabled: boolean;
+  circuit_breaker: {
+    state: string;
+    consecutive_failures: number;
+  };
+  current_sprint: number | null;
+  last_sprint_result: {
+    sprint: number;
+    passed: number;
+    failed: number;
+    skills: number;
+    committed: boolean;
+    breaker: string;
+  } | null;
+}
+
+export interface BuilderHistory {
+  sprint_count: number;
+  total_skills: number;
+  total_commits: number;
+  release_count: number;
+  stories_since_release: number;
+  domain_baselines: Record<string, number>;
+  recent_sprints: Array<{
+    sprint_number: number;
+    started_at: string;
+    finished_at: string;
+    problems_submitted: number;
+    problems_passed: number;
+    problems_failed: number;
+    skills_ingested: number;
+    changes_committed: boolean;
+    circuit_breaker_state: string;
+    domain_results: Record<string, unknown>;
+  }>;
+}
+
 // -- API functions --
 
 export const api = {
@@ -172,6 +211,17 @@ export const api = {
     },
     promote: (id: string) =>
       apiFetch<unknown>(`/api/skills/${id}/promote`, { method: "POST" }),
+  },
+
+  builder: {
+    status: () => apiFetch<BuilderStatus>("/api/builder/status"),
+    history: () => apiFetch<BuilderHistory>("/api/builder/history"),
+    startSprint: () =>
+      apiFetch<{ status: string }>("/api/builder/start-sprint", { method: "POST" }),
+    pause: () =>
+      apiFetch<{ status: string }>("/api/builder/pause", { method: "POST" }),
+    resume: () =>
+      apiFetch<{ status: string }>("/api/builder/resume", { method: "POST" }),
   },
 
   telemetry: () => apiFetch<TelemetryData>("/api/telemetry"),

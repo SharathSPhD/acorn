@@ -326,6 +326,46 @@ services:
     profiles: ["cloud"]
 
   # ──────────────────────────────────────────────────────────────────────────
+  # Self-build service (all profiles)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  oak-builder:
+    image: oak/builder:latest
+    build:
+      context: ..
+      dockerfile: docker/builder/Dockerfile
+    restart: unless-stopped
+    networks: [oak-net]
+    environment:
+      OAK_API_URL: http://oak-api:8000
+      REDIS_URL: redis://oak-redis:6379
+      OAK_BUILDER_OLLAMA_URL: http://oak-api-proxy:9000
+      OAK_REPO_PATH: /oak-repo
+      OAK_WORKSPACE_BASE: /workspaces
+      OAK_BUILDER_SPRINT_INTERVAL: "${OAK_BUILDER_SPRINT_INTERVAL:-3600}"
+      OAK_BUILDER_REST_SECONDS: "${OAK_BUILDER_REST_SECONDS:-900}"
+      OAK_BUILDER_MAX_SPRINTS: "${OAK_BUILDER_MAX_SPRINTS:-8}"
+      OAK_BUILDER_WALL_LIMIT: "${OAK_BUILDER_WALL_LIMIT:-28800}"
+      OAK_BUILDER_CB_THRESHOLD: "${OAK_BUILDER_CB_THRESHOLD:-4}"
+      OAK_BUILDER_WORKTREE_PATH: /oak-builder-wt
+      OAK_BUILDER_CODER_MODEL: qwen3-coder
+      OAK_BUILDER_REASONING_MODEL: llama3.3:70b
+      OAK_BUILDER_RELEASE_THRESHOLD: "5"
+      GIT_AUTHOR_NAME: oak-builder
+      GIT_AUTHOR_EMAIL: oak@self
+      GIT_COMMITTER_NAME: oak-builder
+      GIT_COMMITTER_EMAIL: oak@self
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${OAK_ROOT}:/oak-repo
+      - ${OAK_WORKSPACE_BASE}:/workspaces
+      - builder-worktree:/oak-builder-wt
+    depends_on:
+      oak-api:
+        condition: service_healthy
+    profiles: ["dgx", "mini", "cloud"]
+
+  # ──────────────────────────────────────────────────────────────────────────
   # Self-healing daemon (all profiles)
   # ──────────────────────────────────────────────────────────────────────────
 
@@ -366,3 +406,4 @@ volumes:
   oak-data:
   oak-skills:
   ollama-models:
+  builder-worktree:

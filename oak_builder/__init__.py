@@ -1,0 +1,1 @@
+__pattern__ = "TemplateMethod"

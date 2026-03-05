@@ -36,8 +36,8 @@ class OAKSettings(BaseSettings):
     anthropic_api_key_real: str = ""          # Used by proxy for escalation
     default_model: str          = "llama3.3:70b"
     coder_model: str            = "qwen3-coder"
-    analysis_model: str         = "glm-4.7"
-    reasoning_model: str        = "llama3.3:70b"   # Orchestration, Judge, Meta
+    analysis_model: str         = "qwen3-coder"
+    reasoning_model: str        = "qwen3-coder"
 
     # -- Routing strategy ---------------------------------------------------------
     routing_strategy: RoutingStrategy = RoutingStrategy.PASSTHROUGH
@@ -76,6 +76,18 @@ class OAKSettings(BaseSettings):
     # -- Observability ------------------------------------------------------------
     telemetry_enabled: bool           = True
     stall_escalation_alert_threshold: float = 0.3   # Alert if > 30% of calls escalate
+
+    # -- Builder (self-build service) ----------------------------------------------
+    builder_enabled: bool              = True
+    builder_sprint_interval: int       = 3600     # 1 hour active sprint
+    builder_rest_seconds: int          = 900      # 15 min rest between sprints
+    builder_max_sprints: int           = 8        # max sprints per session
+    builder_wall_limit: int            = 28800    # 8 hour wall-clock limit
+    builder_release_threshold: int     = 5        # stories before release tag
+    builder_branch_prefix: str         = "self/"
+    builder_cb_threshold: int          = 4
+    builder_worktree_path: str         = "/oak-builder-wt"
+    builder_ollama_url: str            = "http://oak-api-proxy:9000"
 
     # -- Feature flags ------------------------------------------------------------
     skill_extraction_enabled: bool    = True

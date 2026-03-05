@@ -1,5 +1,7 @@
 __pattern__ = "Repository"
 
+import uuid as uuid_mod
+from pathlib import Path
 from typing import Any
 from uuid import UUID
 
@@ -63,3 +65,66 @@ async def promote_skill(skill_id: UUID) -> dict[str, str]:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@router.post("/ingest-workspace/{problem_id}")
+async def ingest_workspace_skills(problem_id: str) -> dict[str, Any]:
+    """Scan a problem workspace for SKILL.md files and ingest as probationary skills."""
+    workspace = Path(settings.oak_workspace_base) / problem_id
+    if not workspace.exists():
+        workspace = Path(settings.oak_workspace_base) / f"self-build-{problem_id[:8]}"
+    if not workspace.exists():
+        raise HTTPException(status_code=404, detail=f"Workspace not found for {problem_id}")
+
+    skill_files = list(workspace.rglob("SKILL.md")) + list(workspace.rglob("skill.md"))
+    if not skill_files:
+        return {"ingested": 0, "message": "No SKILL.md files found"}
+
+    ingested = 0
+    conn = await asyncpg.connect(settings.database_url)
+    try:
+        for sf in skill_files:
+            content = sf.read_text()
+            name, description, category, keywords = _parse_skill_md(content)
+            if not name:
+                continue
+
+            skill_id = uuid_mod.uuid4()
+            await conn.execute(
+                """
+                INSERT INTO skills (id, name, description, category,
+                    trigger_keywords, status, filesystem_path)
+                VALUES ($1, $2, $3, $4, $5, 'probationary', $6)
+                ON CONFLICT (name) DO NOTHING
+                """,
+                skill_id, name, description, category,
+                keywords, str(sf),
+            )
+            ingested += 1
+    finally:
+        await conn.close()
+
+    return {"ingested": ingested, "files_scanned": len(skill_files)}
+
+
+def _parse_skill_md(content: str) -> tuple[str, str, str, list[str]]:
+    """Extract name, description, category, and keywords from a SKILL.md file."""
+    lines = content.strip().split("\n")
+    name = ""
+    description = ""
+    category = "general"
+    keywords: list[str] = []
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("# ") and not name:
+            name = stripped[2:].strip()
+        elif stripped.lower().startswith("category:"):
+            category = stripped.split(":", 1)[1].strip().lower()
+        elif stripped.lower().startswith("keywords:"):
+            kw_str = stripped.split(":", 1)[1].strip()
+            keywords = [k.strip() for k in kw_str.split(",") if k.strip()]
+        elif stripped and not description and not stripped.startswith("#"):
+            description = stripped
+
+    return name, description, category, keywords

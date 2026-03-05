@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.config import settings
 from api.dependencies import get_event_bus
-from api.routers import agents, judge, meta, problems, skills, tasks, telemetry
+from api.routers import agents, builder, judge, meta, problems, skills, tasks, telemetry
 from api.routers.mailbox import router as mailbox_router
 from api.ws import stream
 
@@ -41,6 +41,7 @@ app.include_router(skills.router)
 app.include_router(telemetry.router)
 app.include_router(judge.router)
 app.include_router(meta.router)
+app.include_router(builder.router)
 app.include_router(mailbox_router)
 app.include_router(stream.router)
 
@@ -65,6 +66,7 @@ async def health() -> dict[str, object]:
             "skill_extraction_enabled": settings.skill_extraction_enabled,
             "judge_required": settings.judge_required,
             "meta_agent_enabled": settings.meta_agent_enabled,
+            "builder_enabled": settings.builder_enabled,
         },
         "api_key_present": bool(settings.anthropic_api_key_real),
     }

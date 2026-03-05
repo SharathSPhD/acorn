@@ -95,41 +95,41 @@ sync_stale_problems() {
     fi
 }
 
-LAST_META_RUN=0
-META_COOLDOWN="${OAK_META_COOLDOWN:-3600}"
+LAST_BUILDER_RUN=0
+BUILDER_COOLDOWN="${OAK_BUILDER_COOLDOWN:-3600}"
 
-trigger_meta_agent() {
+trigger_builder() {
     local now
     now=$(date +%s)
-    local elapsed=$((now - LAST_META_RUN))
-    if [ "$elapsed" -lt "$META_COOLDOWN" ]; then
-        log "META: Skipping — last run ${elapsed}s ago (cooldown ${META_COOLDOWN}s)"
+    local elapsed=$((now - LAST_BUILDER_RUN))
+    if [ "$elapsed" -lt "$BUILDER_COOLDOWN" ]; then
+        log "BUILDER: Skipping — last run ${elapsed}s ago (cooldown ${BUILDER_COOLDOWN}s)"
         return
     fi
 
     local health_data
     health_data=$(curl -sf "$OAK_API/health" 2>/dev/null)
     if [ -z "$health_data" ]; then
-        log "META: Cannot reach API, skipping"
+        log "BUILDER: Cannot reach API, skipping"
         return
     fi
 
-    local meta_enabled
-    meta_enabled=$(echo "$health_data" | jq -r '.feature_flags.meta_agent_enabled // false' 2>/dev/null)
+    local builder_enabled
+    builder_enabled=$(echo "$health_data" | jq -r '.feature_flags.builder_enabled // false' 2>/dev/null)
 
-    if [ "$meta_enabled" != "true" ]; then
-        log "META: Disabled via feature flag"
+    if [ "$builder_enabled" != "true" ]; then
+        log "BUILDER: Disabled via feature flag"
         return
     fi
 
-    log "META: Triggering meta-agent for self-improvement..."
-    local spawn_result
-    spawn_result=$(curl -sf -X POST "$OAK_API/api/agents/spawn?role=meta-agent&problem_uuid=00000000-0000-0000-0000-000000000000" 2>/dev/null)
-    if [ $? -eq 0 ] && [ -n "$spawn_result" ]; then
-        log "META: Agent spawned: $spawn_result"
-        LAST_META_RUN=$now
+    log "BUILDER: Triggering self-build sprint..."
+    local trigger_result
+    trigger_result=$(curl -sf -X POST "$OAK_API/api/builder/start-sprint" 2>/dev/null)
+    if [ $? -eq 0 ] && [ -n "$trigger_result" ]; then
+        log "BUILDER: Sprint triggered: $trigger_result"
+        LAST_BUILDER_RUN=$now
     else
-        log "META: Spawn failed (may be at capacity)"
+        log "BUILDER: Trigger failed"
     fi
 }
 
@@ -164,8 +164,8 @@ run_health_cycle() {
     log "Health check done: $issues issues, $active active problems"
 
     if [ "$active" -eq 0 ] && [ "$issues" -eq 0 ]; then
-        log "System idle and healthy — checking meta-agent"
-        trigger_meta_agent
+        log "System idle and healthy — triggering builder"
+        trigger_builder
     fi
 }
 

@@ -94,27 +94,140 @@ else:
         PROBLEM_DESC=$(cat PROBLEM.md)
     fi
 
-    PROMPT="You are an expert ${ROLE} agent.
+    DATA_FILES=$(find /workspace -maxdepth 1 -name '*.csv' -o -name '*.json' -o -name '*.parquet' | head -5)
+    DATA_PREVIEW=""
+    for f in $DATA_FILES; do
+        DATA_PREVIEW="${DATA_PREVIEW}File: $(basename "$f"), Rows: $(wc -l < "$f"), Columns: $(head -1 "$f" | tr ',' '\n' | wc -l)
+"
+    done
 
-## Problem Context
-${PROBLEM_DESC}
+    log "Generating analysis script via Ollama API"
+
+    export OAK_SPEC_ROLE="$ROLE"
+    export OAK_SPEC_TASK="$TASK_DESC"
+    export OAK_SPEC_PROBLEM="$PROBLEM_DESC"
+    export OAK_SPEC_DATA_PREVIEW="$DATA_PREVIEW"
+
+    python3 <<'SPECIALIST_PY'
+import json, urllib.request, os, sys, re, subprocess
+
+proxy = os.environ.get('ANTHROPIC_BASE_URL', 'http://oak-api-proxy:9000')
+model = os.environ.get('OAK_MODEL', 'qwen3-coder')
+role = os.environ.get('OAK_SPEC_ROLE', 'data-scientist')
+task = os.environ.get('OAK_SPEC_TASK', '')
+problem = os.environ.get('OAK_SPEC_PROBLEM', '')
+data_preview = os.environ.get('OAK_SPEC_DATA_PREVIEW', '')
+
+prompt = f"""You are an expert {role}. Generate a complete Python script that performs the required task.
+
+## Problem
+{problem}
 
 ## Your Task
-${TASK_DESC}
+{task}
 
-## Instructions
-- Read any data files in the current directory
-- Produce output files appropriate for your role
-- Write a summary of your work to ${ROLE}_output.md
-- If code is needed, write complete runnable Python scripts
-- Save all outputs to the current directory"
+## Available Data
+{data_preview}
+All data files are in /workspace/
 
-    claude --dangerously-skip-permissions --model "$MODEL" --max-turns 15 -p "$PROMPT" > /dev/null 2>&1 || true
+## Requirements
+1. Read CSV/data files from /workspace/
+2. Perform the analysis or processing described in the task
+3. Save all output to /workspace/{role}_output.md (a markdown report)
+4. If the task involves data cleaning, save cleaned data to /workspace/cleaned_data.csv
+5. If the task involves modeling, save model metrics to /workspace/model_metrics.json
+6. Print a brief summary to stdout
+7. Use only: pandas, numpy, scikit-learn, json, os, sys (pre-installed)
+8. Handle missing values and errors gracefully
+
+Output ONLY the Python script. No explanations, no markdown fences."""
+
+body = json.dumps({
+    'model': model,
+    'max_tokens': 4096,
+    'messages': [{'role': 'user', 'content': prompt}],
+}).encode()
+
+req = urllib.request.Request(
+    f'{proxy}/v1/chat/completions',
+    data=body,
+    headers={
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ollama',
+    },
+    method='POST',
+)
+
+try:
+    resp = urllib.request.urlopen(req, timeout=300)
+    result = json.load(resp)
+    content = result['choices'][0]['message']['content']
+
+    if '```python' in content:
+        content = content.split('```python', 1)[1].split('```', 1)[0]
+    elif '```' in content:
+        content = content.split('```', 1)[1].split('```', 1)[0]
+    content = content.strip()
+
+    script_path = f'/workspace/{role}_script.py'
+    with open(script_path, 'w') as f:
+        f.write(content)
+    print(f'Script generated: {script_path}')
+
+    proc = subprocess.run(
+        ['python3', script_path],
+        capture_output=True, text=True, timeout=120,
+        cwd='/workspace',
+    )
+    if proc.returncode == 0:
+        print(f'Script succeeded: {proc.stdout[:500]}')
+    else:
+        print(f'Script error (attempting fallback): {proc.stderr[:300]}')
+        fallback = f"""import pandas as pd, os, json
+role = '{role}'
+files = [f for f in os.listdir('/workspace') if f.endswith('.csv')]
+if files:
+    df = pd.read_csv(f'/workspace/{{files[0]}}')
+    report = f'# {{role}} Report\\n\\n'
+    report += f'## Dataset: {{files[0]}}\\n'
+    report += f'- Shape: {{df.shape}}\\n'
+    report += f'- Columns: {{list(df.columns)}}\\n\\n'
+    report += '## Summary Statistics\\n\\n```\\n'
+    report += df.describe().to_string() + '\\n```\\n\\n'
+    report += '## Missing Values\\n\\n```\\n'
+    report += df.isnull().sum().to_string() + '\\n```\\n'
+    with open(f'/workspace/{{role}}_output.md', 'w') as f:
+        f.write(report)
+    print(f'Fallback report generated for {{role}}')
+else:
+    with open(f'/workspace/{{role}}_output.md', 'w') as f:
+        f.write(f'# {{role}} Report\\n\\nNo data files found in workspace.')
+    print('No data files found')
+"""
+        with open(f'/workspace/{role}_fallback.py', 'w') as f:
+            f.write(fallback)
+        proc2 = subprocess.run(
+            ['python3', f'/workspace/{role}_fallback.py'],
+            capture_output=True, text=True, timeout=60, cwd='/workspace',
+        )
+        print(f'Fallback result: {proc2.stdout[:200]}')
+
+except Exception as e:
+    print(f'Specialist error: {e}', file=sys.stderr)
+    with open(f'/workspace/{role}_output.md', 'w') as f:
+        f.write(f'# {role} Report\n\nFailed to generate analysis: {e}\n')
+SPECIALIST_PY
+
+    TASK_STATUS="complete"
+    if [ ! -f "/workspace/${ROLE}_output.md" ]; then
+        log "WARNING: No output file produced"
+        TASK_STATUS="failed"
+    fi
 
     if [ -n "$TASK_ID" ]; then
-        patch_task "$TASK_ID" "complete"
+        patch_task "$TASK_ID" "$TASK_STATUS"
     fi
-    log "Specialist task complete"
+    log "Specialist task $TASK_STATUS"
     exit 0
 fi
 

@@ -14,7 +14,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 RUN npm install -g @anthropic-ai/claude-code
 
 # Install Python data science packages used by problem agents
-RUN pip3 install --no-cache-dir pandas requests numpy scikit-learn
+RUN pip3 install --no-cache-dir pandas requests numpy scikit-learn tabulate matplotlib seaborn
 
 # Install oak-session state manager
 COPY scripts/session-state.py /usr/local/bin/oak-session

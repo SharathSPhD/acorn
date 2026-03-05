@@ -37,6 +37,8 @@ class TaskStatus(StrEnum):
 class ProblemCreate(BaseModel):
     title: str
     description: str | None = None
+    source: str = "user"
+    data_paths: list[str] | None = None
     idempotency_key: str | None = None
 
 
@@ -45,6 +47,7 @@ class ProblemResponse(BaseModel):
     title: str
     description: str | None
     status: ProblemStatus
+    source: str = "user"
     solution_url: str | None = None
     idempotency_key: str | None = None
     created_at: datetime

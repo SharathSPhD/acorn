@@ -49,15 +49,16 @@ async def create_problem(
     result = await db.execute(
         text("""
             INSERT INTO problems
-            (id, title, description, status, idempotency_key)
-            VALUES (:id, :title, :description, 'pending', :idempotency_key)
-            RETURNING id, title, description, status, solution_url,
+            (id, title, description, status, source, idempotency_key)
+            VALUES (:id, :title, :description, 'pending', :source, :idempotency_key)
+            RETURNING id, title, description, status, source, solution_url,
             idempotency_key, created_at, updated_at
         """),
         {
             "id": str(problem_id),
             "title": body.title,
             "description": body.description,
+            "source": body.source,
             "idempotency_key": body.idempotency_key,
         },
     )
@@ -80,7 +81,7 @@ async def list_problems(
     """List all problems, newest first."""
     result = await db.execute(
         text("""
-            SELECT id, title, description, status, solution_url,
+            SELECT id, title, description, status, source, solution_url,
             idempotency_key, created_at, updated_at
             FROM problems ORDER BY created_at DESC LIMIT 100
         """),
@@ -140,7 +141,7 @@ async def get_problem(
     """Get problem by ID."""
     result = await db.execute(
         text("""
-            SELECT id, title, description, status, solution_url,
+            SELECT id, title, description, status, source, solution_url,
             idempotency_key, created_at, updated_at
             FROM problems WHERE id = :id
         """),

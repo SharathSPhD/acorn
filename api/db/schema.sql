@@ -6,6 +6,7 @@ CREATE TABLE problems (
     title TEXT NOT NULL,
     description TEXT,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','assembling','active','complete','failed')),
+    source TEXT NOT NULL DEFAULT 'user',
     solution_url TEXT,
     data_manifest JSONB DEFAULT '{}',
     idempotency_key TEXT UNIQUE,

@@ -1,0 +1,317 @@
+{
+  "version": "1.0",
+  "domains": [
+    {
+      "id": "sales",
+      "name": "Sales Analytics",
+      "skill_category": "sales",
+      "canonical_company": "AcmeSaaS",
+      "scenarios": [
+        {
+          "id": "pipeline_forecast",
+          "title": "Sales Pipeline Forecasting",
+          "dataset_type": "crm_pipeline",
+          "description": "Stage-weighted probability x deal value x time-decay forecasting with commit vs best-case vs pipeline breakdown",
+          "columns_required": ["deal_id", "stage", "value", "close_date"],
+          "rows_range": [200, 500]
+        },
+        {
+          "id": "win_loss",
+          "title": "Win/Loss Attribution Analysis",
+          "dataset_type": "deal_history",
+          "description": "Binary classification with SHAP explanations on deal outcomes using deal size, cycle length, competitor presence",
+          "columns_required": ["deal_id", "outcome", "deal_size", "cycle_days"],
+          "rows_range": [300, 500]
+        },
+        {
+          "id": "lead_scoring",
+          "title": "Lead Scoring Model",
+          "dataset_type": "lead_engagement",
+          "description": "Logistic regression or XGBoost with behavioural and firmographic features producing calibrated conversion probability",
+          "columns_required": ["lead_id", "converted", "engagement_score", "company_size"],
+          "rows_range": [400, 500]
+        }
+      ]
+    },
+    {
+      "id": "pricing",
+      "name": "Pricing Analytics",
+      "skill_category": "pricing",
+      "canonical_company": "AcmeRetail",
+      "scenarios": [
+        {
+          "id": "elasticity",
+          "title": "Price Elasticity Modelling",
+          "dataset_type": "price_volume",
+          "description": "Log-log OLS regression for price elasticity coefficients with Bayesian uncertainty quantification",
+          "columns_required": ["sku", "price", "quantity", "date"],
+          "rows_range": [300, 500]
+        },
+        {
+          "id": "margin_waterfall",
+          "title": "Margin Waterfall Analysis",
+          "dataset_type": "transaction_margins",
+          "description": "Revenue to EBITDA decomposition identifying which discount types destroy the most margin",
+          "columns_required": ["transaction_id", "revenue", "cost", "discount_type"],
+          "rows_range": [200, 500]
+        },
+        {
+          "id": "promo_effectiveness",
+          "title": "Promotional Effectiveness",
+          "dataset_type": "promo_calendar",
+          "description": "Difference-in-differences causal lift measurement separating base vs incremental volume",
+          "columns_required": ["sku", "week", "promo_flag", "units_sold"],
+          "rows_range": [200, 400]
+        }
+      ]
+    },
+    {
+      "id": "marketing",
+      "name": "Marketing Analytics",
+      "skill_category": "marketing",
+      "canonical_company": "AcmeSaaS",
+      "scenarios": [
+        {
+          "id": "campaign_attribution",
+          "title": "Multi-Touch Campaign Attribution",
+          "dataset_type": "campaign_touchpoints",
+          "description": "Multi-touch attribution modelling across channels with customer acquisition cost analysis",
+          "columns_required": ["customer_id", "channel", "touchpoint_date", "converted"],
+          "rows_range": [300, 500]
+        },
+        {
+          "id": "ltv_segmentation",
+          "title": "Customer Lifetime Value Segmentation",
+          "dataset_type": "customer_transactions",
+          "description": "LTV modelling with cohort analysis and segmentation for targeted marketing spend allocation",
+          "columns_required": ["customer_id", "transaction_date", "amount", "acquisition_channel"],
+          "rows_range": [400, 500]
+        },
+        {
+          "id": "funnel_conversion",
+          "title": "Funnel Conversion Optimisation",
+          "dataset_type": "funnel_events",
+          "description": "Conversion funnel analysis identifying drop-off points and optimisation opportunities per stage",
+          "columns_required": ["user_id", "event", "stage", "timestamp"],
+          "rows_range": [400, 500]
+        }
+      ]
+    },
+    {
+      "id": "supply_chain",
+      "name": "Supply Chain Analytics",
+      "skill_category": "supply_chain",
+      "canonical_company": "AcmeManufacturing",
+      "scenarios": [
+        {
+          "id": "demand_forecast",
+          "title": "Demand Forecasting Pipeline",
+          "dataset_type": "daily_sales_by_sku",
+          "description": "Time series forecasting with AutoARIMA/NHITS producing P10/P50/P90 probabilistic intervals for safety stock",
+          "columns_required": ["date", "sku", "quantity_sold"],
+          "rows_range": [300, 500]
+        },
+        {
+          "id": "inventory_optimisation",
+          "title": "Inventory Optimisation",
+          "dataset_type": "stock_levels",
+          "description": "Reorder point, safety stock, and EOQ calculation with lead time variability and holding cost analysis",
+          "columns_required": ["sku", "stock_level", "lead_time_days", "daily_demand"],
+          "rows_range": [100, 300]
+        },
+        {
+          "id": "supplier_risk",
+          "title": "Supplier Risk Assessment",
+          "dataset_type": "supplier_performance",
+          "description": "Supplier reliability scoring based on delivery performance, quality defects, and lead time consistency",
+          "columns_required": ["supplier_id", "delivery_date", "promised_date", "defect_rate"],
+          "rows_range": [100, 300]
+        }
+      ]
+    },
+    {
+      "id": "customer",
+      "name": "Customer Analytics",
+      "skill_category": "customer",
+      "canonical_company": "AcmeSaaS",
+      "scenarios": [
+        {
+          "id": "churn_prediction",
+          "title": "Customer Churn Prediction",
+          "dataset_type": "customer_activity",
+          "description": "Survival analysis or classification for churn prediction with feature importance and intervention recommendations",
+          "columns_required": ["customer_id", "churned", "tenure_months", "monthly_usage"],
+          "rows_range": [400, 500]
+        },
+        {
+          "id": "nps_drivers",
+          "title": "NPS Driver Analysis",
+          "dataset_type": "survey_responses",
+          "description": "Identify key drivers of Net Promoter Score using regression and SHAP to prioritise improvement areas",
+          "columns_required": ["respondent_id", "nps_score", "feature_rating", "support_rating"],
+          "rows_range": [200, 400]
+        },
+        {
+          "id": "health_scoring",
+          "title": "Customer Health Scoring",
+          "dataset_type": "product_usage",
+          "description": "Composite health score from product usage, support tickets, and engagement metrics for proactive retention",
+          "columns_required": ["customer_id", "login_count", "feature_usage", "support_tickets"],
+          "rows_range": [200, 400]
+        }
+      ]
+    },
+    {
+      "id": "finance",
+      "name": "Finance Analytics",
+      "skill_category": "finance",
+      "canonical_company": "AcmeManufacturing",
+      "scenarios": [
+        {
+          "id": "cash_flow_forecast",
+          "title": "Cash Flow Forecasting",
+          "dataset_type": "financial_time_series",
+          "description": "VAR or ARIMA-based multi-variate cash flow forecasting with change point detection",
+          "columns_required": ["date", "cash_inflow", "cash_outflow", "revenue"],
+          "rows_range": [100, 300]
+        },
+        {
+          "id": "variance_analysis",
+          "title": "Budget vs Actuals Variance Analysis",
+          "dataset_type": "budget_actuals",
+          "description": "Systematic variance decomposition by segment and cost centre with root cause identification",
+          "columns_required": ["period", "category", "budget", "actual"],
+          "rows_range": [100, 300]
+        },
+        {
+          "id": "profitability_analysis",
+          "title": "Profitability by Segment",
+          "dataset_type": "revenue_cost_allocation",
+          "description": "Multi-dimensional profitability analysis by segment, SKU, and channel with cost allocation",
+          "columns_required": ["segment", "sku", "revenue", "direct_cost", "allocated_cost"],
+          "rows_range": [200, 400]
+        }
+      ]
+    },
+    {
+      "id": "operations",
+      "name": "Operations and Logistics Analytics",
+      "skill_category": "operations",
+      "canonical_company": "AcmeLogistics",
+      "scenarios": [
+        {
+          "id": "route_optimisation",
+          "title": "Delivery Route Optimisation",
+          "dataset_type": "delivery_orders",
+          "description": "Vehicle routing problem using OR-Tools to minimise total distance and time with capacity constraints",
+          "columns_required": ["order_id", "latitude", "longitude", "weight_kg"],
+          "rows_range": [50, 200]
+        },
+        {
+          "id": "sla_adherence",
+          "title": "SLA Adherence Analysis",
+          "dataset_type": "service_records",
+          "description": "SLA compliance analysis identifying patterns in breaches by time, region, and service type",
+          "columns_required": ["ticket_id", "created_at", "resolved_at", "sla_target_hours"],
+          "rows_range": [300, 500]
+        },
+        {
+          "id": "maintenance_prediction",
+          "title": "Equipment Maintenance Prediction",
+          "dataset_type": "sensor_readings",
+          "description": "Predictive maintenance using sensor data to forecast failure probability and optimal maintenance windows",
+          "columns_required": ["equipment_id", "timestamp", "temperature", "vibration"],
+          "rows_range": [300, 500]
+        }
+      ]
+    },
+    {
+      "id": "human_capital",
+      "name": "Human Capital Analytics",
+      "skill_category": "human_capital",
+      "canonical_company": "AcmeSaaS",
+      "scenarios": [
+        {
+          "id": "attrition_risk",
+          "title": "Employee Attrition Risk Model",
+          "dataset_type": "employee_records",
+          "description": "Predict voluntary attrition using tenure, compensation, engagement, and performance data with intervention recommendations",
+          "columns_required": ["employee_id", "departed", "tenure_years", "salary"],
+          "rows_range": [200, 500]
+        },
+        {
+          "id": "hiring_funnel",
+          "title": "Hiring Funnel Analysis",
+          "dataset_type": "recruitment_pipeline",
+          "description": "Conversion rate analysis across hiring stages with time-to-hire metrics and source effectiveness",
+          "columns_required": ["candidate_id", "stage", "source", "days_in_stage"],
+          "rows_range": [300, 500]
+        },
+        {
+          "id": "compensation_benchmark",
+          "title": "Compensation Benchmarking",
+          "dataset_type": "compensation_data",
+          "description": "Market compensation analysis by role, level, and location with equity and retention risk scoring",
+          "columns_required": ["employee_id", "role", "level", "salary", "market_median"],
+          "rows_range": [100, 300]
+        }
+      ]
+    },
+    {
+      "id": "product",
+      "name": "Product Analytics",
+      "skill_category": "product",
+      "canonical_company": "AcmeSaaS",
+      "scenarios": [
+        {
+          "id": "feature_adoption",
+          "title": "Feature Adoption Analysis",
+          "dataset_type": "feature_events",
+          "description": "Track feature adoption curves, identify power users vs dormant features, and measure release impact",
+          "columns_required": ["user_id", "feature", "event_date", "usage_count"],
+          "rows_range": [400, 500]
+        },
+        {
+          "id": "ab_test_evaluation",
+          "title": "A/B Test Evaluation",
+          "dataset_type": "experiment_results",
+          "description": "Statistical evaluation of A/B tests with power analysis, significance testing, and practical significance assessment",
+          "columns_required": ["user_id", "variant", "converted", "metric_value"],
+          "rows_range": [300, 500]
+        },
+        {
+          "id": "retention_curves",
+          "title": "Retention Curve Analysis",
+          "dataset_type": "cohort_activity",
+          "description": "Cohort-based retention analysis with curve fitting to predict long-term retention and identify drop-off patterns",
+          "columns_required": ["user_id", "cohort", "period", "active"],
+          "rows_range": [400, 500]
+        }
+      ]
+    }
+  ],
+  "target_permanent_skills_per_domain": 10,
+  "floor_permanent_skills_per_domain": 3,
+  "canonical_companies": {
+    "AcmeRetail": {
+      "industry": "retail",
+      "size": "mid-market",
+      "description": "2,000 SKUs, 36-month history, 4 competitor price points per SKU"
+    },
+    "AcmeSaaS": {
+      "industry": "saas",
+      "size": "growth-stage",
+      "description": "500 accounts, 18-month history, 3 regions, 12 sales reps"
+    },
+    "AcmeManufacturing": {
+      "industry": "manufacturing",
+      "size": "mid-market",
+      "description": "Multi-site manufacturer with 500 suppliers and 3,000 SKUs"
+    },
+    "AcmeLogistics": {
+      "industry": "logistics",
+      "size": "regional",
+      "description": "Fleet of 50 vehicles, 200 daily deliveries, 3 warehouses"
+    }
+  }
+}
