@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge, Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 
-export default function SkillsPage() {
+export default function KernelsPage() {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -27,9 +27,9 @@ export default function SkillsPage() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Skill Library</h1>
+        <h1 className="page-title">Kernel Grove</h1>
         <p className="page-subtitle">
-          Reusable patterns extracted from solved problems. Skills start as probationary
+          Reusable patterns extracted from solved problems. Kernels start as probationary
           and get promoted to permanent after proving useful across multiple problems.
         </p>
       </div>
@@ -40,7 +40,7 @@ export default function SkillsPage() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search skills..."
+          placeholder="Search kernels..."
           className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-acorn-500 focus:ring-2 focus:ring-acorn-500/20 focus:outline-none w-64"
         />
         <select
@@ -66,40 +66,40 @@ export default function SkillsPage() {
         </select>
       </div>
 
-      {/* Skills grid */}
+      {/* Kernels grid */}
       {kernels.isLoading && <p className="text-sm text-slate-500">Loading kernels...</p>}
 
       {kernels.data && kernels.data.length === 0 && (
         <div className="empty-state">
           <svg className="h-12 w-12 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-          <p className="text-sm font-medium text-slate-600">No skills found</p>
+          <p className="text-sm font-medium text-slate-600">No kernels found</p>
           <p className="text-xs text-slate-400 mt-1">Kernels are extracted automatically after problems are solved.</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {kernels.data?.map((skill) => (
-          <Card key={skill.id}>
+        {kernels.data?.map((kernel) => (
+          <Card key={kernel.id}>
             <CardContent className="py-4">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900">{skill.name}</h3>
+                  <h3 className="text-sm font-semibold text-slate-900">{kernel.name}</h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary">{skill.category}</Badge>
-                    <StatusBadge status={skill.status} />
+                    <Badge variant="secondary">{kernel.category}</Badge>
+                    <StatusBadge status={kernel.status} />
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-slate-900">{skill.use_count}</p>
+                  <p className="text-lg font-bold text-slate-900">{kernel.use_count}</p>
                   <p className="text-[10px] text-slate-400 uppercase tracking-wider">uses</p>
                 </div>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed line-clamp-3 mb-3">
-                {skill.description}
+                {kernel.description}
               </p>
-              {skill.trigger_keywords && skill.trigger_keywords.length > 0 && (
+              {kernel.trigger_keywords && kernel.trigger_keywords.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {skill.trigger_keywords.map((kw) => (
+                  {kernel.trigger_keywords.map((kw: string) => (
                     <span key={kw} className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 font-mono">
                       {kw}
                     </span>
@@ -107,12 +107,12 @@ export default function SkillsPage() {
                 </div>
               )}
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <span className="text-[10px] text-slate-400">{formatDate(skill.created_at)}</span>
-                {skill.status === "probationary" && (
+                <span className="text-[10px] text-slate-400">{formatDate(kernel.created_at)}</span>
+                {kernel.status === "probationary" && (
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => promoteMutation.mutate(skill.id)}
+                    onClick={() => promoteMutation.mutate(kernel.id)}
                     loading={promoteMutation.isPending}
                   >
                     Promote

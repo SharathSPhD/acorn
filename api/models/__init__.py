@@ -35,7 +35,7 @@ class TaskStatus(StrEnum):
 # ── Problems ────────────────────────────────────────────────────────────────
 
 class ProblemCreate(BaseModel):
-    title: str
+    title: str = Field(..., min_length=1, max_length=500)
     description: str | None = None
     source: str = "user"
     data_paths: list[str] | None = None
@@ -77,7 +77,7 @@ class SpawnAgentRequest(BaseModel):
 
 class TaskCreate(BaseModel):
     problem_id: UUID
-    title: str
+    title: str = Field(..., min_length=1, max_length=500)
     description: str | None = None
     task_type: TaskType
     assigned_to: str | None = None
@@ -176,10 +176,10 @@ class InternalEvent(BaseModel):
 
 class MailboxMessageCreate(BaseModel):
     problem_id: UUID
-    from_agent: str
-    to_agent: str
+    from_agent: str = Field(..., min_length=1)
+    to_agent: str = Field(..., min_length=1)
     subject: str | None = None
-    body: str
+    body: str = Field(..., min_length=1)
 
 
 class MailboxMessageResponse(BaseModel):
@@ -199,7 +199,7 @@ class MailboxMessageResponse(BaseModel):
 
 class JudgeVerdictCreate(BaseModel):
     task_id: UUID
-    verdict: str  # "pass" | "fail"
+    verdict: str = Field(..., pattern=r"^(pass|fail)$")
     checks: dict[str, Any] = Field(default_factory=dict)
     notes: str | None = None
 
