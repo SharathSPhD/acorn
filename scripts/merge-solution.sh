@@ -4,13 +4,13 @@
 set -euo pipefail
 
 PROBLEM_UUID="${1:?Usage: merge-solution.sh <uuid> <target>}"
-TARGET_BRANCH="${2:-oak/skills}"
-PROBLEM_BRANCH="oak/problem-${PROBLEM_UUID}"
+TARGET_BRANCH="${2:-acorn/kernels}"
+PROBLEM_BRANCH="acorn/problem-${PROBLEM_UUID}"
 
 git fetch origin "$PROBLEM_BRANCH"
 git checkout "$TARGET_BRANCH"
 git merge --squash "origin/$PROBLEM_BRANCH"
-git commit -m "feat(skills): merge problem-${PROBLEM_UUID} solution
+git commit -m "feat(kernels): merge problem-${PROBLEM_UUID} solution
 
 Squash-merge from ${PROBLEM_BRANCH}"
 

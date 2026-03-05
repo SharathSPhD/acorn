@@ -34,6 +34,9 @@ CREATE TABLE tasks (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE INDEX ON tasks (problem_id, status);
+CREATE INDEX ON tasks (assigned_to, status) WHERE assigned_to IS NOT NULL;
+
 CREATE TABLE mailbox (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     problem_id UUID NOT NULL REFERENCES problems(id) ON DELETE CASCADE,
@@ -44,6 +47,9 @@ CREATE TABLE mailbox (
     read_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX ON mailbox (to_agent, read_at NULLS FIRST) WHERE read_at IS NULL;
+CREATE INDEX ON mailbox (problem_id, created_at DESC);
 
 CREATE TABLE episodes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

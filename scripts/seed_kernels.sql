@@ -13,7 +13,7 @@ VALUES
     'judge verdicts, and session state updates.',
     ARRAY['event', 'observer', 'pubsub', 'eventbus', 'subscriber', 'async'],
     'probationary',
-    '/workspace/kernels/probationary/SKILL-event-bus.md'
+    '/workspace/kernels/probationary/KERNEL-event-bus.md'
   ),
   (
     'task-state-machine',
@@ -24,6 +24,6 @@ VALUES
     'Used by the Orchestrator to track task progress.',
     ARRAY['task', 'state', 'statemachine', 'lifecycle', 'transition', 'orchestrator'],
     'probationary',
-    '/workspace/kernels/probationary/SKILL-task-state-machine.md'
+    '/workspace/kernels/probationary/KERNEL-task-state-machine.md'
   )
 ON CONFLICT (name) DO NOTHING;

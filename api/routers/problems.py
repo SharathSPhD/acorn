@@ -257,7 +257,7 @@ async def spawn_agent(
         )
         await proc.communicate()
     except Exception:
-        pass
+        logger.debug("Old container %s not present, continuing", container_name)
 
     factory = get_agent_factory()
     kwargs: dict[str, str] = {"container_name": container_name}
@@ -422,7 +422,7 @@ async def delete_problem(
         )
         await proc.communicate()
     except Exception:
-        pass
+        logger.debug("Container %s cleanup skipped", container_name)
 
     workspace_path = f"{settings.acorn_workspace_base}/problem-{problem_id}"
     try:
@@ -432,7 +432,7 @@ async def delete_problem(
         )
         await asyncio.wait_for(proc.communicate(), timeout=10)
     except Exception:
-        pass
+        logger.debug("Worktree %s cleanup skipped", workspace_path)
     try:
         proc = await asyncio.create_subprocess_exec(
             "git", "branch", "-D", f"acorn/problem-{problem_id}",
@@ -440,7 +440,7 @@ async def delete_problem(
         )
         await asyncio.wait_for(proc.communicate(), timeout=10)
     except Exception:
-        pass
+        logger.debug("Branch acorn/problem-%s cleanup skipped", problem_id)
     shutil.rmtree(workspace_path, ignore_errors=True)
 
     await db.execute(text("DELETE FROM tasks WHERE problem_id = :id"), {"id": str(problem_id)})
