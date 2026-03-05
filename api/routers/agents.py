@@ -3,7 +3,7 @@ __pattern__ = "Factory"
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from api.config import AcornSettings
 from api.dependencies import get_settings
@@ -40,11 +40,11 @@ async def spawn_agent(
     registry = AgentRegistry(str(settings.redis_url))
     all_agents = await registry.get_all()
 
-    # Enforce MAX_HARNESS_CONTAINERS
+    # Enforce MAX_HARNESS_CONTAINERS (C4: Resource Respect — hard ceiling, HTTP 429)
     if len(all_agents) >= settings.max_harness_containers:
         raise HTTPException(
-            status_code=503,
-            detail=f"MAX_HARNESS_CONTAINERS ({settings.max_harness_containers}) reached",
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"C4 Resource Respect: MAX_HARNESS_CONTAINERS ({settings.max_harness_containers}) reached",  # noqa: E501
         )
 
     # Enforce MAX_AGENTS_PER_PROBLEM

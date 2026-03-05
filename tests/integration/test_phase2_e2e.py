@@ -18,6 +18,7 @@ def _mock_db_session():
     mock_result.mappings.return_value.one.return_value = {}
     mock_result.mappings.return_value.first.return_value = None
     mock_result.mappings.return_value.__iter__ = MagicMock(return_value=iter([]))
+    mock_result.scalar_one.return_value = 0  # required for >= comparisons in Python 3.12
     session.execute.return_value = mock_result
     session.commit.return_value = None
     return session

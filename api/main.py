@@ -23,7 +23,7 @@ from api.ws import stream
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     import asyncio
     get_event_bus()  # Register EventBus subscribers on startup
-    if settings.cortex_enabled:
+    if settings.cortex_autostart:
         from api.services.cortex import get_cortex
         cortex = get_cortex()
         cortex._task = asyncio.create_task(cortex.run())

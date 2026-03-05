@@ -5,6 +5,9 @@ ACORN_API="${ACORN_API_URL:-http://acorn-api:8000}"
 POLL_INTERVAL="${ACORN_WARDEN_POLL_INTERVAL:-60}"
 META_COOLDOWN="${ACORN_META_COOLDOWN:-3600}"
 ACORN_MODE="${ACORN_MODE:-dgx}"
+CORTEX_AUTOSTART="${CORTEX_AUTOSTART:-true}"
+META_SCHEDULE_PROBLEMS="${ACORN_META_SCHEDULE_PROBLEMS:-10}"
+EPISODE_CONSOLIDATION_THRESHOLD="${ACORN_EPISODE_THRESHOLD:-100}"
 
 log() { echo "[warden $(date -Iseconds)] $*"; }
 
@@ -65,6 +68,60 @@ check_service_health() {
     done
 }
 
+check_cortex_health() {
+    # If CORTEX_AUTOSTART is enabled, ensure the cognitive kernel is running.
+    # The API lifespan starts it; if the API restarted without CORTEX+, POST to restart.
+    if [ "$CORTEX_AUTOSTART" != "true" ]; then
+        return
+    fi
+    local status_resp
+    status_resp=$(curl -sf "$ACORN_API/api/cortex/status" 2>/dev/null || echo "")
+    if echo "$status_resp" | grep -q '"running":false'; then
+        log "CORTEX+ is stopped. Sending restart request..."
+        curl -sf -X POST "$ACORN_API/api/cortex/start" \
+            -H "Content-Type: application/json" \
+            -d '{"source":"warden"}' > /dev/null 2>&1 || true
+    fi
+}
+
+check_meta_agent_schedule() {
+    # Track completed problems and trigger meta-agent after every N completions.
+    local completed
+    completed=$(curl -sf "$ACORN_API/api/problems" 2>/dev/null | \
+        python3 -c "import sys,json; d=json.load(sys.stdin); print(sum(1 for p in d if p.get('status')=='complete'))" 2>/dev/null || echo "0")
+    local modulo
+    modulo=$((completed % META_SCHEDULE_PROBLEMS))
+    if [ "$completed" -gt 0 ] && [ "$modulo" -eq 0 ]; then
+        local meta_flag="/tmp/acorn_meta_triggered_${completed}"
+        if [ ! -f "$meta_flag" ]; then
+            log "Triggering meta-agent: $completed problems completed."
+            curl -sf -X POST "$ACORN_API/api/problems" \
+                -H "Content-Type: application/json" \
+                -d "{\"title\":\"WARDEN: meta-analysis at $completed problems\",\"description\":\"Analyse agent performance, reward distributions, and prompt effectiveness across the last $META_SCHEDULE_PROBLEMS completed problems. Open amendment PRs for underperforming roles.\",\"source\":\"warden\"}" \
+                > /dev/null 2>&1 || true
+            touch "$meta_flag"
+        fi
+    fi
+}
+
+check_episode_consolidation() {
+    # Trigger episodic memory consolidation when episodes exceed threshold.
+    # This extracts recurring patterns and writes KERNEL.md candidates to probationary grove.
+    local episode_count
+    episode_count=$(curl -sf "$ACORN_API/api/telemetry/episode-count" 2>/dev/null | \
+        python3 -c "import sys,json; print(json.load(sys.stdin).get('count', 0))" 2>/dev/null || echo "0")
+    if [ "$episode_count" -ge "$EPISODE_CONSOLIDATION_THRESHOLD" ]; then
+        local flag="/tmp/acorn_consolidation_${episode_count}"
+        if [ ! -f "$flag" ]; then
+            log "Triggering episodic consolidation: $episode_count episodes."
+            curl -sf -X POST "$ACORN_API/api/memory/consolidate" \
+                -H "Content-Type: application/json" \
+                -d '{"domain":"all","source":"warden"}' > /dev/null 2>&1 || true
+            touch "$flag"
+        fi
+    fi
+}
+
 report_telemetry() {
     local running
     running=$(docker ps --filter "name=acorn-harness-" --format "{{.Names}}" 2>/dev/null | wc -l)
@@ -87,6 +144,9 @@ while true; do
 
     check_harness_health
     check_service_health
+    check_cortex_health
+    check_meta_agent_schedule
+    check_episode_consolidation
     report_telemetry
 
     log "Cycle $cycle complete. Sleeping ${POLL_INTERVAL}s."

@@ -1,6 +1,6 @@
-"""Integration test for the skill extraction → promotion loop.
+"""Integration test for the kernel extraction → promotion loop.
 
-Proves: problem completes → judge issues PASS → skill stored (probationary)
+Proves: problem completes → judge issues PASS → kernel stored (probationary)
 → verified on 2+ problems → promote() transitions to permanent.
 
 Uses mocked DB to avoid requiring a real PostgreSQL instance.
@@ -15,9 +15,9 @@ from memory.kernel_repository import PostgreSQLKernelRepository
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_skill_extraction_loop__full_lifecycle():
-    """End-to-end: store probationary skill → verify on problems → promote to permanent."""
-    skill_id = uuid4()
+async def test_kernel_extraction_loop__full_lifecycle():
+    """End-to-end: store probationary kernel → verify on problems → promote to permanent."""
+    kernel_id = uuid4()
     problem_1 = uuid4()
     problem_2 = uuid4()
 
@@ -25,10 +25,9 @@ async def test_skill_extraction_loop__full_lifecycle():
         mock_conn = AsyncMock()
         mock_connect.return_value = mock_conn
 
-        # -- Phase 1: Skill extracted after first problem PASS --
-        # The Skill Extractor would INSERT into skills with status='probationary'
+        # -- Phase 1: Kernel extracted after first problem PASS --
         mock_conn.fetchrow.return_value = {
-            "id": skill_id,
+            "id": kernel_id,
             "name": "iris-classification",
             "category": "ml",
             "description": "Random Forest pipeline for tabular classification",
@@ -37,7 +36,7 @@ async def test_skill_extraction_loop__full_lifecycle():
             "status": "probationary",
             "use_count": 1,
             "verified_on_problems": [problem_1],
-            "filesystem_path": "/skills/probationary/iris_classification.md",
+            "filesystem_path": "/kernels/probationary/iris_classification.md",
             "deprecated_reason": None,
             "created_at": None,
             "updated_at": None,
@@ -53,35 +52,35 @@ async def test_skill_extraction_loop__full_lifecycle():
         mock_conn.fetchrow.return_value = {"verified_on_problems": [problem_1]}
 
         with pytest.raises(PromotionThresholdNotMetError, match="Need 2"):
-            await repo.promote(skill_id)
+            await repo.promote(kernel_id)
 
         mock_conn.execute.assert_not_called()
         mock_conn.close.assert_called()
         mock_conn.reset_mock()
 
-        # -- Phase 3: Second problem verifies the skill → now at threshold --
+        # -- Phase 3: Second problem verifies the kernel → now at threshold --
         mock_connect.return_value = mock_conn
         mock_conn.transaction = MagicMock(return_value=mock_tx)
         mock_conn.fetchrow.return_value = {
             "verified_on_problems": [problem_1, problem_2],
         }
 
-        await repo.promote(skill_id)
+        await repo.promote(kernel_id)
 
         mock_conn.execute.assert_called_once()
         update_sql = mock_conn.execute.call_args[0][0]
-        assert "UPDATE skills SET status='permanent'" in update_sql
+        assert "UPDATE kernels SET status='permanent'" in update_sql
         mock_conn.close.assert_called()
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_skill_extraction_loop__find_retrieves_promoted_skill():
-    """After promotion, skill is findable via find_by_keywords."""
-    skill_id = uuid4()
+async def test_kernel_extraction_loop__find_retrieves_promoted_kernel():
+    """After promotion, kernel is findable via find_by_keywords."""
+    kernel_id = uuid4()
     mock_row = MagicMock()
     mock_row.__getitem__ = lambda self, key: {
-        "id": skill_id,
+        "id": kernel_id,
         "name": "iris-classification",
         "category": "ml",
         "description": "Random Forest pipeline for tabular classification",
@@ -90,7 +89,7 @@ async def test_skill_extraction_loop__find_retrieves_promoted_skill():
         "status": "permanent",
         "use_count": 3,
         "verified_on_problems": [uuid4(), uuid4()],
-        "filesystem_path": "/skills/permanent/iris_classification.md",
+        "filesystem_path": "/kernels/permanent/iris_classification.md",
         "deprecated_reason": None,
         "created_at": None,
         "updated_at": None,
@@ -113,8 +112,8 @@ async def test_skill_extraction_loop__find_retrieves_promoted_skill():
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_skill_extraction_loop__deprecate__excludes_from_search():
-    """Deprecated skills are excluded from find_by_keywords results."""
+async def test_kernel_extraction_loop__deprecate__excludes_from_search():
+    """Deprecated kernels are excluded from find_by_keywords results."""
     with patch("asyncpg.connect") as mock_connect:
         mock_conn = AsyncMock()
         mock_connect.return_value = mock_conn
@@ -122,8 +121,8 @@ async def test_skill_extraction_loop__deprecate__excludes_from_search():
 
         repo = PostgreSQLKernelRepository()
 
-        skill_id = uuid4()
-        await repo.deprecate(skill_id, "Superseded by v2")
+        kernel_id = uuid4()
+        await repo.deprecate(kernel_id, "Superseded by v2")
 
         deprecate_sql = mock_conn.execute.call_args[0][0]
         assert "status='deprecated'" in deprecate_sql

@@ -47,6 +47,40 @@ async def submit_verdict(
         payload={"task_id": str(body.task_id), "verdict": body.verdict},
         timestamp_utc=time.time(),
     ))
+
+    # C3C: On FAIL verdict, check if any role's rolling_30d score is below threshold.
+    # If so, publish calibration_needed event for the Meta-Agent to act on.
+    if body.verdict == "fail":
+        try:
+            import asyncpg  # noqa: I001
+            from api.config import settings as _cfg  # noqa: I001
+            _conn = await asyncpg.connect(_cfg.database_url)
+            try:
+                low_roles = await _conn.fetch(
+                    """SELECT role, rolling_30d_points FROM role_scores
+                       WHERE rolling_30d_points < 0
+                       ORDER BY rolling_30d_points ASC LIMIT 5""",
+                )
+                if low_roles:
+                    await bus.publish(AgentEvent(
+                        event_type="calibration_needed",
+                        agent_id="judge",
+                        problem_uuid="",
+                        payload={
+                            "trigger": "judge_fail",
+                            "task_id": str(body.task_id),
+                            "low_roles": [
+                                {"role": r["role"], "score": r["rolling_30d_points"]}
+                                for r in low_roles
+                            ],
+                        },
+                        timestamp_utc=time.time(),
+                    ))
+            finally:
+                await _conn.close()
+        except Exception:
+            pass  # Non-blocking; calibration trigger best-effort
+
     return JudgeVerdictResponse(**dict(row))
 
 

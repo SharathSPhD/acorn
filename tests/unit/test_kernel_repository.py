@@ -7,12 +7,12 @@ from memory.interfaces import PromotionThresholdNotMetError
 
 
 @pytest.mark.asyncio
-async def test_kernel_repository__find_by_keywords__returns_matching_skills():
-    """find_by_keywords with query returns skills from database."""
-    skill_id = uuid4()
+async def test_kernel_repository__find_by_keywords__returns_matching_kernels():
+    """find_by_keywords with query returns kernels from database."""
+    kernel_id = uuid4()
     mock_row = MagicMock()
     mock_row.__getitem__ = lambda self, key: {
-        "id": skill_id,
+        "id": kernel_id,
         "name": "etl-pipeline",
         "category": "etl",
         "description": "Kernel for ETL",
@@ -21,7 +21,7 @@ async def test_kernel_repository__find_by_keywords__returns_matching_skills():
         "status": "permanent",
         "use_count": 5,
         "verified_on_problems": [],
-        "filesystem_path": "/skills/etl_pipeline.md",
+        "filesystem_path": "/kernels/etl_pipeline.md",
         "deprecated_reason": None,
         "created_at": datetime.now(),
         "updated_at": datetime.now(),
@@ -52,7 +52,6 @@ async def test_kernel_repository__find_by_keywords__with_category__calls_categor
         repo = PostgreSQLKernelRepository()
         await repo.find_by_keywords("test", category="etl", top_k=5)
 
-        # Verify the query with category was called
         calls = mock_conn.fetch.call_args_list
         assert len(calls) == 1
         query_call = calls[0][0][0]
@@ -63,7 +62,7 @@ async def test_kernel_repository__find_by_keywords__with_category__calls_categor
 @pytest.mark.asyncio
 async def test_kernel_repository__promote__below_threshold__raises_promotion_threshold_not_met():
     """promote raises PromotionThresholdNotMet when verified_on_problems < threshold."""
-    skill_id = uuid4()
+    kernel_id = uuid4()
 
     with patch("asyncpg.connect") as mock_connect:
         mock_conn = AsyncMock()
@@ -76,7 +75,7 @@ async def test_kernel_repository__promote__below_threshold__raises_promotion_thr
 
         repo = PostgreSQLKernelRepository()
         with pytest.raises(PromotionThresholdNotMetError):
-            await repo.promote(skill_id)
+            await repo.promote(kernel_id)
 
         mock_conn.close.assert_called_once()
 
@@ -84,7 +83,7 @@ async def test_kernel_repository__promote__below_threshold__raises_promotion_thr
 @pytest.mark.asyncio
 async def test_kernel_repository__promote__at_threshold__executes_update():
     """promote executes UPDATE when verified_on_problems >= threshold."""
-    skill_id = uuid4()
+    kernel_id = uuid4()
 
     with patch("asyncpg.connect") as mock_connect:
         mock_conn = AsyncMock()
@@ -96,9 +95,8 @@ async def test_kernel_repository__promote__at_threshold__executes_update():
         mock_conn.fetchrow.return_value = {"verified_on_problems": [uuid4(), uuid4()]}  # 2 verified
 
         repo = PostgreSQLKernelRepository()
-        await repo.promote(skill_id)
+        await repo.promote(kernel_id)
 
-        # Verify UPDATE was called
         mock_conn.execute.assert_called_once()
         call_args = mock_conn.execute.call_args[0]
         assert "UPDATE kernels SET status='permanent'" in call_args[0]
@@ -107,8 +105,8 @@ async def test_kernel_repository__promote__at_threshold__executes_update():
 
 @pytest.mark.asyncio
 async def test_kernel_repository__deprecate__calls_execute_with_reason():
-    """deprecate updates skill status to deprecated with reason."""
-    skill_id = uuid4()
+    """deprecate updates kernel status to deprecated with reason."""
+    kernel_id = uuid4()
     reason = "No longer maintained"
 
     with patch("asyncpg.connect") as mock_connect:
@@ -116,9 +114,8 @@ async def test_kernel_repository__deprecate__calls_execute_with_reason():
         mock_connect.return_value = mock_conn
 
         repo = PostgreSQLKernelRepository()
-        await repo.deprecate(skill_id, reason)
+        await repo.deprecate(kernel_id, reason)
 
-        # Verify the UPDATE was called with reason
         mock_conn.execute.assert_called_once()
         call_args = mock_conn.execute.call_args[0]
         assert "UPDATE kernels SET status='deprecated'" in call_args[0]

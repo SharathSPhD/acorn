@@ -40,6 +40,9 @@ class ProblemCreate(BaseModel):
     source: str = "user"
     data_paths: list[str] | None = None
     idempotency_key: str | None = None
+    # C1: Constitutional locality constraint
+    source_urls: list[str] | None = None
+    cloud_escalation: bool = False
 
 
 class ProblemResponse(BaseModel):

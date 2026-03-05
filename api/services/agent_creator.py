@@ -4,6 +4,10 @@ import logging
 from pathlib import Path
 from typing import Any
 
+import httpx
+
+from api.config import settings
+
 logger = logging.getLogger(__name__)
 
 AGENT_TEMPLATE = '''---
@@ -80,6 +84,64 @@ class AgentCreator:
         filepath.write_text(content)
         logger.info("Created agent definition: %s", filepath)
         return {"created": True, "path": str(filepath)}
+
+    async def write_orient_context(
+        self, role: str, worktree_path: str,
+    ) -> None:
+        """Fetch GRS role context and write ORIENT_CONTEXT.md into the agent's worktree.
+
+        This injects the top-3 recent wins and misses for the role so the agent
+        knows what worked and what didn't before beginning work.
+        """
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(
+                    f"http://localhost:{settings.port}/api/rewards/role-context/{role}",
+                )
+                if resp.status_code != 200:
+                    return
+                ctx: dict[str, Any] = resp.json()
+        except Exception:
+            logger.debug("ORIENT context fetch failed for role=%s (non-blocking)", role)
+            return
+
+        wins = ctx.get("recent_wins", [])
+        misses = ctx.get("recent_misses", [])
+        score = ctx.get("score", {})
+
+        lines = [
+            f"# ORIENT Context — {role}",
+            "",
+            "## Recent Wins (what earned rewards)",
+        ]
+        if wins:
+            for w in wins[:3]:
+                lines.append(f"- **{w['signal']}** (+{w['points']} pts): {w.get('rationale', '')}")
+        else:
+            lines.append("- No recent wins recorded yet.")
+
+        lines += ["", "## Recent Misses (what caused penalties)"]
+        if misses:
+            for m in misses[:3]:
+                lines.append(f"- **{m['signal']}** ({m['points']} pts): {m.get('rationale', '')}")
+        else:
+            lines.append("- No recent penalties recorded.")
+
+        lines += [
+            "",
+            "## Score",
+            f"- Cumulative: {score.get('cumulative', 0)} pts",
+            f"- Rolling 30d: {score.get('rolling_30d', 0)} pts",
+            f"- Problems contributed: {score.get('problems', 0)}",
+            "",
+            "> Read this file at the start of your session (ORIENT step) to calibrate behaviour.",
+        ]
+
+        wt = Path(worktree_path)
+        wt.mkdir(parents=True, exist_ok=True)
+        orient_file = wt / "ORIENT_CONTEXT.md"
+        orient_file.write_text("\n".join(lines))
+        logger.info("Wrote ORIENT_CONTEXT.md for role=%s at %s", role, orient_file)
 
     def list_agents(self) -> list[dict[str, str]]:
         """List all agent definitions."""

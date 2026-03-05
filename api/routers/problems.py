@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 import time
+import urllib.parse
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -39,6 +40,34 @@ async def create_problem(
     settings: AcornSettings = Depends(get_settings),
 ) -> ProblemResponse:
     """Create a new problem. Returns 429 if MAX_CONCURRENT_PROBLEMS exceeded."""
+    # C1: Local Sovereignty — reject non-local source_urls unless cloud_escalation=true
+    _local_hosts = {"localhost", "127.0.0.1", "::1", "acorn-api", "acorn-ollama"}
+    if body.source_urls and not body.cloud_escalation:
+        for url in body.source_urls:
+            host = urllib.parse.urlparse(url).hostname or ""
+            if host and host not in _local_hosts:
+                try:
+                    import asyncpg
+                    _conn = await asyncpg.connect(settings.database_url)
+                    try:
+                        await _conn.execute(
+                            """INSERT INTO constitutional_violations
+                               (rule, detail, source_agent)
+                               VALUES ('C1', $1, 'api')""",
+                            f"Non-local URL rejected: {url}",
+                        )
+                    finally:
+                        await _conn.close()
+                except Exception:
+                    pass
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=(
+                        f"C1 Local Sovereignty violation: non-local URL '{url}' "
+                        "is not permitted. Set cloud_escalation=true to allow."
+                    ),
+                )
+
     active_count = await db.execute(
         text("SELECT count(*) FROM problems WHERE status IN ('active', 'assembling')"),
     )
@@ -208,6 +237,14 @@ async def start_problem(
     except Exception:
         logger.debug("Container %s did not exist or could not be removed", container_name)
 
+    # Write ORIENT_CONTEXT.md for the orchestrator's GRS reward context
+    try:
+        from api.services.agent_creator import AgentCreator
+        creator = AgentCreator(f"{settings.acorn_root}/.claude/agents")
+        await creator.write_orient_context("orchestrator", workspace_path)
+    except Exception:
+        logger.debug("ORIENT context write failed (non-blocking)")
+
     factory = get_agent_factory()
     spec = factory.create(
         role="orchestrator",
@@ -258,6 +295,14 @@ async def spawn_agent(
         await proc.communicate()
     except Exception:
         logger.debug("Old container %s not present, continuing", container_name)
+
+    # Write role-specific ORIENT_CONTEXT.md before launching
+    try:
+        from api.services.agent_creator import AgentCreator
+        creator = AgentCreator(f"{settings.acorn_root}/.claude/agents")
+        await creator.write_orient_context(body.role, workspace_path)
+    except Exception:
+        logger.debug("ORIENT context write failed for role=%s (non-blocking)", body.role)
 
     factory = get_agent_factory()
     kwargs: dict[str, str] = {"container_name": container_name}

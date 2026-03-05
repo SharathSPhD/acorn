@@ -83,7 +83,12 @@ class AcornSettings(BaseSettings):
 
     # -- CORTEX+ (Layer 5 cognitive kernel, GWT) ------------------------------------
     cortex_enabled: bool               = False
+    cortex_autostart: bool             = True   # Start CORTEX+ on API startup when enabled
     cortex_tick_interval: int          = 120
+    cortex_reconcile_interval: int     = 300    # Reconciliation check every 5 minutes
+
+    # -- Scheduling ---------------------------------------------------------------
+    meta_agent_schedule_problems: int  = 10     # Trigger meta-agent every N completed problems
 
     # -- API (for CORTEX+ self-calls) ----------------------------------------------
     port: int                         = 8000

@@ -49,7 +49,8 @@ def test_spawn__invalid_role__returns_400():
     assert "Invalid role" in resp.json()["detail"]
 
 
-def test_spawn__max_harness_containers_reached__returns_503():
+def test_spawn__max_harness_containers_reached__returns_429():
+    """C4 Resource Respect: MAX_HARNESS_CONTAINERS ceiling returns HTTP 429."""
     from api.main import app
     agents = [_make_agent(PROB_A, f"agent-{i}") for i in range(20)]
     mock_registry = AsyncMock()
@@ -60,8 +61,9 @@ def test_spawn__max_harness_containers_reached__returns_503():
          patch("api.factories.agent_factory.DGXAgentFactory"):
         with TestClient(app) as client:
             resp = client.post(f"/api/agents/spawn?role=coder&problem_uuid={PROB_B}")
-    assert resp.status_code == 503
+    assert resp.status_code == 429
     assert "MAX_HARNESS_CONTAINERS" in resp.json()["detail"]
+    assert "C4" in resp.json()["detail"]
 
 
 def test_spawn__max_agents_per_problem_reached__returns_503():
