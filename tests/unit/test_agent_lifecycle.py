@@ -17,8 +17,8 @@ class ConcreteAgent(AgentLifecycle):
         self._calls.append("orient")
         return {"problem": "test"}
 
-    async def skill_query(self, problem: dict) -> list:
-        self._calls.append("skill_query")
+    async def kernel_query(self, problem: dict) -> list:
+        self._calls.append("kernel_query")
         return []
 
     async def execute(self, problem: dict, skills: list) -> dict:
@@ -45,7 +45,7 @@ async def test_agent_lifecycle__run__enforces_fixed_step_order():
     agent = ConcreteAgent(calls)
     ctx = AgentContext(agent_id="a1", problem_uuid="p1", role="orchestrator")
     result = await agent.run(ctx)
-    assert calls == ["restore", "orient", "skill_query", "execute", "validate", "report", "close", "save"]
+    assert calls == ["restore", "orient", "kernel_query", "execute", "validate", "report", "close", "save"]
 
 
 @pytest.mark.asyncio

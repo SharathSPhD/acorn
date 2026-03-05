@@ -66,10 +66,13 @@ class AcornSettings(BaseSettings):
 
     # -- Kernel grove -------------------------------------------------------------
     acorn_kernel_promo_threshold: int = 2
+    kernel_deprecation_threshold: float = 0.4
     kernel_probationary_path: str     = "/workspace/kernels/probationary"
     kernel_permanent_path: str        = "/workspace/kernels/permanent"
 
     # -- Agent behaviour ----------------------------------------------------------
+    stale_threshold_seconds: int      = 1800
+    warden_poll_interval: int         = 60
     acorn_idle_timeout_seconds: int   = 120
     claude_code_experimental_agent_teams: str = "1"
 
@@ -88,6 +91,10 @@ class AcornSettings(BaseSettings):
     # builder_cb_threshold: int          = 4
     # builder_worktree_path: str         = "/acorn-warden-wt"
     # builder_ollama_url: str            = "http://acorn-api-relay:9000"
+
+    # -- CORS ---------------------------------------------------------------------
+    cors_origins: list[str] = Field(
+        default=["http://localhost:8501", "http://localhost:3000"])
 
     # -- Feature flags ------------------------------------------------------------
     kernel_extraction_enabled: bool   = True
@@ -126,6 +133,14 @@ class AcornSettings(BaseSettings):
                 f"ACORN_MODE=mini but MAX_AGENTS_PER_PROBLEM={self.max_agents_per_problem}. "
                 "Mini profile recommends <= 4 agents per problem due to memory constraints.",
                 stacklevel=2)
+        return self
+
+    @model_validator(mode="after")
+    def apply_mode_defaults(self) -> "AcornSettings":
+        """Apply platform-specific defaults when values are at their generic defaults."""
+        if self.acorn_mode == AcornMode.MINI:
+            if self.max_concurrent_problems == 3:
+                object.__setattr__(self, "max_concurrent_problems", 1)
         return self
 
 

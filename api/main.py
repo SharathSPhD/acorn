@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.config import settings
 from api.dependencies import get_event_bus
-from api.routers import agents, builder, judge, meta, problems, kernels, tasks, telemetry
+from api.routers import agents, builder, judge, kernels, meta, problems, tasks, telemetry
 from api.routers.mailbox import router as mailbox_router
 from api.ws import stream
 
@@ -28,7 +28,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

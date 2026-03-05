@@ -6,7 +6,7 @@ from memory.interfaces import Kernel, KernelRepository
 
 
 class FilesystemKernelRepository(KernelRepository):
-    """Production: reads SKILL.md files from probationary/ and permanent/ directories."""
+    """Production: reads KERNEL.md files from probationary/ and permanent/ directories."""
 
     def __init__(
         self, permanent_path: str, probationary_path: str, db_url: str

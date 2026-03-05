@@ -10,7 +10,7 @@ try:
     import redis.asyncio as aioredis
     _REDIS_AVAILABLE = True
 except ImportError:
-    aioredis = None  # type: ignore[assignment]
+    aioredis = None
     _REDIS_AVAILABLE = False
 
 

@@ -90,7 +90,7 @@ async def get_models(settings: AcornSettings = Depends(get_settings)) -> dict[st
             "data-engineer": settings.coder_model,
             "ml-engineer": settings.coder_model,
             "data-scientist": settings.analysis_model,
-            "skill-extractor": settings.analysis_model,
+            "kernel-extractor": settings.analysis_model,
             "orchestrator": settings.reasoning_model,
             "judge-agent": settings.reasoning_model,
             "meta-agent": settings.reasoning_model,

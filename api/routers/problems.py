@@ -3,7 +3,6 @@ __pattern__ = "Repository"
 import asyncio
 import os
 import shutil
-import subprocess
 import time
 from pathlib import Path
 from uuid import UUID, uuid4
@@ -184,19 +183,21 @@ async def start_problem(
     os.chmod(workspace_path, 0o777)
 
     try:
-        subprocess.run(
-            ["git", "-C", settings.acorn_root, "worktree", "add", "-b",
-             f"oak/problem-{problem_id}", workspace_path, "main"],
-            capture_output=True, timeout=30,
+        proc = await asyncio.create_subprocess_exec(
+            "git", "-C", settings.acorn_root, "worktree", "add", "-b",
+            f"acorn/problem-{problem_id}", workspace_path, "main",
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
         )
+        await asyncio.wait_for(proc.communicate(), timeout=30)
     except Exception:
         pass
 
     try:
-        subprocess.run(
-            ["docker", "rm", "-f", container_name],
-            capture_output=True, timeout=10,
+        proc = await asyncio.create_subprocess_exec(
+            "docker", "rm", "-f", container_name,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
         )
+        await asyncio.wait_for(proc.communicate(), timeout=10)
     except Exception:
         pass
 
@@ -416,17 +417,19 @@ async def delete_problem(
 
     workspace_path = f"{settings.acorn_workspace_base}/problem-{problem_id}"
     try:
-        subprocess.run(
-            ["git", "worktree", "remove", "--force", workspace_path],
-            capture_output=True, timeout=10,
+        proc = await asyncio.create_subprocess_exec(
+            "git", "worktree", "remove", "--force", workspace_path,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
         )
+        await asyncio.wait_for(proc.communicate(), timeout=10)
     except Exception:
         pass
     try:
-        subprocess.run(
-            ["git", "branch", "-D", f"oak/problem-{problem_id}"],
-            capture_output=True, timeout=10,
+        proc = await asyncio.create_subprocess_exec(
+            "git", "branch", "-D", f"acorn/problem-{problem_id}",
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
         )
+        await asyncio.wait_for(proc.communicate(), timeout=10)
     except Exception:
         pass
     shutil.rmtree(workspace_path, ignore_errors=True)

@@ -5,7 +5,7 @@ from uuid import UUID
 import asyncpg
 
 from api.config import settings
-from memory.interfaces import PromotionThresholdNotMetError, Kernel, KernelRepository
+from memory.interfaces import Kernel, KernelRepository, PromotionThresholdNotMetError
 
 
 class PostgreSQLKernelRepository(KernelRepository):
