@@ -4,8 +4,8 @@ import { Sidebar } from "@/components/nav";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "OAK Hub",
-  description: "Orchestrated Agent Kernel — AI Software Factory",
+  title: "ACORN Hub",
+  description: "Adaptive Collaborative Orchestration and Reasoning Network",
 };
 
 export default function RootLayout({

@@ -116,14 +116,14 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 const configVars = [
-  { name: "OAK_MODE", desc: "Platform profile", def: "dgx" },
-  { name: "OAK_ROOT", desc: "Host path to OAK repo", def: "/app" },
-  { name: "OAK_WORKSPACE_BASE", desc: "Host path for problem workspaces", def: "/workspaces" },
+  { name: "ACORN_MODE", desc: "Platform profile", def: "dgx" },
+  { name: "ACORN_ROOT", desc: "Host path to ACORN repo", def: "/app" },
+  { name: "ACORN_WORKSPACE_BASE", desc: "Host path for problem workspaces", def: "/workspaces" },
   { name: "META_AGENT_ENABLED", desc: "Enable self-improvement agent", def: "true" },
   { name: "CODER_MODEL", desc: "Model for code generation tasks", def: "qwen3-coder" },
-  { name: "ANALYSIS_MODEL", desc: "Model for analysis tasks", def: "glm-4.7" },
-  { name: "REASONING_MODEL", desc: "Model for orchestration/judge", def: "llama3.3:70b" },
+  { name: "ANALYSIS_MODEL", desc: "Model for analysis tasks", def: "qwen3-coder" },
+  { name: "REASONING_MODEL", desc: "Model for orchestration/judge", def: "qwen3-coder" },
   { name: "MAX_AGENTS_PER_PROBLEM", desc: "Max agent containers per problem", def: "10" },
   { name: "MAX_CONCURRENT_PROBLEMS", desc: "Max simultaneous problems", def: "3" },
-  { name: "OAK_DAEMON_POLL_INTERVAL", desc: "Daemon health check interval (seconds)", def: "60" },
+  { name: "ACORN_WARDEN_POLL_INTERVAL", desc: "Warden health check interval (seconds)", def: "60" },
 ];

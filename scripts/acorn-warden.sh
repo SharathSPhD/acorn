@@ -49,9 +49,18 @@ check_harness_health() {
 check_service_health() {
     local services=("acorn-postgres" "acorn-redis" "acorn-api-relay")
     for svc in "${services[@]}"; do
-        if ! docker inspect --format '{{.State.Running}}' "$svc" 2>/dev/null | grep -q "true"; then
-            log "WARN: $svc is not running. Attempting restart..."
-            docker start "$svc" > /dev/null 2>&1 || log "ERROR: Failed to restart $svc"
+        local found=false
+        for cname in $(docker ps -a --filter "name=$svc" --format "{{.Names}}" 2>/dev/null); do
+            found=true
+            local running
+            running=$(docker inspect --format '{{.State.Running}}' "$cname" 2>/dev/null || echo "false")
+            if [ "$running" != "true" ]; then
+                log "WARN: $cname is not running. Attempting restart..."
+                docker start "$cname" > /dev/null 2>&1 || log "ERROR: Failed to restart $cname"
+            fi
+        done
+        if [ "$found" = "false" ]; then
+            log "WARN: No container matching $svc found."
         fi
     done
 }
