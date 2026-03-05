@@ -76,11 +76,11 @@ You run asynchronously after `task-completed.sh` fires on a PASS verdict. You ha
 - **Write**: `~/acorn-workspaces/kernels/probationary/` only
 - **postgres MCP**: INSERT/UPDATE skills table (probationary status only)
 - **acorn-kernels MCP**: query to check for existing similar skills
-- **git MCP**: commit to oak/skills branch (open PR)
+- **git MCP**: commit to acorn/kernels branch (open PR)
 
 ## Forbidden
 
 - Writing to `skills/permanent/` (permanent promotion is SkillRepository's responsibility)
 - Modifying judge_verdicts or any problem table
-- Writing to oak/ui or oak/agents worktrees
-- Committing directly to main or oak/agents
+- Writing to acorn/ui or acorn/agents worktrees
+- Committing directly to main or acorn/agents

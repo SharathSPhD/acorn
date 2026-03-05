@@ -1,5 +1,5 @@
 #!/bin/bash
-# ACORN Task Gate Hook — blocks TaskUpdate status=completed without a Judge PASS.
+# ACORN Task Completed Hook — blocks TaskUpdate status=completed without a Judge PASS.
 # This is the hook referenced in settings.json as the second PreToolUse handler.
 # Receives JSON on stdin with tool call details.
 # Exit 2 = block. Exit 0 = allow.
@@ -43,7 +43,7 @@ HAS_PASS=$(psql "${DATABASE_URL:-postgresql://acorn:acorn@acorn-postgres:5432/ac
     2>/dev/null || echo "0")
 
 if [ "${HAS_PASS:-0}" -lt "1" ]; then
-    echo "[ACORN task-gate] BLOCKED: task $TASK_ID has no Judge PASS verdict. Invoke the Judge Agent before closing this task." >&2
+    echo "[ACORN task-completed] BLOCKED: task $TASK_ID has no Judge PASS verdict. Invoke the Judge Agent before closing this task." >&2
     exit 2
 fi
 

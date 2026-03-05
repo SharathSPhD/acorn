@@ -1,4 +1,4 @@
-"""Unit tests for CachedKernelRepository Decorator pattern."""
+"""Unit tests for CachedKernelRepository (cached_kernels) Decorator pattern."""
 import pytest
 import time
 from unittest.mock import AsyncMock
@@ -20,7 +20,7 @@ def make_kernel(name: str = "test") -> Kernel:
 
 
 @pytest.mark.asyncio
-async def test_cached_skills__hit__does_not_call_wrapped():
+async def test_cached_kernels__hit__does_not_call_wrapped():
     wrapped = AsyncMock()
     wrapped.find_by_keywords.return_value = [make_kernel()]
     repo = CachedKernelRepository(wrapped, ttl_seconds=60)
@@ -33,7 +33,7 @@ async def test_cached_skills__hit__does_not_call_wrapped():
 
 
 @pytest.mark.asyncio
-async def test_cached_skills__miss__different_query():
+async def test_cached_kernels__miss__different_query():
     wrapped = AsyncMock()
     wrapped.find_by_keywords.return_value = []
     repo = CachedKernelRepository(wrapped)
@@ -45,7 +45,7 @@ async def test_cached_skills__miss__different_query():
 
 
 @pytest.mark.asyncio
-async def test_cached_skills__ttl_expired__calls_wrapped_again():
+async def test_cached_kernels__ttl_expired__calls_wrapped_again():
     wrapped = AsyncMock()
     wrapped.find_by_keywords.return_value = []
     repo = CachedKernelRepository(wrapped, ttl_seconds=0.01)
@@ -58,7 +58,7 @@ async def test_cached_skills__ttl_expired__calls_wrapped_again():
 
 
 @pytest.mark.asyncio
-async def test_cached_skills__promote__delegates_to_wrapped():
+async def test_cached_kernels__promote__delegates_to_wrapped():
     wrapped = AsyncMock()
     repo = CachedKernelRepository(wrapped)
     uid = uuid4()
@@ -67,7 +67,7 @@ async def test_cached_skills__promote__delegates_to_wrapped():
 
 
 @pytest.mark.asyncio
-async def test_cached_skills__lru_eviction__removes_oldest():
+async def test_cached_kernels__lru_eviction__removes_oldest():
     wrapped = AsyncMock()
     wrapped.find_by_keywords.return_value = []
     repo = CachedKernelRepository(wrapped, max_size=2)

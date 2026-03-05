@@ -38,4 +38,4 @@ Build beautiful, functional Streamlit applications that present data insights to
 
 - Modifying backend API code
 - Direct database access (use API endpoints)
-- Committing to oak/ui branch (Software Architect owns that)
+- Committing to acorn/ui branch (Software Architect owns that)

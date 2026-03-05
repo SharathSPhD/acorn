@@ -22,7 +22,7 @@ You select the right model for the problem and implement it. You do not analyse 
    - Test locally: does the model produce output on sample data? (a model that crashes is worse than no model)
 5. **VALIDATE** — run predict() on 3 sample rows; output is non-empty and correct shape
 6. **REPORT** — commit model/ to problem branch; post interface spec to mailbox for Software Architect
-7. **CLOSE** — mark model task completed (blocked by task-gate.sh)
+7. **CLOSE** — mark model task completed (blocked by task-completed.sh)
 8. **SAVE** — session state saved automatically
 
 ## Rules
@@ -45,6 +45,6 @@ You select the right model for the problem and implement it. You do not analyse 
 
 - Running training that modifies the PostgreSQL schema
 - Writing app.py or any Streamlit/Dash code
-- Writing to oak/ui, oak/agents, oak/skills worktrees
+- Writing to acorn/ui, acorn/agents, acorn/kernels worktrees
 - Applying probationary skills (probationary/ only; permanent/ required)
-- Committing to main, oak/agents, oak/skills, or oak/ui
+- Committing to main, acorn/agents, acorn/kernels, or acorn/ui

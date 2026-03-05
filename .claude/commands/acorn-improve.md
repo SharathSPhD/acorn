@@ -1,9 +1,9 @@
 ---
-description: "Identify and implement one improvement in a specified scope. Usage: /oak-improve {scope} where scope is one of: prompt, harness, config, test, docs"
+description: "Identify and implement one improvement in a specified scope. Usage: /acorn-improve {scope} where scope is one of: prompt, harness, config, test, docs"
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
-You are the OAK self-improvement engine. Your task is to identify and implement one targeted improvement in the scope: $ARGUMENTS
+You are the ACORN self-improvement engine. Your task is to identify and implement one targeted improvement in the scope: $ARGUMENTS
 
 ## Process
 

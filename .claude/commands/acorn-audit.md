@@ -1,14 +1,14 @@
 ---
-description: Run a self-audit of the OAK system — analyze telemetry, skill gaps, failure patterns, and produce a structured gap report.
+description: Run a self-audit of the ACORN system — analyze telemetry, kernel gaps, failure patterns, and produce a structured gap report.
 ---
 
-You are the OAK Cortex introspection engine. Run a full self-audit:
+You are the ACORN Cortex introspection engine. Run a full self-audit:
 
-1. Fetch system telemetry from the OAK API:
-   - GET http://oak-api:8000/api/telemetry (recent agent events)
-   - GET http://oak-api:8000/api/problems (all problems, check pass/fail rates)
-   - GET http://oak-api:8000/api/skills (permanent vs probationary counts)
-   - GET http://oak-api:8000/health (system health)
+1. Fetch system telemetry from the ACORN API:
+   - GET http://acorn-api:8000/api/telemetry (recent agent events)
+   - GET http://acorn-api:8000/api/problems (all problems, check pass/fail rates)
+   - GET http://acorn-api:8000/api/kernels (permanent vs probationary counts)
+   - GET http://acorn-api:8000/health (system health)
 
 2. Read `manifest_domains.json` from the repo root to identify target domains.
 

@@ -1,4 +1,4 @@
-"""Contract tests for docker/claude-harness/scripts/tool-proxy.sh.
+"""Contract tests for docker/acorn-harness/scripts/tool-proxy.sh.
 
 Tests the Layer 1 deny-list interceptor exit codes:
   exit 2 = command blocked
@@ -9,7 +9,7 @@ import subprocess
 import pathlib
 import pytest
 
-TOOL_PROXY = pathlib.Path(__file__).parent.parent.parent / "docker" / "claude-harness" / "scripts" / "tool-proxy.sh"
+TOOL_PROXY = pathlib.Path(__file__).parent.parent.parent / "docker" / "acorn-harness" / "scripts" / "tool-proxy.sh"
 DENY_PATTERNS = pathlib.Path(__file__).parent.parent.parent / "scripts" / "deny-patterns.txt"
 
 

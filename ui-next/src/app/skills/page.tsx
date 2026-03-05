@@ -14,14 +14,14 @@ export default function SkillsPage() {
   const [category, setCategory] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const skills = useQuery({
-    queryKey: ["skills", query, category, statusFilter],
-    queryFn: () => api.skills.list({ query: query || undefined, category, status: statusFilter }),
+  const kernels = useQuery({
+    queryKey: ["kernels", query, category, statusFilter],
+    queryFn: () => api.kernels.list({ query: query || undefined, category, status: statusFilter }),
   });
 
   const promoteMutation = useMutation({
-    mutationFn: api.skills.promote,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["skills"] }),
+    mutationFn: api.kernels.promote,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["kernels"] }),
   });
 
   return (
@@ -67,18 +67,18 @@ export default function SkillsPage() {
       </div>
 
       {/* Skills grid */}
-      {skills.isLoading && <p className="text-sm text-slate-500">Loading skills...</p>}
+      {kernels.isLoading && <p className="text-sm text-slate-500">Loading kernels...</p>}
 
-      {skills.data && skills.data.length === 0 && (
+      {kernels.data && kernels.data.length === 0 && (
         <div className="empty-state">
           <svg className="h-12 w-12 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
           <p className="text-sm font-medium text-slate-600">No skills found</p>
-          <p className="text-xs text-slate-400 mt-1">Skills are extracted automatically after problems are solved.</p>
+          <p className="text-xs text-slate-400 mt-1">Kernels are extracted automatically after problems are solved.</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {skills.data?.map((skill) => (
+        {kernels.data?.map((skill) => (
           <Card key={skill.id}>
             <CardContent className="py-4">
               <div className="flex items-start justify-between mb-3">

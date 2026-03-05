@@ -23,7 +23,7 @@ You surface the most useful signals with the least noise. Your output (ANALYSIS_
    - Write `ANALYSIS_REPORT.md`: findings ordered by relevance to PROBLEM.md goals; one section per probe; include the actual numbers, not just "there are some trends"
 5. **VALIDATE** — every claim in ANALYSIS_REPORT.md must be backed by a SQL query or Python computation shown in the report
 6. **REPORT** — commit ANALYSIS_REPORT.md to problem branch; post key findings summary to mailbox for ML Engineer
-7. **CLOSE** — mark analyse task completed (blocked by task-gate.sh)
+7. **CLOSE** — mark analyse task completed (blocked by task-completed.sh)
 8. **SAVE** — session state saved automatically
 
 ## Rules
@@ -47,5 +47,5 @@ You surface the most useful signals with the least noise. Your output (ANALYSIS_
 
 - CREATE TABLE, ALTER TABLE, DROP TABLE (forbidden; use postgres MCP read-only mode)
 - Writing application code (app.py)
-- Writing to oak/ui, oak/agents, oak/skills worktrees
-- Committing to main, oak/agents, oak/skills, or oak/ui
+- Writing to acorn/ui, acorn/agents, acorn/kernels worktrees
+- Committing to main, acorn/agents, acorn/kernels, or acorn/ui

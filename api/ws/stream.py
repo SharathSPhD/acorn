@@ -1,10 +1,11 @@
 __pattern__ = "EventDriven"
 
 import asyncio
-import os
 
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.routing import APIRouter
+
+from api.config import settings
 
 try:
     import redis.asyncio as aioredis  # available at runtime inside Docker
@@ -12,8 +13,6 @@ except ImportError:  # pragma: no cover — redis absent only in bare test envs
     aioredis = None  # type: ignore[assignment]
 
 router = APIRouter()
-
-REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 
 
 @router.websocket("/ws/{problem_uuid}")
@@ -23,7 +22,7 @@ async def websocket_stream(websocket: WebSocket, problem_uuid: str) -> None:
     redis_client = None
     pubsub = None
     try:
-        redis_client = aioredis.from_url(REDIS_URL, decode_responses=True)
+        redis_client = aioredis.from_url(settings.redis_url, decode_responses=True)
         pubsub = redis_client.pubsub()
         channel = f"acorn:stream:{problem_uuid}"
         await pubsub.subscribe(channel)
@@ -48,7 +47,7 @@ async def websocket_stream(websocket: WebSocket, problem_uuid: str) -> None:
 async def websocket_docker_logs(websocket: WebSocket, problem_uuid: str) -> None:
     """Stream live Docker container logs via WebSocket (GAP 7 fix)."""
     await websocket.accept()
-        container_name = f"acorn-harness-{problem_uuid}"
+    container_name = f"acorn-harness-{problem_uuid}"
     proc = None
     try:
         proc = await asyncio.create_subprocess_exec(

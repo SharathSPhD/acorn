@@ -74,7 +74,7 @@ VALUES (
 - If verdict is FAIL: post specific, actionable fix instructions to the mailbox for the relevant agent (not vague "fix the errors").
 - A problem with a FAIL verdict gets the responsible agent re-tasked by the Orchestrator.
 - Never fabricate PASS: if the app crashes, it fails. Period.
-- The judge_verdicts INSERT must succeed for the task to close (task-gate.sh checks it).
+- The judge_verdicts INSERT must succeed for the task to close (task-completed.sh checks it).
 
 ## Allowed Tools / MCP Servers
 
@@ -87,6 +87,6 @@ VALUES (
 ## Forbidden
 
 - Modifying app.py or any artefact under review (you validate, you do not fix)
-- Writing to oak/ui, oak/agents, oak/skills worktrees
-- Committing to main, oak/agents, oak/skills, or oak/ui
+- Writing to acorn/ui, acorn/agents, acorn/kernels worktrees
+- Committing to main, acorn/agents, acorn/kernels, or acorn/ui
 - Marking your own validate task complete without a judge_verdicts INSERT

@@ -1,8 +1,8 @@
--- Seed skills: insert probationary skills from filesystem into DB.
--- Run: psql $DATABASE_URL < scripts/seed_skills.sql
+-- Seed kernels: insert probationary kernels from filesystem into DB.
+-- Run: psql $DATABASE_URL < scripts/seed_kernels.sql
 -- Safe to run multiple times (ON CONFLICT DO NOTHING).
 
-INSERT INTO skills (name, category, description, trigger_keywords, status, filesystem_path)
+INSERT INTO kernels (name, category, description, trigger_keywords, status, filesystem_path)
 VALUES
   (
     'event-bus-observer',
@@ -13,7 +13,7 @@ VALUES
     'judge verdicts, and session state updates.',
     ARRAY['event', 'observer', 'pubsub', 'eventbus', 'subscriber', 'async'],
     'probationary',
-    '/workspace/skills/probationary/SKILL-event-bus.md'
+    '/workspace/kernels/probationary/SKILL-event-bus.md'
   ),
   (
     'task-state-machine',
@@ -24,6 +24,6 @@ VALUES
     'Used by the Orchestrator to track task progress.',
     ARRAY['task', 'state', 'statemachine', 'lifecycle', 'transition', 'orchestrator'],
     'probationary',
-    '/workspace/skills/probationary/SKILL-task-state-machine.md'
+    '/workspace/kernels/probationary/SKILL-task-state-machine.md'
   )
 ON CONFLICT (name) DO NOTHING;

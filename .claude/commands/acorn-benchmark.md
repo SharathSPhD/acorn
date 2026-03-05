@@ -1,14 +1,14 @@
 ---
-description: "Benchmark a model against the current default. Usage: /oak-benchmark {model_name}"
+description: "Benchmark a model against the current default. Usage: /acorn-benchmark {model_name}"
 ---
 
-You are the OAK model benchmarking engine. Benchmark the model: $ARGUMENTS
+You are the ACORN model benchmarking engine. Benchmark the model: $ARGUMENTS
 
 ## Process
 
 1. **Verify** the model is available:
-   - Check via `curl http://oak-ollama:11434/api/tags`
-   - If not available, attempt to pull: `curl -X POST http://oak-ollama:11434/api/pull -d '{"name": "$ARGUMENTS"}'`
+   - Check via `curl http://acorn-ollama:11434/api/tags`
+   - If not available, attempt to pull: `curl -X POST http://acorn-ollama:11434/api/pull -d '{"name": "$ARGUMENTS"}'`
 
 2. **Prepare** a canonical test problem:
    - Use a retail/e-commerce scenario from `manifest_domains.json`

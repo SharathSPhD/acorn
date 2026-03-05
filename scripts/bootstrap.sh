@@ -102,7 +102,7 @@ sleep 5
 PG_CONTAINER=$($DC ps -q acorn-postgres 2>/dev/null || echo "")
 if [ -n "$PG_CONTAINER" ]; then
     docker exec -i "$PG_CONTAINER" \
-        psql -U acorn -d acorn < "${ACORN_ROOT}/scripts/seed_skills.sql" 2>/dev/null \
+        psql -U acorn -d acorn < "${ACORN_ROOT}/scripts/seed_kernels.sql" 2>/dev/null \
         || echo "[warn] Kernel seed skipped (will auto-apply on next start)"
 fi
 

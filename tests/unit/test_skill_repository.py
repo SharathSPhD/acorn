@@ -101,7 +101,7 @@ async def test_kernel_repository__promote__at_threshold__executes_update():
         # Verify UPDATE was called
         mock_conn.execute.assert_called_once()
         call_args = mock_conn.execute.call_args[0]
-        assert "UPDATE skills SET status='permanent'" in call_args[0]
+        assert "UPDATE kernels SET status='permanent'" in call_args[0]
         mock_conn.close.assert_called_once()
 
 
@@ -121,6 +121,6 @@ async def test_kernel_repository__deprecate__calls_execute_with_reason():
         # Verify the UPDATE was called with reason
         mock_conn.execute.assert_called_once()
         call_args = mock_conn.execute.call_args[0]
-        assert "UPDATE skills SET status='deprecated'" in call_args[0]
+        assert "UPDATE kernels SET status='deprecated'" in call_args[0]
         assert reason in call_args
         mock_conn.close.assert_called_once()

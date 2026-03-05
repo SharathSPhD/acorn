@@ -1,4 +1,4 @@
-"""Contract tests for docker/claude-harness/scripts/entrypoint.sh.
+"""Contract tests for docker/acorn-harness/scripts/entrypoint.sh.
 
 Verifies that the harness entrypoint correctly constructs the initial prompt
 and that it does NOT wrap claude with tool-proxy (which would silently swallow it).
@@ -8,7 +8,7 @@ import re
 
 ENTRYPOINT = (
     pathlib.Path(__file__).parent.parent.parent
-    / "docker" / "claude-harness" / "scripts" / "entrypoint.sh"
+    / "docker" / "acorn-harness" / "scripts" / "entrypoint.sh"
 )
 
 

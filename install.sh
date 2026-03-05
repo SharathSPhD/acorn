@@ -1,10 +1,10 @@
 #!/bin/bash
-# OAK Installer — auto-detect hardware and start stack
-# Usage: curl -sL https://raw.githubusercontent.com/SharathSPhD/oak/main/install.sh | bash
+# ACORN Installer — auto-detect hardware and start stack
+# Usage: curl -sL https://raw.githubusercontent.com/SharathSPhD/acorn/main/install.sh | bash
 # Or:    bash install.sh [dgx|mini|cloud|aio]
 set -euo pipefail
 
-echo "OAK Installer — detecting hardware..."
+echo "ACORN Installer — detecting hardware..."
 
 DETECTED_MODE="dgx"
 if command -v nvidia-smi &> /dev/null; then
@@ -18,28 +18,28 @@ fi
 MODE="${1:-$DETECTED_MODE}"
 
 if [ "$MODE" = "aio" ]; then
-    echo "Starting OAK All-in-One container..."
+    echo "Starting ACORN All-in-One container..."
     docker run -d \
-        --name oak-aio \
+        --name acorn-aio \
         -p 8501:8501 \
         -p 8000:8000 \
         -p 9000:9000 \
-        -v oak-data:/var/lib/postgresql/data \
-        -v oak-ollama:/root/.ollama \
-        -v oak-workspace:/workspace \
-        ghcr.io/sharathsphd/oak-aio:latest
+        -v acorn-data:/var/lib/postgresql/data \
+        -v acorn-ollama:/root/.ollama \
+        -v acorn-workspace:/workspace \
+        ghcr.io/sharathsphd/acorn-aio:latest
     echo ""
-    echo "OAK All-in-One started!"
+    echo "ACORN All-in-One started!"
     echo "Hub: http://localhost:8501"
     echo "API: http://localhost:8000"
     echo "Note: First startup may take a few minutes to initialize the database and pull models."
     exit 0
 fi
 
-echo "Starting OAK in $MODE mode (multi-service)..."
+echo "Starting ACORN in $MODE mode (multi-service)..."
 
 if [ ! -d ".git" ]; then
-    COMPOSE_URL="https://raw.githubusercontent.com/SharathSPhD/oak/main/docker/docker-compose.prebuilt.yml"
+    COMPOSE_URL="https://raw.githubusercontent.com/SharathSPhD/acorn/main/docker/docker-compose.prebuilt.yml"
     echo "Downloading compose file..."
     curl -sL "$COMPOSE_URL" -o docker-compose.yml
 else
@@ -50,7 +50,7 @@ fi
 docker compose --profile "$MODE" up -d
 
 echo ""
-echo "OAK is ready!"
+echo "ACORN is ready!"
 echo "Hub: http://localhost:8501"
 echo "API: http://localhost:8000"
 echo "Proxy: http://localhost:9000"

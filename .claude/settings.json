@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/sharaths/projects/oak/.claude/hooks/task-gate.sh"
+            "command": "bash /home/sharaths/projects/oak/.claude/hooks/task-completed.sh"
           }
         ]
       }
@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /home/sharaths/projects/oak/.claude/hooks/task-gate.sh"
+            "command": "bash /home/sharaths/projects/oak/.claude/hooks/task-completed.sh"
           }
         ]
       }

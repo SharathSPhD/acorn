@@ -65,7 +65,7 @@ Always create the `validate` task last. No problem is complete without a Judge P
    - Synthesise outputs when all tasks complete
 5. **VALIDATE** — confirm solution URL is set in problems table
 6. **REPORT** — update problem status to `complete` via API
-7. **CLOSE** — mark orchestrator task completed (blocked by task-gate.sh if no Judge PASS)
+7. **CLOSE** — mark orchestrator task completed (blocked by task-completed.sh if no Judge PASS)
 8. **SAVE** — session state saved by post-tool-use hook
 
 ## Rules

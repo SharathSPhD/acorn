@@ -52,7 +52,7 @@ export interface Agent {
   last_seen: string | null;
 }
 
-export interface Skill {
+export interface Kernel {
   id: string;
   name: string;
   category: string;
@@ -212,17 +212,17 @@ export const api = {
     models: () => apiFetch<{ models: Record<string, string>; role_routing: Record<string, string> }>("/api/agents/models"),
   },
 
-  skills: {
+  kernels: {
     list: (params?: { query?: string; category?: string; status?: string }) => {
       const sp = new URLSearchParams();
       if (params?.query) sp.set("query", params.query);
       if (params?.category && params.category !== "all") sp.set("category", params.category);
       if (params?.status && params.status !== "all") sp.set("status", params.status);
       const qs = sp.toString();
-      return apiFetch<Skill[]>(`/api/skills${qs ? `?${qs}` : ""}`);
+      return apiFetch<Kernel[]>(`/api/kernels${qs ? `?${qs}` : ""}`);
     },
     promote: (id: string) =>
-      apiFetch<unknown>(`/api/skills/${id}/promote`, { method: "POST" }),
+      apiFetch<unknown>(`/api/kernels/${id}/promote`, { method: "POST" }),
   },
 
   builder: {

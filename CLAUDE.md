@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-ACORN is currently in the **specification phase**. `spec.md` (v1.2) and `PRD.md` (v1.0) are the authoritative sources of truth. No implementation code exists yet. All development follows the phased roadmap in `spec.md §14`, starting with Phase 0 (walking skeleton).
+ACORN is currently in the **specification phase**. `spec.md` (v1.0) and `PRD.md` (v1.0) are the authoritative sources of truth. No implementation code exists yet. All development follows the phased roadmap in `spec.md §12 Exit Criteria`, starting with Phase 0 (walking skeleton).
 
 Remote repository: `https://github.com/SharathSPhD/acorn.git`
 
@@ -14,14 +14,15 @@ Remote repository: `https://github.com/SharathSPhD/acorn.git`
 
 ## Architecture Overview
 
-ACORN is a self-evolving AI software factory organised into six layers:
+ACORN is a self-evolving AI software factory organised into seven layers:
 
 | Layer | Component | Port |
 |---|---|---|
-| **CANOPY** | React Hub UI | 8501 |
+| **CANOPY** | Next.js Hub UI | 8501 |
 | **TRUNK** | FastAPI API Gateway | 8000 |
 | **GROVE** | Agent Engine (`acorn-harness` containers + Claude Code) | — |
-| **HARNESS RELAY** | `acorn-api-relay` — routes Claude Code calls to Ollama or Claude API | 9000 |
+| **RELAY** | `acorn-api-relay` — routes Claude Code calls to Ollama or Claude API | 9000 |
+| **WARDEN** | Infra-only self-build (no LLM) | — |
 | **ROOTS** | PostgreSQL 16 + pgvector, Redis 7 | 5432, 6379 |
 | **SOIL** | DGX Spark / Mac Mini M4 / Cloud GPU | — |
 
@@ -192,7 +193,7 @@ Kernels write to `kernels/probationary/` only. Promotion to `kernels/permanent/`
 
 ## PostgreSQL Schema Tables
 
-`problems`, `tasks`, `mailbox`, `episodes` (pgvector 1536-dim), `kernels` (pgvector), `agent_telemetry`, `judge_verdicts`
+`problems`, `tasks`, `mailbox`, `episodes` (pgvector 768-dim), `kernels` (pgvector), `agent_telemetry`, `judge_verdicts`
 
 Full DDL: `api/db/schema.sql` (to be created in Phase 0).
 
@@ -223,4 +224,4 @@ Refs: #issue_number
 ```
 
 Types: `feat`, `fix`, `test`, `refactor`, `chore`, `docs`
-Scopes: `trunk`, `grove`, `harness`, `relay`, `memory`, `canopy`, `kernels`, `config`
+Scopes: `trunk`, `grove`, `harness`, `relay`, `warden`, `memory`, `canopy`, `kernels`, `config`

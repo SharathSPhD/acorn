@@ -77,17 +77,17 @@ class AcornSettings(BaseSettings):
     telemetry_enabled: bool           = True
     stall_escalation_alert_threshold: float = 0.3   # Alert if > 30% of calls escalate
 
-    # -- Builder (self-build service) ----------------------------------------------
-    builder_enabled: bool              = True
-    builder_sprint_interval: int       = 3600     # 1 hour active sprint
-    builder_rest_seconds: int          = 900      # 15 min rest between sprints
-    builder_max_sprints: int           = 8        # max sprints per session
-    builder_wall_limit: int            = 28800    # 8 hour wall-clock limit
-    builder_release_threshold: int     = 5        # stories before release tag
-    builder_branch_prefix: str         = "self/"
-    builder_cb_threshold: int          = 4
-    builder_worktree_path: str         = "/acorn-warden-wt"
-    builder_ollama_url: str            = "http://acorn-api-relay:9000"
+    # -- Builder (disabled; WARDEN replaces builder, infra-only, no LLM) ----------
+    builder_enabled: bool              = False
+    # builder_sprint_interval: int       = 3600
+    # builder_rest_seconds: int          = 900
+    # builder_max_sprints: int           = 8
+    # builder_wall_limit: int            = 28800
+    # builder_release_threshold: int     = 5
+    # builder_branch_prefix: str         = "self/"
+    # builder_cb_threshold: int          = 4
+    # builder_worktree_path: str         = "/acorn-warden-wt"
+    # builder_ollama_url: str            = "http://acorn-api-relay:9000"
 
     # -- Feature flags ------------------------------------------------------------
     kernel_extraction_enabled: bool   = True

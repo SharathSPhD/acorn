@@ -38,4 +38,4 @@ Build AI-powered features: RAG pipelines, embedding strategies, prompt templates
 
 - Modifying database schema directly
 - Writing UI code (Software Architect owns that)
-- Committing to main, oak/agents, oak/skills, or oak/ui
+- Committing to main, acorn/agents, acorn/kernels, or acorn/ui

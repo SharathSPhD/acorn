@@ -17,7 +17,7 @@ except ImportError:
 class AgentRegistry:
     """Tracks active agent sessions in Redis. Pattern: Repository."""
 
-    KEY_PREFIX = "oak:agent:"
+    KEY_PREFIX = "acorn:agent:"
     TTL = 300
 
     def __init__(self, redis_url: str) -> None:

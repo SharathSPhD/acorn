@@ -20,9 +20,9 @@ KERNEL_PROMO_THRESHOLD = int(os.environ.get("ACORN_KERNEL_PROMO_THRESHOLD", "2")
 async def list_tools() -> list[types.Tool]:
     return [
         types.Tool(
-            name="find_skills",
+            name="find_kernels",
             description=(
-                "Search skill library by keyword. Always call this before writing new code."
+                "Search kernel library by keyword. Always call this before writing new code."
             ),
             inputSchema={
                 "type": "object",
@@ -38,24 +38,24 @@ async def list_tools() -> list[types.Tool]:
             },
         ),
         types.Tool(
-            name="add_skill_use",
-            description="Record that a skill was successfully used on a problem.",
+            name="add_kernel_use",
+            description="Record that a kernel was successfully used on a problem.",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "skill_id": {"type": "string"},
+                    "kernel_id": {"type": "string"},
                     "problem_uuid": {"type": "string"},
                 },
-                "required": ["skill_id", "problem_uuid"],
+                "required": ["kernel_id", "problem_uuid"],
             },
         ),
         types.Tool(
             name="request_promotion",
-            description="Request promotion of a skill from probationary to permanent.",
+            description="Request promotion of a kernel from probationary to permanent.",
             inputSchema={
                 "type": "object",
-                "properties": {"skill_id": {"type": "string"}},
-                "required": ["skill_id"],
+                "properties": {"kernel_id": {"type": "string"}},
+                "required": ["kernel_id"],
             },
         ),
     ]
@@ -65,21 +65,21 @@ async def list_tools() -> list[types.Tool]:
 async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
     conn = await asyncpg.connect(DATABASE_URL)
     try:
-        if name == "find_skills":
+        if name == "find_kernels":
             query = arguments["query"]
             category = arguments.get("category")
             top_k = arguments.get("top_k", 5)
             if category:
                 rows = await conn.fetch(
                     """SELECT id, name, category, description, trigger_keywords, status, use_count
-                       FROM skills WHERE status != 'deprecated' AND category = $1
+                       FROM kernels WHERE status != 'deprecated' AND category = $1
                          AND ($2 = ANY(trigger_keywords) OR name ILIKE $3) LIMIT $4""",
                     category, query, f"%{query}%", top_k,
                 )
             else:
                 rows = await conn.fetch(
                     """SELECT id, name, category, description, trigger_keywords, status, use_count
-                       FROM skills WHERE status != 'deprecated'
+                       FROM kernels WHERE status != 'deprecated'
                          AND ($1 = ANY(trigger_keywords) OR name ILIKE $2) LIMIT $3""",
                     query, f"%{query}%", top_k,
                 )

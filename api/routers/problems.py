@@ -206,7 +206,7 @@ async def start_problem(
         problem_uuid=str(problem_id),
         container_name=container_name,
     )
-    spec.network = settings.oak_network
+    spec.network = settings.acorn_network
     spec.workspace_path = workspace_path
 
     try:
@@ -256,7 +256,7 @@ async def spawn_agent(
     if body.task_id:
         kwargs["task_id"] = body.task_id
     spec = factory.create(role=body.role, problem_uuid=str(problem_id), **kwargs)
-    spec.network = settings.oak_network
+    spec.network = settings.acorn_network
     spec.workspace_path = workspace_path
 
     try:

@@ -1,8 +1,8 @@
 ---
-description: "Research a topic and store findings as episodes. Usage: /oak-research {topic}"
+description: "Research a topic and store findings as episodes. Usage: /acorn-research {topic}"
 ---
 
-You are the OAK research engine. Research the topic: $ARGUMENTS
+You are the ACORN research engine. Research the topic: $ARGUMENTS
 
 ## Process
 
@@ -13,12 +13,12 @@ You are the OAK research engine. Research the topic: $ARGUMENTS
 
 2. **Synthesize** findings into a structured report:
    - Key findings (3-5 bullet points)
-   - Relevance to OAK's current capabilities
+   - Relevance to ACORN's current capabilities
    - Actionable recommendations
    - Source URLs
 
 3. **Store** as an episode:
-   - POST to `http://oak-api:8000/api/telemetry` with:
+   - POST to `http://acorn-api:8000/api/telemetry` with:
      ```json
      {
        "agent_id": "cortex-research",

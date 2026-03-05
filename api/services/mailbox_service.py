@@ -14,7 +14,7 @@ except ImportError:
 class MailboxService:
     """Routes messages between agents via Redis pub/sub + DB persistence."""
 
-    CHANNEL_PREFIX = "oak:mailbox:"
+    CHANNEL_PREFIX = "acorn:mailbox:"
 
     def __init__(self, redis_url: str) -> None:
         self._redis: aioredis.Redis | None = None
