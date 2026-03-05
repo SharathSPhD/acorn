@@ -8,8 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ACORN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ACORN_API="${ACORN_API_URL:-http://localhost:8000}"
 
-ACORN_PROJECT="$(basename "${ACORN_ROOT}")"
-ACORN_NETWORK="${ACORN_PROJECT}_acorn-net"
+ACORN_NETWORK="${ACORN_NETWORK:-docker_acorn-net}"
 
 if [[ "${1:-}" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
     PROBLEM_UUID="$1"

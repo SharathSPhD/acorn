@@ -105,14 +105,15 @@ services:
     environment:
       DATABASE_URL: postgresql://acorn:acorn@acorn-postgres:5432/acorn
       REDIS_URL: redis://acorn-redis:6379
+      OLLAMA_BASE_URL: http://acorn-ollama:11434
       META_AGENT_ENABLED: ${META_AGENT_ENABLED:-true}
-      ACORN_ROOT: ${ACORN_ROOT:?Set ACORN_ROOT in .env to the host path of the acorn repo}
-      ACORN_WORKSPACE_BASE: ${ACORN_WORKSPACE_BASE:?Set ACORN_WORKSPACE_BASE in .env}
-      ACORN_NETWORK: ${ACORN_NETWORK:-docker_acorn-net}
+      ACORN_ROOT: ${ACORN_ROOT:-/home/sharaths/projects/oak}
+      ACORN_WORKSPACE_BASE: ${ACORN_WORKSPACE_BASE:-/home/sharaths/acorn-workspaces}
+      ACORN_NETWORK: docker_acorn-net
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${ACORN_WORKSPACE_BASE}:${ACORN_WORKSPACE_BASE}
-      - ${ACORN_ROOT}:${ACORN_ROOT}:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${ACORN_WORKSPACE_BASE:-/home/sharaths/acorn-workspaces}:${ACORN_WORKSPACE_BASE:-/home/sharaths/acorn-workspaces}
+      - ..:/home/sharaths/projects/oak:ro
     depends_on:
       acorn-postgres:
         condition: service_healthy

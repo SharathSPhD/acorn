@@ -457,7 +457,7 @@ async def add_reasoning_step(
         text("""
             INSERT INTO reasoning_steps
             (problem_id, agent_id, step_type, summary, confidence, sources)
-            VALUES (:pid, :aid, :stype, :summary, :conf, :sources::jsonb)
+            VALUES (:pid, :aid, :stype, :summary, :conf, CAST(:sources AS jsonb))
             RETURNING id, created_at
         """),
         {
