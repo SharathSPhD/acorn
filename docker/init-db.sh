@@ -4,4 +4,4 @@
 # Mounted as /docker-entrypoint-initdb.d/init-db.sh in compose.
 set -e
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" < /docker-entrypoint-initdb.d/schema.sql
-echo "[init-db] OAK schema applied successfully."
+echo "[init-db] ACORN schema applied successfully."

@@ -26,8 +26,8 @@ x-acorn-harness: &acorn-harness-defaults
   volumes:
     - acorn-data:/mnt/acorn-data:ro
     - acorn-kernels:/mnt/acorn-kernels:ro
-    - ./scripts/deny-patterns.txt:/workspace/scripts/deny-patterns.txt:ro
-    - ./.claude:/workspace/.claude:ro
+    - ../scripts/deny-patterns.txt:/workspace/scripts/deny-patterns.txt:ro
+    - ../.claude:/workspace/.claude:ro
   depends_on:
     - acorn-api-relay
     - acorn-redis
@@ -200,6 +200,13 @@ services:
       MAX_CONCURRENT_PROBLEMS: "1"
       MAX_HARNESS_CONTAINERS: "4"
       META_AGENT_ENABLED: ${META_AGENT_ENABLED:-true}
+      ACORN_ROOT: ${ACORN_ROOT:?Set ACORN_ROOT in .env to the host path of the acorn repo}
+      ACORN_WORKSPACE_BASE: ${ACORN_WORKSPACE_BASE:?Set ACORN_WORKSPACE_BASE in .env}
+      ACORN_NETWORK: ${ACORN_NETWORK:-docker_acorn-net}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${ACORN_WORKSPACE_BASE}:${ACORN_WORKSPACE_BASE}
+      - ${ACORN_ROOT}:${ACORN_ROOT}:ro
     depends_on:
       acorn-postgres:
         condition: service_healthy
@@ -217,7 +224,9 @@ services:
     build:
       context: ../acorn_mcp/acorn-api-relay
     restart: unless-stopped
-    networks: [acorn-net]
+    networks:
+      acorn-net:
+        aliases: [acorn-api-relay]
     ports:
       - "9000:9000"
     environment:
@@ -288,6 +297,13 @@ services:
       MAX_HARNESS_CONTAINERS: "15"
       CONCURRENT_PROBLEMS_ENABLED: "true"
       META_AGENT_ENABLED: ${META_AGENT_ENABLED:-true}
+      ACORN_ROOT: ${ACORN_ROOT:?Set ACORN_ROOT in .env to the host path of the acorn repo}
+      ACORN_WORKSPACE_BASE: ${ACORN_WORKSPACE_BASE:?Set ACORN_WORKSPACE_BASE in .env}
+      ACORN_NETWORK: ${ACORN_NETWORK:-docker_acorn-net}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${ACORN_WORKSPACE_BASE}:${ACORN_WORKSPACE_BASE}
+      - ${ACORN_ROOT}:${ACORN_ROOT}:ro
     depends_on:
       acorn-postgres:
         condition: service_healthy
@@ -305,7 +321,9 @@ services:
     build:
       context: ../acorn_mcp/acorn-api-relay
     restart: unless-stopped
-    networks: [acorn-net]
+    networks:
+      acorn-net:
+        aliases: [acorn-api-relay]
     ports:
       - "9000:9000"
     environment:
@@ -356,8 +374,6 @@ services:
       ACORN_WARDEN_POLL_INTERVAL: "${ACORN_WARDEN_POLL_INTERVAL:-60}"
       ACORN_MODE: ${ACORN_MODE:-dgx}
       ACORN_META_COOLDOWN: "${ACORN_META_COOLDOWN:-3600}"
-    depends_on:
-      - acorn-api
     deploy:
       resources:
         limits:
@@ -384,5 +400,3 @@ volumes:
   acorn-data:
   acorn-kernels:
   ollama-models:
-  builder-worktree:
-  watchdog-signals:

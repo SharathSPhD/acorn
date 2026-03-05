@@ -12,7 +12,7 @@ You are the ACORN Cortex introspection engine. Run a full self-audit:
 
 2. Read `manifest_domains.json` from the repo root to identify target domains.
 
-3. For each domain, compare permanent skill count against the floor threshold.
+3. For each domain, compare permanent kernel count against the floor threshold.
 
 4. Analyze recent failures:
    - Group by failure type (code_failure, data_failure, model_failure, decomposition_failure)
@@ -23,7 +23,7 @@ You are the ACORN Cortex introspection engine. Run a full self-audit:
    ```json
    {
      "timestamp": "ISO-8601",
-     "skill_gaps": [{"domain": "...", "gap_score": 0.8, "permanent": 1, "floor": 3}],
+     "kernel_gaps": [{"domain": "...", "gap_score": 0.8, "permanent": 1, "floor": 3}],
      "failure_patterns": [{"type": "...", "count": N, "roles": [...]}],
      "model_utilization": {"model_name": {"tasks": N, "avg_score": 0.7}},
      "recommendations": ["...", "..."]
