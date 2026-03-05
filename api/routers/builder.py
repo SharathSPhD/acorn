@@ -212,6 +212,8 @@ async def start_sprint(
 
         workspace_path = f"{settings.acorn_workspace_base}/problem-{problem_id}"
         Path(workspace_path).mkdir(parents=True, exist_ok=True)
+        import os
+        os.chmod(workspace_path, 0o777)
         container_name = f"acorn-harness-{problem_id}"
 
         try:
