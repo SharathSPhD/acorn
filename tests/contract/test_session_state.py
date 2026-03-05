@@ -44,24 +44,24 @@ def test_session_state__module_imports_cleanly():
 
 def test_session_state__concurrent_agents__isolated_keys(redis_client):
     """Two agents with different IDs don't share session data."""
-    redis_client.delete("oak:session:agent-A:cmd_history")
-    redis_client.delete("oak:session:agent-B:cmd_history")
+    redis_client.delete("acorn:session:agent-A:cmd_history")
+    redis_client.delete("acorn:session:agent-B:cmd_history")
 
-    redis_client.lpush("oak:session:agent-A:cmd_history", '{"cmd":"ls","ts":"1"}')
+    redis_client.lpush("acorn:session:agent-A:cmd_history", '{"cmd":"ls","ts":"1"}')
 
-    history_a = redis_client.lrange("oak:session:agent-A:cmd_history", 0, -1)
-    history_b = redis_client.lrange("oak:session:agent-B:cmd_history", 0, -1)
+    history_a = redis_client.lrange("acorn:session:agent-A:cmd_history", 0, -1)
+    history_b = redis_client.lrange("acorn:session:agent-B:cmd_history", 0, -1)
 
     assert len(history_a) == 1
     assert len(history_b) == 0
 
     # Cleanup
-    redis_client.delete("oak:session:agent-A:cmd_history")
+    redis_client.delete("acorn:session:agent-A:cmd_history")
 
 
 def test_session_state__cmd_history__ttl_set(redis_client):
     """cmd_history key has a TTL set (not persistent forever)."""
-    key = "oak:session:ttl-test-agent:cmd_history"
+    key = "acorn:session:ttl-test-agent:cmd_history"
     redis_client.delete(key)
     redis_client.lpush(key, '{"cmd":"test","ts":"1"}')
     redis_client.expire(key, 3600)  # Set TTL as session-state.py would

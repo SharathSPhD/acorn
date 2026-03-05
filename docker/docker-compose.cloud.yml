@@ -3,17 +3,17 @@
 # Recommended: docker compose -f docker/docker-compose.yml --profile cloud up -d
 # Or use: bash scripts/bootstrap.sh cloud
 
-# OAK Cloud GPU profile (vLLM backend)
+# ACORN Cloud GPU profile (vLLM backend)
 version: "3.9"
 
 include:
   - docker/docker-compose.base.yml
 
 services:
-  oak-vllm:
+  acorn-vllm:
     image: vllm/vllm-openai:latest
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "11434:8000"  # expose on Ollama-compatible port
     command: ["--model", "Qwen/Qwen2.5-Coder-32B-Instruct", "--served-model-name", "qwen3-coder"]
@@ -25,17 +25,17 @@ services:
               count: all
               capabilities: [gpu]
 
-  oak-api-proxy:
+  acorn-api-relay:
     environment:
-      OLLAMA_BASE_URL: http://oak-vllm:8000
-      REDIS_URL: redis://oak-redis:6379
+      OLLAMA_BASE_URL: http://acorn-vllm:8000
+      REDIS_URL: redis://acorn-redis:6379
       ROUTING_STRATEGY: passthrough
 
-  oak-api:
+  acorn-api:
     environment:
-      OAK_MODE: cloud
-      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
-      REDIS_URL: redis://oak-redis:6379
+      ACORN_MODE: cloud
+      DATABASE_URL: postgresql://acorn:acorn@acorn-postgres:5432/acorn
+      REDIS_URL: redis://acorn-redis:6379
       DEFAULT_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
       CODER_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
       ANALYSIS_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct

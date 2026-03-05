@@ -1,7 +1,7 @@
 """Tests for proxy escalation telemetry logging."""
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../oak_mcp/oak-api-proxy"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../acorn_mcp/acorn-api-relay"))
 
 from unittest.mock import patch, MagicMock
 from main import _log_escalation
@@ -15,7 +15,7 @@ def test_log_escalation__increments_global_counter():
     with patch(_PATCH_TARGET) as mock_module:
         mock_module.from_url.return_value = mock_redis
         _log_escalation(None)
-    mock_redis.incr.assert_called_once_with("oak:telemetry:escalations")
+    mock_redis.incr.assert_called_once_with("acorn:telemetry:escalations")
 
 
 def test_log_escalation__with_problem_uuid__increments_problem_counter():
@@ -24,7 +24,7 @@ def test_log_escalation__with_problem_uuid__increments_problem_counter():
         mock_module.from_url.return_value = mock_redis
         _log_escalation("test-prob-001")
     mock_redis.hincrby.assert_called_once_with(
-        "oak:telemetry:problem:test-prob-001", "escalations", 1
+        "acorn:telemetry:problem:test-prob-001", "escalations", 1
     )
 
 

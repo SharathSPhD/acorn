@@ -26,7 +26,7 @@ export function Tabs({ tabs, defaultTab }: { tabs: Tab[]; defaultTab?: string })
               className={cn(
                 "whitespace-nowrap border-b-2 pb-3 pt-2 text-sm font-medium transition-colors",
                 active === tab.id
-                  ? "border-oak-600 text-oak-700"
+                  ? "border-acorn-600 text-acorn-700"
                   : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
               )}
             >

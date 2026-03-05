@@ -30,10 +30,10 @@ class AgentResult:
 
 class AgentLifecycle(ABC):
     """
-    Template Method: defines the fixed 8-step OAK agent lifecycle.
+    Template Method: defines the fixed 8-step ACORN agent lifecycle.
 
     Subclasses implement role-specific steps; run() enforces the
-    invariant ordering: RESTORE → ORIENT → SKILL_QUERY → EXECUTE
+    invariant ordering: RESTORE → ORIENT → KERNEL_QUERY → EXECUTE
     → VALIDATE → REPORT → CLOSE → SAVE.
     """
 
@@ -41,8 +41,8 @@ class AgentLifecycle(ABC):
         """Template method — fixed lifecycle. Do not override."""
         state = await self.restore(context)
         problem = await self.orient(state)
-        skills = await self.skill_query(problem)
-        output = await self.execute(problem, skills)
+        kernels_list = await self.kernel_query(problem)
+        output = await self.execute(problem, kernels_list)
         verdict = await self.validate(output)
         await self.report(verdict)
         await self.close(state)
@@ -58,12 +58,12 @@ class AgentLifecycle(ABC):
         """ORIENT: Read PROBLEM.md, claim task from tasks table, understand scope."""
 
     @abstractmethod
-    async def skill_query(self, problem: dict[str, object]) -> list[dict[str, object]]:
-        """SKILL_QUERY: Query oak-skills MCP for reusable patterns before writing code."""
+    async def kernel_query(self, problem: dict[str, object]) -> list[dict[str, object]]:
+        """KERNEL_QUERY: Query acorn-kernels MCP for reusable patterns before writing code."""
 
     @abstractmethod
     async def execute(
-        self, problem: dict[str, object], skills: list[dict[str, object]]
+        self, problem: dict[str, object], kernels: list[dict[str, object]]
     ) -> dict[str, object]:
         """EXECUTE: Role-specific work (ETL, analysis, ML, synthesis, judgement)."""
 
@@ -81,4 +81,4 @@ class AgentLifecycle(ABC):
 
     @abstractmethod
     async def save(self, state: AgentState, result: AgentResult) -> None:
-        """SAVE: Persist episodic memory fragment for future skill extraction."""
+        """SAVE: Persist episodic memory fragment for future kernel extraction."""

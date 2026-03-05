@@ -1,4 +1,4 @@
-# OAK Shared Deny Patterns
+# ACORN Shared Deny Patterns
 # Read by BOTH tool-proxy.sh (Layer 1) and pre-tool-use.sh (Layer 2).
 # One pattern per line. Lines starting with # are comments.
 # Patterns are matched case-insensitively against the full command string.
@@ -39,12 +39,12 @@ bash <\(wget
 >/dev/sda
 >/dev/nvme
 
-# OAK business rules (Layer 2 / pre-tool-use.sh only enforces these for context;
-# Layer 1 / tool-proxy.sh skips lines starting with OAK:)
-OAK: git push.*main
-OAK: git push.*oak/agents
-OAK: git push.*oak/skills
-OAK: git push.*oak/ui
+# ACORN business rules (Layer 2 / pre-tool-use.sh only enforces these for context;
+# Layer 1 / tool-proxy.sh skips lines starting with ACORN:)
+ACORN: git push.*main
+ACORN: git push.*acorn/agents
+ACORN: git push.*acorn/kernels
+ACORN: git push.*acorn/ui
 
 # Prompt injection defence
 eval\s*\(

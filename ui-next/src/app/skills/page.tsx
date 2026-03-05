@@ -41,12 +41,12 @@ export default function SkillsPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search skills..."
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-oak-500 focus:ring-2 focus:ring-oak-500/20 focus:outline-none w-64"
+          className="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-acorn-500 focus:ring-2 focus:ring-acorn-500/20 focus:outline-none w-64"
         />
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-oak-500 focus:ring-2 focus:ring-oak-500/20 focus:outline-none"
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-acorn-500 focus:ring-2 focus:ring-acorn-500/20 focus:outline-none"
         >
           <option value="all">All Categories</option>
           <option value="etl">ETL</option>
@@ -58,7 +58,7 @@ export default function SkillsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-oak-500 focus:ring-2 focus:ring-oak-500/20 focus:outline-none"
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:border-acorn-500 focus:ring-2 focus:ring-acorn-500/20 focus:outline-none"
         >
           <option value="all">All Status</option>
           <option value="permanent">Permanent</option>

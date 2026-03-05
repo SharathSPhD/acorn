@@ -2,7 +2,7 @@ __pattern__ = "Repository"
 
 from functools import lru_cache
 
-from api.config import OAKSettings
+from api.config import AcornSettings
 from api.events.bus import (
     EpisodicMemorySubscriber,
     EventBus,
@@ -12,8 +12,8 @@ from api.events.bus import (
 
 
 @lru_cache
-def get_settings() -> OAKSettings:
-    return OAKSettings()
+def get_settings() -> AcornSettings:
+    return AcornSettings()
 
 
 _event_bus: EventBus | None = None

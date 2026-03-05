@@ -1,5 +1,5 @@
 #!/bin/bash
-# Create a new OAK problem workspace and launch orchestrator
+# Create a new ACORN problem workspace and launch orchestrator
 # Usage: bash scripts/new-problem.sh "Problem Title" "Description"
 #    or: bash scripts/new-problem.sh [uuid]  (legacy mode)
 set -euo pipefail

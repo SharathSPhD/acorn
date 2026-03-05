@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from api.config import OAKSettings
+from api.config import AcornSettings
 from api.factories.agent_factory import (
     AgentSpec,
     DGXAgentFactory,
@@ -25,7 +25,7 @@ def test_agent_factory__create__returns_valid_spec():
     assert isinstance(spec, AgentSpec)
     assert spec.role == "data-engineer"
     assert spec.problem_uuid == "prob-001"
-    assert spec.harness_image == "oak/harness:latest"
+    assert spec.harness_image == "acorn/harness:latest"
     assert spec.agent_id
 
 
@@ -35,7 +35,7 @@ def test_agent_factory__create__generates_unique_agent_ids():
 
 
 def test_agent_factory__create__uses_model_for_role():
-    s = OAKSettings()
+    s = AcornSettings()
     spec = DGXAgentFactory().create("data-scientist", "p1")
     assert spec.model == s.analysis_model
 
@@ -77,8 +77,8 @@ async def test_agent_factory__launch__passes_env_vars():
         await DGXAgentFactory().launch(spec)
     cmd = mock_exec.call_args[0]
     cmd_str = " ".join(str(a) for a in cmd)
-    assert "OAK_MODEL=glm-4.7" in cmd_str
-    assert "OAK_ROLE=ds" in cmd_str
+    assert "ACORN_MODEL=glm-4.7" in cmd_str
+    assert "ACORN_ROLE=ds" in cmd_str
     assert "ANTHROPIC_BASE_URL=" in cmd_str
 
 
@@ -103,7 +103,7 @@ async def test_agent_factory__launch__includes_task_id_env():
     with patch("asyncio.create_subprocess_exec", return_value=mock_proc) as mock_exec:
         await DGXAgentFactory().launch(spec)
     cmd_str = " ".join(str(a) for a in mock_exec.call_args[0])
-    assert "OAK_TASK_ID=tid-99" in cmd_str
+    assert "ACORN_TASK_ID=tid-99" in cmd_str
 
 
 def test_agent_factory__get_agent_factory__returns_dgx_by_default():
@@ -112,18 +112,18 @@ def test_agent_factory__get_agent_factory__returns_dgx_by_default():
 
 
 def test_config__model_for_role__coder_roles():
-    s = OAKSettings()
+    s = AcornSettings()
     assert s.model_for_role("data-engineer") == s.coder_model
     assert s.model_for_role("ml-engineer") == s.coder_model
 
 
 def test_config__model_for_role__analysis_roles():
-    s = OAKSettings()
+    s = AcornSettings()
     assert s.model_for_role("data-scientist") == s.analysis_model
     assert s.model_for_role("skill-extractor") == s.analysis_model
 
 
 def test_config__model_for_role__reasoning_roles():
-    s = OAKSettings()
+    s = AcornSettings()
     assert s.model_for_role("orchestrator") == s.reasoning_model
     assert s.model_for_role("judge-agent") == s.reasoning_model

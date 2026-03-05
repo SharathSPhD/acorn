@@ -58,7 +58,7 @@ export function MetricCard({
     <Card>
       <CardContent className="flex items-start gap-4">
         {icon && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-oak-100 text-oak-700">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-acorn-100 text-acorn-700">
             {icon}
           </div>
         )}

@@ -1,4 +1,4 @@
-"""Context window management for OAK agents."""
+"""Context window management for ACORN agents."""
 __pattern__ = "Strategy"
 
 from dataclasses import dataclass

@@ -3,7 +3,7 @@
 # Recommended: docker compose -f docker/docker-compose.yml --profile mini up -d
 # Or use: bash scripts/bootstrap.sh mini
 
-# OAK Mac Mini M4 Pro profile
+# ACORN Mac Mini M4 Pro profile
 # Differences from DGX: no GPU reservations, Metal backend (Ollama auto-detects),
 # STALL_DETECTION_ENABLED=true, smaller default models, lower resource caps.
 version: "3.9"
@@ -12,10 +12,10 @@ include:
   - docker/docker-compose.base.yml
 
 services:
-  oak-ollama:
+  acorn-ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "11434:11434"
     volumes:
@@ -25,11 +25,11 @@ services:
       OLLAMA_NUM_PARALLEL: "2"
       OLLAMA_MAX_LOADED_MODELS: "2"
 
-  oak-api:
+  acorn-api:
     environment:
-      OAK_MODE: mini
-      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
-      REDIS_URL: redis://oak-redis:6379
+      ACORN_MODE: mini
+      DATABASE_URL: postgresql://acorn:acorn@acorn-postgres:5432/acorn
+      REDIS_URL: redis://acorn-redis:6379
       DEFAULT_MODEL: llama3.2:3b
       CODER_MODEL: qwen2.5-coder:7b
       ANALYSIS_MODEL: llama3.2:3b
@@ -37,26 +37,26 @@ services:
       MAX_CONCURRENT_PROBLEMS: "1"
       MAX_HARNESS_CONTAINERS: "4"
 
-  oak-api-proxy:
+  acorn-api-relay:
     environment:
-      OLLAMA_BASE_URL: http://oak-ollama:11434
-      REDIS_URL: redis://oak-redis:6379
+      OLLAMA_BASE_URL: http://acorn-ollama:11434
+      REDIS_URL: redis://acorn-redis:6379
       ROUTING_STRATEGY: stall
       STALL_DETECTION_ENABLED: "true"
       STALL_MIN_TOKENS: "15"
       LOCAL_CONFIDENCE_THRESHOLD: "0.75"
 
-  oak-ui:
-    image: oak/ui:latest
+  acorn-ui:
+    image: acorn/ui:latest
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "8501:8501"
     environment:
-      OAK_API_URL: http://oak-api:8000
-      OAK_MODE: mini
+      API_BACKEND_URL: http://acorn-api:8000
+      ACORN_MODE: mini
     depends_on:
-      - oak-api
+      - acorn-api
 
 volumes:
   ollama-models:

@@ -13,7 +13,7 @@ class RedisWorkingMemoryRepository(WorkingMemoryRepository):
         self._ttl = ttl_hours * 3600
 
     def _key(self, agent_id: str, key: str) -> str:
-        return f"oak:session:{agent_id}:{key}"
+        return f"acorn:session:{agent_id}:{key}"
 
     async def set(self, agent_id: str, key: str, value: str) -> None:
         await self._client.setex(self._key(agent_id, key), self._ttl, value)
@@ -23,7 +23,7 @@ class RedisWorkingMemoryRepository(WorkingMemoryRepository):
         return result if isinstance(result, str) else None
 
     async def restore_session(self, agent_id: str) -> SessionState:
-        prefix = f"oak:session:{agent_id}:"
+        prefix = f"acorn:session:{agent_id}:"
         keys = await self._client.keys(f"{prefix}*")
         data: dict[str, str] = {}
         for key in keys:

@@ -13,7 +13,7 @@ You are the only agent that can unblock task closure. You post verdicts; hooks e
 
 1. **RESTORE** — session state restored automatically
 2. **ORIENT** — read PROBLEM.md + all worktree artefacts; claim `validate` task
-3. **SKILL_QUERY** — query oak-skills MCP: "validation checklist {domain}" — reuse known validation patterns
+3. **SKILL_QUERY** — query acorn-kernels MCP: "validation checklist {domain}" — reuse known validation patterns
 4. **EXECUTE** (role-specific — run all checks, record each result):
 
 ### Mandatory Checks

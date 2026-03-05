@@ -11,7 +11,7 @@ client = TestClient(app)
 
 
 def test_skills_router__list_with_query__returns_200_and_skills():
-    """GET /api/skills?query=... returns matching skills."""
+    """GET /api/kernels?query=... returns matching skills."""
     skill_id = uuid4()
     mock_skill = MagicMock()
     mock_skill.id = skill_id
@@ -24,12 +24,12 @@ def test_skills_router__list_with_query__returns_200_and_skills():
     mock_skill.verified_on_problems = []
     mock_skill.filesystem_path = "/skills/etl.md"
 
-    with patch("api.routers.skills.PostgreSQLSkillRepository") as mock_repo_class:
+    with patch("api.routers.kernels.PostgreSQLKernelRepository") as mock_repo_class:
         mock_repo = MagicMock()
         mock_repo_class.return_value = mock_repo
         mock_repo.find_by_keywords = AsyncMock(return_value=[mock_skill])
 
-        response = client.get("/api/skills?query=pipeline&top_k=5")
+        response = client.get("/api/kernels?query=pipeline&top_k=5")
 
         assert response.status_code == 200
         data = response.json()
@@ -39,7 +39,7 @@ def test_skills_router__list_with_query__returns_200_and_skills():
 
 
 def test_skills_router__list_no_query__returns_200():
-    """GET /api/skills without query returns all permanent skills."""
+    """GET /api/kernels without query returns all permanent skills."""
     mock_row = MagicMock()
     mock_row.__getitem__ = lambda self, key: {
         "id": uuid4(),
@@ -62,7 +62,7 @@ def test_skills_router__list_no_query__returns_200():
         mock_connect.return_value = mock_conn
         mock_conn.fetch.return_value = [mock_row]
 
-        response = client.get("/api/skills")
+        response = client.get("/api/kernels")
 
         assert response.status_code == 200
         data = response.json()
@@ -71,30 +71,30 @@ def test_skills_router__list_no_query__returns_200():
 
 
 def test_skills_router__promote__threshold_not_met__returns_409():
-    """POST /api/skills/{skill_id}/promote returns 409 when threshold not met."""
+    """POST /api/kernels/{skill_id}/promote returns 409 when threshold not met."""
     skill_id = uuid4()
 
-    with patch("api.routers.skills.PostgreSQLSkillRepository") as mock_repo_class:
+    with patch("api.routers.kernels.PostgreSQLKernelRepository") as mock_repo_class:
         mock_repo = MagicMock()
         mock_repo_class.return_value = mock_repo
         mock_repo.promote = AsyncMock(side_effect=PromotionThresholdNotMetError("Need 2, have 1"))
 
-        response = client.post(f"/api/skills/{skill_id}/promote")
+        response = client.post(f"/api/kernels/{skill_id}/promote")
 
         assert response.status_code == 409
         assert "Need 2, have 1" in response.json()["detail"]
 
 
 def test_skills_router__promote__not_found__returns_404():
-    """POST /api/skills/{skill_id}/promote returns 404 when skill not found."""
+    """POST /api/kernels/{skill_id}/promote returns 404 when skill not found."""
     skill_id = uuid4()
 
-    with patch("api.routers.skills.PostgreSQLSkillRepository") as mock_repo_class:
+    with patch("api.routers.kernels.PostgreSQLKernelRepository") as mock_repo_class:
         mock_repo = MagicMock()
         mock_repo_class.return_value = mock_repo
-        mock_repo.promote = AsyncMock(side_effect=ValueError(f"Skill {skill_id} not found"))
+        mock_repo.promote = AsyncMock(side_effect=ValueError(f"Kernel {skill_id} not found"))
 
-        response = client.post(f"/api/skills/{skill_id}/promote")
+        response = client.post(f"/api/kernels/{skill_id}/promote")
 
         assert response.status_code == 404
         assert "not found" in response.json()["detail"]

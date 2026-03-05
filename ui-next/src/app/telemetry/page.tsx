@@ -43,7 +43,7 @@ export default function TelemetryPage() {
         />
         <MetricCard
           label="System Mode"
-          value={h?.oak_mode?.toUpperCase() ?? "--"}
+          value={h?.acorn_mode?.toUpperCase() ?? "--"}
           subtext={h?.routing_strategy ?? ""}
           icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z" /></svg>}
         />
@@ -71,7 +71,7 @@ export default function TelemetryPage() {
                         </div>
                         <div className="h-2 rounded-full bg-slate-100">
                           <div
-                            className="h-2 rounded-full bg-oak-500 transition-all"
+                            className="h-2 rounded-full bg-acorn-500 transition-all"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -157,7 +157,7 @@ export default function TelemetryPage() {
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {t.recent_events.map((ev, i) => (
                   <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-slate-50">
-                    <div className="h-1.5 w-1.5 rounded-full bg-oak-400 shrink-0" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-acorn-400 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-slate-700 truncate">
                         {ev.event_type as string}

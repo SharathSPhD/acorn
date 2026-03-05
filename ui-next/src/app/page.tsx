@@ -35,7 +35,7 @@ export default function Dashboard() {
           <>
             <span className="text-slate-300">|</span>
             <span className="text-xs text-slate-500">
-              Mode: {health.data.oak_mode.toUpperCase()} &middot; Routing: {health.data.routing_strategy}
+              Mode: {health.data.acorn_mode.toUpperCase()} &middot; Routing: {health.data.routing_strategy}
             </span>
           </>
         )}
@@ -70,9 +70,9 @@ export default function Dashboard() {
       {/* Quick actions */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
         <Link href="/submit" className="group">
-          <Card className="h-full border-2 border-dashed border-oak-200 hover:border-oak-400 bg-oak-50/30">
+          <Card className="h-full border-2 border-dashed border-acorn-200 hover:border-acorn-400 bg-acorn-50/30">
             <CardContent className="flex flex-col items-center py-8">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-oak-100 text-oak-600 group-hover:bg-oak-200 transition-colors">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-acorn-100 text-acorn-600 group-hover:bg-acorn-200 transition-colors">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
               </div>
               <p className="font-semibold text-slate-900">Submit Problem</p>
@@ -109,7 +109,7 @@ export default function Dashboard() {
         <Card>
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <h2 className="text-sm font-semibold text-slate-900">Recent Problems</h2>
-            <Link href="/gallery" className="text-xs text-oak-600 hover:text-oak-700 font-medium">View all</Link>
+            <Link href="/gallery" className="text-xs text-acorn-600 hover:text-acorn-700 font-medium">View all</Link>
           </div>
           <div className="divide-y divide-slate-50">
             {problems.data.slice(0, 5).map((p) => (

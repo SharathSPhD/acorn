@@ -1,4 +1,4 @@
-name: Build and Publish OAK Images
+name: Build and Publish ACORN Images
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: sharathsphd/oak
+  IMAGE_PREFIX: sharathsphd/acorn
 
 jobs:
   build-and-push:
@@ -22,18 +22,18 @@ jobs:
           - name: api
             context: .
             dockerfile: docker/api/Dockerfile
-          - name: proxy
-            context: ./oak_mcp/oak-api-proxy
+          - name: relay
+            context: ./acorn_mcp/acorn-api-relay
             dockerfile: Dockerfile
           - name: ui
             context: ./ui-next
             dockerfile: Dockerfile
           - name: harness
-            context: ./docker/claude-harness
+            context: ./docker/acorn-harness
             dockerfile: Dockerfile
-          - name: daemon
+          - name: warden
             context: .
-            dockerfile: docker/daemon/Dockerfile
+            dockerfile: docker/warden/Dockerfile
 
     steps:
       - uses: actions/checkout@v4

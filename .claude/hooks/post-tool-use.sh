@@ -1,16 +1,16 @@
 #!/bin/bash
-# OAK PostToolUse Hook — thin telemetry relay (PRD anti-pattern AP-4: hooks are thin relays)
+# ACORN PostToolUse Hook — thin telemetry relay (PRD anti-pattern AP-4: hooks are thin relays)
 # Receives JSON on stdin: {"tool_name": "...", "tool_input": {...}, "tool_response": {...}}
 # NEVER blocks (always exits 0). Never contains business logic.
 set -euo pipefail
 
 PAYLOAD=$(cat)
-START_MS=${OAK_TOOL_START_MS:-0}
+START_MS=${ACORN_TOOL_START_MS:-0}
 NOW_MS=$(python3 -c "import time; print(int(time.time()*1000))" 2>/dev/null || echo "0")
 DURATION_MS=$(( NOW_MS - START_MS ))
 export DURATION_MS
 
-OAK_API="${OAK_API_URL:-http://oak-api:8000}"
+ACORN_API="${ACORN_API_URL:-http://acorn-api:8000}"
 
 TELEMETRY=$(python3 - <<'PYEOF' <<< "$PAYLOAD"
 import sys, json, os
@@ -21,7 +21,7 @@ tool_input = payload.get("tool_input")
 tool_response = payload.get("tool_response")
 
 event = {
-    "agent_id": os.environ.get("OAK_AGENT_ID", "unknown"),
+    "agent_id": os.environ.get("ACORN_AGENT_ID", "unknown"),
     "event_type": "tool_called",
     "tool_name": tool_name,
     "tool_input": tool_input if isinstance(tool_input, dict) else None,
@@ -30,7 +30,7 @@ event = {
     "escalated": False,
 }
 
-puuid = os.environ.get("OAK_PROBLEM_UUID", "")
+puuid = os.environ.get("ACORN_PROBLEM_UUID", "")
 if puuid and puuid != "00000000-0000-0000-0000-000000000000":
     event["problem_id"] = puuid
 
@@ -40,7 +40,7 @@ PYEOF
 
 if [ -n "$TELEMETRY" ]; then
     curl -s -m 2 -X POST \
-        "$OAK_API/api/telemetry" \
+        "$ACORN_API/api/telemetry" \
         -H "Content-Type: application/json" \
         -d "$TELEMETRY" \
         > /dev/null 2>&1 || true

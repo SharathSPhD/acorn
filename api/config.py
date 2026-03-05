@@ -6,7 +6,7 @@ from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class OAKMode(StrEnum):
+class AcornMode(StrEnum):
     DGX   = "dgx"
     MINI  = "mini"
     CLOUD = "cloud"
@@ -19,18 +19,18 @@ class RoutingStrategy(StrEnum):
     COUNCIL      = "council"
 
 
-class OAKSettings(BaseSettings):
+class AcornSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8",
                                       extra="ignore", case_sensitive=False)
 
     # -- Platform -----------------------------------------------------------------
-    oak_mode: OAKMode = OAKMode.DGX
-    oak_root: str = "/app"
-    oak_workspace_base: str = "/workspaces"
-    oak_network: str = "oak_oak-net"
+    acorn_mode: AcornMode = AcornMode.DGX
+    acorn_root: str = "/app"
+    acorn_workspace_base: str = "/workspaces"
+    acorn_network: str = "acorn_acorn-net"
 
     # -- Inference ----------------------------------------------------------------
-    anthropic_base_url: str     = "http://oak-api-proxy:9000"
+    anthropic_base_url: str     = "http://acorn-api-relay:9000"
     anthropic_auth_token: str   = "ollama"
     anthropic_api_key: str      = ""          # Empty = local-only
     anthropic_api_key_real: str = ""          # Used by proxy for escalation
@@ -59,18 +59,18 @@ class OAKSettings(BaseSettings):
     embed_dim: int = 768
 
     # -- Memory -------------------------------------------------------------------
-    database_url: str                 = "postgresql://oak:oak@oak-postgres:5432/oak"
-    redis_url: str                    = "redis://oak-redis:6379"
-    oak_session_ttl_hours: int        = 24
-    oak_memory_ttl_days: int          = 90
+    database_url: str                 = "postgresql://acorn:acorn@acorn-postgres:5432/acorn"
+    redis_url: str                    = "redis://acorn-redis:6379"
+    acorn_session_ttl_hours: int      = 24
+    acorn_memory_ttl_days: int        = 90
 
-    # -- Skill library ------------------------------------------------------------
-    oak_skill_promo_threshold: int    = 2
-    skill_probationary_path: str      = "/workspace/skills/probationary"
-    skill_permanent_path: str         = "/workspace/skills/permanent"
+    # -- Kernel grove -------------------------------------------------------------
+    acorn_kernel_promo_threshold: int = 2
+    kernel_probationary_path: str     = "/workspace/kernels/probationary"
+    kernel_permanent_path: str        = "/workspace/kernels/permanent"
 
     # -- Agent behaviour ----------------------------------------------------------
-    oak_idle_timeout_seconds: int     = 120
+    acorn_idle_timeout_seconds: int   = 120
     claude_code_experimental_agent_teams: str = "1"
 
     # -- Observability ------------------------------------------------------------
@@ -86,11 +86,11 @@ class OAKSettings(BaseSettings):
     builder_release_threshold: int     = 5        # stories before release tag
     builder_branch_prefix: str         = "self/"
     builder_cb_threshold: int          = 4
-    builder_worktree_path: str         = "/oak-builder-wt"
-    builder_ollama_url: str            = "http://oak-api-proxy:9000"
+    builder_worktree_path: str         = "/acorn-warden-wt"
+    builder_ollama_url: str            = "http://acorn-api-relay:9000"
 
     # -- Feature flags ------------------------------------------------------------
-    skill_extraction_enabled: bool    = True
+    kernel_extraction_enabled: bool   = True
     judge_required: bool              = True
     # Set META_AGENT_ENABLED=true in .env to enable prompt evolution proposals
     meta_agent_enabled: bool          = False
@@ -99,7 +99,7 @@ class OAKSettings(BaseSettings):
 
     def model_for_role(self, role: str) -> str:
         """Return the Ollama model name appropriate for the given agent role."""
-        analysis_roles = {"data-scientist", "skill-extractor"}
+        analysis_roles = {"data-scientist", "kernel-extractor"}
         reasoning_roles = {"orchestrator", "judge-agent", "meta-agent", "software-architect"}
         if role in analysis_roles:
             return self.analysis_model
@@ -108,7 +108,7 @@ class OAKSettings(BaseSettings):
         return self.coder_model  # data-engineer, ml-engineer, default
 
     @model_validator(mode="after")
-    def validate_escalation_config(self) -> "OAKSettings":
+    def validate_escalation_config(self) -> "AcornSettings":
         if self.stall_detection_enabled and not self.anthropic_api_key_real:
             # Not a hard error -- proxy will log and fall back to local
             import warnings
@@ -119,15 +119,15 @@ class OAKSettings(BaseSettings):
         return self
 
     @model_validator(mode="after")
-    def validate_resource_caps(self) -> "OAKSettings":
-        if self.oak_mode == OAKMode.MINI and self.max_agents_per_problem > 4:
+    def validate_resource_caps(self) -> "AcornSettings":
+        if self.acorn_mode == AcornMode.MINI and self.max_agents_per_problem > 4:
             import warnings
             warnings.warn(
-                f"OAK_MODE=mini but MAX_AGENTS_PER_PROBLEM={self.max_agents_per_problem}. "
+                f"ACORN_MODE=mini but MAX_AGENTS_PER_PROBLEM={self.max_agents_per_problem}. "
                 "Mini profile recommends <= 4 agents per problem due to memory constraints.",
                 stacklevel=2)
         return self
 
 
 # Singleton -- imported by all modules
-settings = OAKSettings()
+settings = AcornSettings()

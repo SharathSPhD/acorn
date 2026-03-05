@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.config import OAKSettings
+from api.config import AcornSettings
 from api.db.connection import get_db
 from api.dependencies import get_event_bus, get_settings
 from api.events.bus import AgentEvent, EventBus
@@ -34,7 +34,7 @@ async def create_problem(
     body: ProblemCreate,
     db: AsyncSession = Depends(get_db),
     bus: EventBus = Depends(get_event_bus),
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> ProblemResponse:
     """Create a new problem. Returns 429 if MAX_CONCURRENT_PROBLEMS exceeded."""
     active_count = await db.execute(
@@ -102,7 +102,7 @@ async def cleanup_stale_problems(
     cleaned = 0
 
     for row in rows:
-        container_name = f"oak-harness-{row['id']}"
+        container_name = f"acorn-harness-{row['id']}"
         try:
             proc = await asyncio.create_subprocess_exec(
                 "docker", "inspect", "--format", "{{.State.Running}}", container_name,
@@ -158,7 +158,7 @@ async def start_problem(
     problem_id: UUID,
     db: AsyncSession = Depends(get_db),
     bus: EventBus = Depends(get_event_bus),
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> ProblemStartResponse:
     """Start the agent pipeline for a problem. Creates worktree + launches harness."""
     result = await db.execute(
@@ -171,8 +171,8 @@ async def start_problem(
     if row["status"] not in ("pending", "failed"):
         raise HTTPException(status_code=409, detail=f"Problem is already {row['status']}")
 
-    workspace_path = f"{settings.oak_workspace_base}/problem-{problem_id}"
-    container_name = f"oak-harness-{problem_id}"
+    workspace_path = f"{settings.acorn_workspace_base}/problem-{problem_id}"
+    container_name = f"acorn-harness-{problem_id}"
 
     await db.execute(
         text("UPDATE problems SET status = 'active', updated_at = NOW() WHERE id = :id"),
@@ -185,7 +185,7 @@ async def start_problem(
 
     try:
         subprocess.run(
-            ["git", "-C", settings.oak_root, "worktree", "add", "-b",
+            ["git", "-C", settings.acorn_root, "worktree", "add", "-b",
              f"oak/problem-{problem_id}", workspace_path, "main"],
             capture_output=True, timeout=30,
         )
@@ -235,12 +235,12 @@ async def start_problem(
 async def spawn_agent(
     problem_id: UUID,
     body: SpawnAgentRequest,
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> dict[str, str]:
     """Spawn a specialist agent container for a specific role."""
-    workspace_path = f"{settings.oak_workspace_base}/problem-{problem_id}"
+    workspace_path = f"{settings.acorn_workspace_base}/problem-{problem_id}"
     suffix = str(body.task_id)[:8] if body.task_id else str(uuid4())[:8]
-    container_name = f"oak-{body.role}-{suffix}"
+    container_name = f"acorn-{body.role}-{suffix}"
 
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -279,7 +279,7 @@ async def upload_file(
     problem_id: UUID,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> dict[str, object]:
     """Upload a data file to the problem workspace."""
     result = await db.execute(
@@ -289,7 +289,7 @@ async def upload_file(
     if result.mappings().one_or_none() is None:
         raise HTTPException(status_code=404, detail="Problem not found")
 
-    workspace_path = Path(f"{settings.oak_workspace_base}/problem-{problem_id}")
+    workspace_path = Path(f"{settings.acorn_workspace_base}/problem-{problem_id}")
     workspace_path.mkdir(parents=True, exist_ok=True)
 
     fname = file.filename or "uploaded_file"
@@ -303,7 +303,7 @@ async def upload_file(
 @router.get("/{problem_id}/logs")
 async def get_logs(problem_id: UUID) -> dict[str, str]:
     """Get harness container logs for a problem."""
-    container_name = f"oak-harness-{problem_id}"
+    container_name = f"acorn-harness-{problem_id}"
     try:
         proc = await asyncio.create_subprocess_exec(
             "docker", "logs", "--tail", "100", container_name,
@@ -318,7 +318,7 @@ async def get_logs(problem_id: UUID) -> dict[str, str]:
 @router.get("/{problem_id}/status")
 async def get_problem_status(problem_id: UUID) -> dict[str, str]:
     """Get harness container status for a problem."""
-    container_name = f"oak-harness-{problem_id}"
+    container_name = f"acorn-harness-{problem_id}"
     try:
         proc = await asyncio.create_subprocess_exec(
             "docker", "ps", "-a", "--filter", f"name={container_name}",
@@ -335,10 +335,10 @@ async def get_problem_status(problem_id: UUID) -> dict[str, str]:
 @router.get("/{problem_id}/files")
 async def list_workspace_files(
     problem_id: UUID,
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> dict[str, object]:
     """List files in the problem workspace."""
-    workspace_path = Path(f"{settings.oak_workspace_base}/problem-{problem_id}")
+    workspace_path = Path(f"{settings.acorn_workspace_base}/problem-{problem_id}")
     if not workspace_path.exists():
         return {"files": [], "workspace": str(workspace_path)}
     files = []
@@ -355,10 +355,10 @@ async def list_workspace_files(
 async def get_file_content(
     problem_id: UUID,
     filename: str,
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> FileResponse:
     """Serve a file from the problem workspace (markdown, images, code, etc)."""
-    workspace = Path(f"{settings.oak_workspace_base}/problem-{problem_id}")
+    workspace = Path(f"{settings.acorn_workspace_base}/problem-{problem_id}")
     filepath = (workspace / filename).resolve()
     if not str(filepath).startswith(str(workspace.resolve())):
         raise HTTPException(status_code=403, detail="Path traversal not allowed")
@@ -394,7 +394,7 @@ async def update_problem_status(
 async def delete_problem(
     problem_id: UUID,
     db: AsyncSession = Depends(get_db),
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> None:
     """Hard-delete a problem and stop its harness container if running."""
     result = await db.execute(
@@ -404,7 +404,7 @@ async def delete_problem(
     if result.mappings().one_or_none() is None:
         raise HTTPException(status_code=404, detail="Problem not found")
 
-    container_name = f"oak-harness-{problem_id}"
+    container_name = f"acorn-harness-{problem_id}"
     try:
         proc = await asyncio.create_subprocess_exec(
             "docker", "rm", "-f", container_name,
@@ -414,7 +414,7 @@ async def delete_problem(
     except Exception:
         pass
 
-    workspace_path = f"{settings.oak_workspace_base}/problem-{problem_id}"
+    workspace_path = f"{settings.acorn_workspace_base}/problem-{problem_id}"
     try:
         subprocess.run(
             ["git", "worktree", "remove", "--force", workspace_path],

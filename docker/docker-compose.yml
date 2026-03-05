@@ -1,66 +1,66 @@
-# OAK Unified Docker Compose — single file with profiles
+# ACORN Unified Docker Compose — single file with profiles
 # Usage:
 #   docker compose --profile dgx up      # DGX Spark with GPU + Ollama
 #   docker compose --profile mini up     # Mac Mini M4 with Metal Ollama
 #   docker compose --profile cloud up    # Cloud with vLLM backend
 #
 # Core services (postgres, redis) always run; all others are profile-specific.
-# Each profile includes its own api, api-proxy, ui, and ollama/vllm.
+# Each profile includes its own api, api-relay, ui, and ollama/vllm.
 #
 # Meta Agent Activation:
-#   META_AGENT_ENABLED=true docker compose --profile dgx up oak-api
+#   META_AGENT_ENABLED=true docker compose --profile dgx up acorn-api
 # Or set META_AGENT_ENABLED=true in .env before running compose.
 
-x-oak-harness: &oak-harness-defaults
-  image: oak/harness:latest
+x-acorn-harness: &acorn-harness-defaults
+  image: acorn/harness:latest
   restart: "no"
-  networks: [oak-net]
+  networks: [acorn-net]
   environment:
-    ANTHROPIC_BASE_URL: http://oak-api-proxy:9000
+    ANTHROPIC_BASE_URL: http://acorn-api-relay:9000
     ANTHROPIC_AUTH_TOKEN: ollama
     ANTHROPIC_API_KEY: ""
     CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
-    REDIS_URL: redis://oak-redis:6379
-    DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
+    REDIS_URL: redis://acorn-redis:6379
+    DATABASE_URL: postgresql://acorn:acorn@acorn-postgres:5432/acorn
   volumes:
-    - oak-data:/mnt/oak-data:ro
-    - oak-skills:/mnt/oak-skills:ro
+    - acorn-data:/mnt/acorn-data:ro
+    - acorn-kernels:/mnt/acorn-kernels:ro
     - ./scripts/deny-patterns.txt:/workspace/scripts/deny-patterns.txt:ro
     - ./.claude:/workspace/.claude:ro
   depends_on:
-    - oak-api-proxy
-    - oak-redis
-    - oak-postgres
+    - acorn-api-relay
+    - acorn-redis
+    - acorn-postgres
 
 services:
   # ──────────────────────────────────────────────────────────────────────────
   # Core services — always-on (no profile)
   # ──────────────────────────────────────────────────────────────────────────
 
-  oak-postgres:
+  acorn-postgres:
     image: pgvector/pgvector:pg16
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     environment:
-      POSTGRES_USER: oak
-      POSTGRES_PASSWORD: oak
-      POSTGRES_DB: oak
+      POSTGRES_USER: acorn
+      POSTGRES_PASSWORD: acorn
+      POSTGRES_DB: acorn
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./api/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U oak"]
+      test: ["CMD-SHELL", "pg_isready -U acorn"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  oak-redis:
+  acorn-redis:
     image: redis:7-alpine
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
@@ -76,10 +76,10 @@ services:
   # DGX Spark Profile (--profile dgx)
   # ──────────────────────────────────────────────────────────────────────────
 
-  oak-ollama:
+  acorn-ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "11434:11434"
     volumes:
@@ -93,30 +93,30 @@ services:
               capabilities: [gpu]
     profiles: ["dgx"]
 
-  oak-api:
-    image: oak/api:latest
+  acorn-api:
+    image: acorn/api:latest
     build:
       context: ..
       dockerfile: docker/api/Dockerfile
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
-      REDIS_URL: redis://oak-redis:6379
+      DATABASE_URL: postgresql://acorn:acorn@acorn-postgres:5432/acorn
+      REDIS_URL: redis://acorn-redis:6379
       META_AGENT_ENABLED: ${META_AGENT_ENABLED:-true}
-      OAK_ROOT: ${OAK_ROOT:?Set OAK_ROOT in .env to the host path of the oak repo}
-      OAK_WORKSPACE_BASE: ${OAK_WORKSPACE_BASE:?Set OAK_WORKSPACE_BASE in .env}
-      OAK_NETWORK: ${OAK_NETWORK:-docker_oak-net}
+      ACORN_ROOT: ${ACORN_ROOT:?Set ACORN_ROOT in .env to the host path of the acorn repo}
+      ACORN_WORKSPACE_BASE: ${ACORN_WORKSPACE_BASE:?Set ACORN_WORKSPACE_BASE in .env}
+      ACORN_NETWORK: ${ACORN_NETWORK:-docker_acorn-net}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${OAK_WORKSPACE_BASE}:${OAK_WORKSPACE_BASE}
-      - ${OAK_ROOT}:${OAK_ROOT}:ro
+      - ${ACORN_WORKSPACE_BASE}:${ACORN_WORKSPACE_BASE}
+      - ${ACORN_ROOT}:${ACORN_ROOT}:ro
     depends_on:
-      oak-postgres:
+      acorn-postgres:
         condition: service_healthy
-      oak-redis:
+      acorn-redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -125,45 +125,45 @@ services:
       retries: 3
     profiles: ["dgx"]
 
-  oak-api-proxy:
-    image: oak/api-proxy:latest
+  acorn-api-relay:
+    image: acorn/api-relay:latest
     build:
-      context: ../oak_mcp/oak-api-proxy
+      context: ../acorn_mcp/acorn-api-relay
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "9000:9000"
     environment:
-      REDIS_URL: redis://oak-redis:6379
-      OLLAMA_BASE_URL: http://oak-ollama:11434
+      REDIS_URL: redis://acorn-redis:6379
+      OLLAMA_BASE_URL: http://acorn-ollama:11434
       OLLAMA_DEFAULT_MODEL: qwen3-coder
       ROUTING_STRATEGY: passthrough
     depends_on:
-      - oak-redis
+      - acorn-redis
     profiles: ["dgx"]
 
-  oak-ui:
-    image: oak/ui:latest
+  acorn-ui:
+    image: acorn/ui:latest
     build:
       context: ../ui-next
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "8501:3000"
     environment:
-      API_BACKEND_URL: http://oak-api:8000
+      API_BACKEND_URL: http://acorn-api:8000
     depends_on:
-      - oak-api
+      - acorn-api
     profiles: ["dgx"]
 
   # ──────────────────────────────────────────────────────────────────────────
   # Mac Mini M4 Profile (--profile mini)
   # ──────────────────────────────────────────────────────────────────────────
 
-  oak-ollama-mini:
+  acorn-ollama-mini:
     image: ollama/ollama:latest
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "11434:11434"
     volumes:
@@ -173,21 +173,21 @@ services:
       OLLAMA_MAX_LOADED_MODELS: "2"
     profiles: ["mini"]
 
-  oak-api-mini:
-    image: oak/api:latest
+  acorn-api-mini:
+    image: acorn/api:latest
     build:
       context: ..
       dockerfile: docker/api/Dockerfile
     restart: unless-stopped
     networks:
-      oak-net:
-        aliases: [oak-api]
+      acorn-net:
+        aliases: [acorn-api]
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
-      REDIS_URL: redis://oak-redis:6379
-      OAK_MODE: mini
+      DATABASE_URL: postgresql://acorn:acorn@acorn-postgres:5432/acorn
+      REDIS_URL: redis://acorn-redis:6379
+      ACORN_MODE: mini
       DEFAULT_MODEL: llama3.2:3b
       CODER_MODEL: qwen2.5-coder:7b
       ANALYSIS_MODEL: llama3.2:3b
@@ -196,9 +196,9 @@ services:
       MAX_HARNESS_CONTAINERS: "4"
       META_AGENT_ENABLED: ${META_AGENT_ENABLED:-true}
     depends_on:
-      oak-postgres:
+      acorn-postgres:
         condition: service_healthy
-      oak-redis:
+      acorn-redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -207,47 +207,47 @@ services:
       retries: 3
     profiles: ["mini"]
 
-  oak-api-proxy-mini:
-    image: oak/api-proxy:latest
+  acorn-api-relay-mini:
+    image: acorn/api-relay:latest
     build:
-      context: ../oak_mcp/oak-api-proxy
+      context: ../acorn_mcp/acorn-api-relay
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "9000:9000"
     environment:
-      REDIS_URL: redis://oak-redis:6379
-      OLLAMA_BASE_URL: http://oak-ollama-mini:11434
+      REDIS_URL: redis://acorn-redis:6379
+      OLLAMA_BASE_URL: http://acorn-ollama-mini:11434
       ROUTING_STRATEGY: stall
       STALL_DETECTION_ENABLED: "true"
       STALL_MIN_TOKENS: "15"
       LOCAL_CONFIDENCE_THRESHOLD: "0.75"
     depends_on:
-      - oak-redis
+      - acorn-redis
     profiles: ["mini"]
 
-  oak-ui-mini:
-    image: oak/ui:latest
+  acorn-ui-mini:
+    image: acorn/ui:latest
     build:
       context: ../ui-next
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "8501:3000"
     environment:
-      API_BACKEND_URL: http://oak-api-mini:8000
+      API_BACKEND_URL: http://acorn-api-mini:8000
     depends_on:
-      - oak-api-mini
+      - acorn-api-mini
     profiles: ["mini"]
 
   # ──────────────────────────────────────────────────────────────────────────
   # Cloud GPU Profile (--profile cloud)
   # ──────────────────────────────────────────────────────────────────────────
 
-  oak-vllm:
+  acorn-vllm:
     image: vllm/vllm-openai:latest
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "11434:8000"  # expose on Ollama-compatible port
     command: ["--model", "Qwen/Qwen2.5-Coder-32B-Instruct", "--served-model-name", "qwen3-coder"]
@@ -260,21 +260,21 @@ services:
               capabilities: [gpu]
     profiles: ["cloud"]
 
-  oak-api-cloud:
-    image: oak/api:latest
+  acorn-api-cloud:
+    image: acorn/api:latest
     build:
       context: ..
       dockerfile: docker/api/Dockerfile
     restart: unless-stopped
     networks:
-      oak-net:
-        aliases: [oak-api]
+      acorn-net:
+        aliases: [acorn-api]
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
-      REDIS_URL: redis://oak-redis:6379
-      OAK_MODE: cloud
+      DATABASE_URL: postgresql://acorn:acorn@acorn-postgres:5432/acorn
+      REDIS_URL: redis://acorn-redis:6379
+      ACORN_MODE: cloud
       DEFAULT_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
       CODER_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
       ANALYSIS_MODEL: Qwen/Qwen2.5-Coder-32B-Instruct
@@ -284,9 +284,9 @@ services:
       CONCURRENT_PROBLEMS_ENABLED: "true"
       META_AGENT_ENABLED: ${META_AGENT_ENABLED:-true}
     depends_on:
-      oak-postgres:
+      acorn-postgres:
         condition: service_healthy
-      oak-redis:
+      acorn-redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -295,137 +295,84 @@ services:
       retries: 3
     profiles: ["cloud"]
 
-  oak-api-proxy-cloud:
-    image: oak/api-proxy:latest
+  acorn-api-relay-cloud:
+    image: acorn/api-relay:latest
     build:
-      context: ../oak_mcp/oak-api-proxy
+      context: ../acorn_mcp/acorn-api-relay
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "9000:9000"
     environment:
-      REDIS_URL: redis://oak-redis:6379
-      OLLAMA_BASE_URL: http://oak-vllm:8000
+      REDIS_URL: redis://acorn-redis:6379
+      OLLAMA_BASE_URL: http://acorn-vllm:8000
       ROUTING_STRATEGY: passthrough
     depends_on:
-      - oak-redis
+      - acorn-redis
     profiles: ["cloud"]
 
-  oak-ui-cloud:
-    image: oak/ui:latest
+  acorn-ui-cloud:
+    image: acorn/ui:latest
     build:
       context: ../ui-next
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "8501:3000"
     environment:
-      API_BACKEND_URL: http://oak-api-cloud:8000
+      API_BACKEND_URL: http://acorn-api-cloud:8000
     depends_on:
-      - oak-api-cloud
+      - acorn-api-cloud
     profiles: ["cloud"]
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Self-build service (all profiles)
+  # Self-build service (archived — commented out)
   # ──────────────────────────────────────────────────────────────────────────
 
-  oak-builder:
-    image: oak/builder:latest
-    build:
-      context: ..
-      dockerfile: docker/builder/Dockerfile
-    restart: unless-stopped
-    networks: [oak-net]
-    environment:
-      OAK_API_URL: http://oak-api:8000
-      REDIS_URL: redis://oak-redis:6379
-      OAK_BUILDER_OLLAMA_URL: http://oak-api-proxy:9000
-      OAK_BUILDER_OLLAMA_DIRECT: http://oak-ollama:11434
-      OAK_REPO_PATH: /oak-repo
-      OAK_WORKSPACE_BASE: /workspaces
-      OAK_CORTEX_STATE_PATH: /workspaces/builder/cortex_state.json
-      OAK_CORTEX_THOUGHTS_LOG: /workspaces/builder/thoughts.log
-      OAK_BUILDER_REST_SECONDS: "${OAK_BUILDER_REST_SECONDS:-900}"
-      OAK_BUILDER_CODER_MODEL: qwen3-coder
-      OAK_BUILDER_REASONING_MODEL: llama3.3:70b
-      OAK_BUILDER_RELEASE_THRESHOLD: "5"
-      HF_TOKEN: "${HF_TOKEN:-}"
-      BRAVE_SEARCH_API_KEY: "${BRAVE_SEARCH_API_KEY:-}"
-      GIT_AUTHOR_NAME: oak-builder
-      GIT_AUTHOR_EMAIL: oak@self
-      GIT_COMMITTER_NAME: oak-builder
-      GIT_COMMITTER_EMAIL: oak@self
-      GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${OAK_ROOT}:/oak-repo
-      - ${OAK_WORKSPACE_BASE}:/workspaces
-      - builder-worktree:/oak-builder-wt
-      - watchdog-signals:/watchdog/signals
-      - ${HOME}/.ssh:/root/.ssh:ro
-    depends_on:
-      oak-api:
-        condition: service_healthy
-    profiles: ["dgx", "mini", "cloud"]
-
-  oak-watchdog:
-    image: oak/watchdog:latest
-    build:
-      context: ..
-      dockerfile: docker/watchdog/Dockerfile
-    restart: unless-stopped
-    networks: [oak-net]
-    environment:
-      BUILDER_CONTAINER: docker-oak-builder-1
-      OAK_ROOT: ${OAK_ROOT}
-      OAK_BUILDER_HEARTBEAT_URL: http://oak-api:8000/api/builder/heartbeat
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - watchdog-signals:/watchdog/signals
-    depends_on:
-      - oak-builder
-    profiles: ["dgx", "mini", "cloud"]
+  # acorn-builder:  # Archived
+  #   image: acorn/builder:latest
+  #   ...
 
   # ──────────────────────────────────────────────────────────────────────────
-  # Self-healing daemon (all profiles)
+  # Self-healing warden (all profiles)
   # ──────────────────────────────────────────────────────────────────────────
 
-  oak-daemon:
-    image: oak/daemon:latest
+  acorn-warden:
+    image: acorn/warden:latest
     build:
       context: ..
-      dockerfile: docker/daemon/Dockerfile
+      dockerfile: docker/warden/Dockerfile
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      OAK_API_URL: http://oak-api:8000
-      OAK_DAEMON_POLL_INTERVAL: "${OAK_DAEMON_POLL_INTERVAL:-60}"
-      OAK_MODE: ${OAK_MODE:-dgx}
-      OAK_META_COOLDOWN: "${OAK_META_COOLDOWN:-3600}"
+      ACORN_API_URL: http://acorn-api:8000
+      ACORN_WARDEN_POLL_INTERVAL: "${ACORN_WARDEN_POLL_INTERVAL:-60}"
+      ACORN_MODE: ${ACORN_MODE:-dgx}
+      ACORN_META_COOLDOWN: "${ACORN_META_COOLDOWN:-3600}"
     depends_on:
-      - oak-api
+      - acorn-api
     profiles: ["dgx", "mini", "cloud"]
 
   # ──────────────────────────────────────────────────────────────────────────
   # Harness: spawned on-demand per problem (all profiles, restart: no)
   # ──────────────────────────────────────────────────────────────────────────
 
-  oak-harness:
-    <<: *oak-harness-defaults
+  acorn-harness:
+    <<: *acorn-harness-defaults
     profiles: ["dgx", "mini", "cloud"]
 
 networks:
-  oak-net:
+  acorn-net:
     driver: bridge
     internal: false  # harness containers get external access blocked at Dockerfile level
 
 volumes:
   postgres-data:
   redis-data:
-  oak-data:
-  oak-skills:
+  acorn-data:
+  acorn-kernels:
   ollama-models:
   builder-worktree:
   watchdog-signals:

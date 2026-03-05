@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.config import settings
 from api.dependencies import get_event_bus
-from api.routers import agents, builder, judge, meta, problems, skills, tasks, telemetry
+from api.routers import agents, builder, judge, meta, problems, kernels, tasks, telemetry
 from api.routers.mailbox import router as mailbox_router
 from api.ws import stream
 
@@ -20,8 +20,8 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(
-    title="OAK API",
-    description="Orchestrated Agent Kernel -- TRUNK layer",
+    title="ACORN API",
+    description="Agent-Centric Orchestration and Runtime Network -- TRUNK layer",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -37,7 +37,7 @@ app.add_middleware(
 app.include_router(problems.router)
 app.include_router(tasks.router)
 app.include_router(agents.router)
-app.include_router(skills.router)
+app.include_router(kernels.router)
 app.include_router(telemetry.router)
 app.include_router(judge.router)
 app.include_router(meta.router)
@@ -51,7 +51,7 @@ app.include_router(stream.router)
 async def health() -> dict[str, object]:
     return {
         "status": "healthy",
-        "oak_mode": settings.oak_mode,
+        "acorn_mode": settings.acorn_mode,
         "routing_strategy": settings.routing_strategy,
         "stall_detection_enabled": settings.stall_detection_enabled,
         "max_agents_per_problem": settings.max_agents_per_problem,
@@ -63,7 +63,7 @@ async def health() -> dict[str, object]:
         },
         "feature_flags": {
             "telemetry_enabled": settings.telemetry_enabled,
-            "skill_extraction_enabled": settings.skill_extraction_enabled,
+            "kernel_extraction_enabled": settings.kernel_extraction_enabled,
             "judge_required": settings.judge_required,
             "meta_agent_enabled": settings.meta_agent_enabled,
             "builder_enabled": settings.builder_enabled,

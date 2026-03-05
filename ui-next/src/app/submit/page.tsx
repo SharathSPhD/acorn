@@ -70,7 +70,7 @@ export default function SubmitPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Sales Forecast Q4 2025"
-                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-oak-500 focus:ring-2 focus:ring-oak-500/20 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-acorn-500 focus:ring-2 focus:ring-acorn-500/20 focus:outline-none transition-colors"
               />
             </div>
 
@@ -85,7 +85,7 @@ export default function SubmitPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the problem, expected outputs, and any constraints..."
-                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-oak-500 focus:ring-2 focus:ring-oak-500/20 focus:outline-none transition-colors resize-y"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-acorn-500 focus:ring-2 focus:ring-acorn-500/20 focus:outline-none transition-colors resize-y"
               />
             </div>
 
@@ -95,7 +95,7 @@ export default function SubmitPage() {
               </label>
               <div
                 onClick={() => fileRef.current?.click()}
-                className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-8 transition-colors hover:border-oak-400 hover:bg-oak-50/30"
+                className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-8 transition-colors hover:border-acorn-400 hover:bg-acorn-50/30"
               >
                 <input
                   ref={fileRef}
@@ -107,7 +107,7 @@ export default function SubmitPage() {
                 <div className="text-center">
                   <svg className="mx-auto h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
                   {file ? (
-                    <p className="mt-2 text-sm font-medium text-oak-700">{file.name} ({(file.size / 1024).toFixed(1)} KB)</p>
+                    <p className="mt-2 text-sm font-medium text-acorn-700">{file.name} ({(file.size / 1024).toFixed(1)} KB)</p>
                   ) : (
                     <>
                       <p className="mt-2 text-sm text-slate-600">Click to upload CSV, JSON, XLSX, or Parquet</p>
@@ -124,7 +124,7 @@ export default function SubmitPage() {
                 id="autostart"
                 checked={autoStart}
                 onChange={(e) => setAutoStart(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-oak-600 focus:ring-oak-500"
+                className="h-4 w-4 rounded border-slate-300 text-acorn-600 focus:ring-acorn-500"
               />
               <label htmlFor="autostart" className="text-sm text-slate-700">
                 Start agent pipeline automatically after submission
@@ -138,13 +138,13 @@ export default function SubmitPage() {
             )}
 
             {step !== "form" && step !== "done" && (
-              <div className="rounded-lg bg-oak-50 border border-oak-200 px-4 py-3">
+              <div className="rounded-lg bg-acorn-50 border border-acorn-200 px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <svg className="h-4 w-4 animate-spin text-oak-600" viewBox="0 0 24 24" fill="none">
+                  <svg className="h-4 w-4 animate-spin text-acorn-600" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  <span className="text-sm font-medium text-oak-700">
+                  <span className="text-sm font-medium text-acorn-700">
                     {step === "creating" && "Creating problem..."}
                     {step === "uploading" && "Uploading file..."}
                     {step === "starting" && "Starting pipeline..."}

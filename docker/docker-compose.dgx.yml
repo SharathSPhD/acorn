@@ -3,17 +3,17 @@
 # Recommended: docker compose -f docker/docker-compose.yml --profile dgx up -d
 # Or use: bash scripts/bootstrap.sh dgx
 
-# OAK DGX Spark profile
+# ACORN DGX Spark profile
 version: "3.9"
 
 include:
   - docker/docker-compose.base.yml
 
 services:
-  oak-ollama:
+  acorn-ollama:
     image: ollama/ollama:latest
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "11434:11434"
     volumes:
@@ -26,18 +26,18 @@ services:
               count: all
               capabilities: [gpu]
 
-  oak-ui:
-    image: oak/ui:latest
+  acorn-ui:
+    image: acorn/ui:latest
     build:
-      context: ./ui
+      context: ./ui-next
     restart: unless-stopped
-    networks: [oak-net]
+    networks: [acorn-net]
     ports:
       - "8501:8501"
     environment:
-      OAK_API_URL: http://oak-api:8000
+      API_BACKEND_URL: http://acorn-api:8000
     depends_on:
-      - oak-api
+      - acorn-api
 
 volumes:
   ollama-models:

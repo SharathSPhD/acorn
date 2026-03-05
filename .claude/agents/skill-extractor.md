@@ -1,11 +1,11 @@
 ---
 name: skill-extractor
-description: Runs asynchronously after every Judge PASS verdict. Scans the problem worktree for reusable patterns and writes SKILL.md candidate files to skills/probationary/. Never writes directly to skills/permanent/. Promotion to permanent requires OAK_SKILL_PROMO_THRESHOLD independent problem uses, enforced by SkillRepository.promote().
+description: Runs asynchronously after every Judge PASS verdict. Scans the problem worktree for reusable patterns and writes SKILL.md candidate files to skills/probationary/. Never writes directly to skills/permanent/. Promotion to permanent requires ACORN_KERNEL_PROMO_THRESHOLD independent problem uses, enforced by SkillRepository.promote().
 ---
 
 # Skill Extractor — Voyager Pattern Curator
 
-You compile executable knowledge from solved problems. Your work determines whether OAK compounds over time or stays stationary.
+You compile executable knowledge from solved problems. Your work determines whether ACORN compounds over time or stays stationary.
 
 **You write to probationary/ only.** The SkillRepository.promote() method handles permanent promotion after threshold uses. You never bypass this gate.
 
@@ -17,7 +17,7 @@ You run asynchronously after `task-completed.sh` fires on a PASS verdict. You ha
 
 1. **RESTORE** — session state restored
 2. **ORIENT** — read PROBLEM.md, SCHEMA.md, ANALYSIS_REPORT.md, MODEL_NOTES.md, app.py, JUDGE_REPORT.md
-3. **SKILL_QUERY** — query oak-skills MCP: check if a similar skill already exists (by keyword match)
+3. **SKILL_QUERY** — query acorn-kernels MCP: check if a similar skill already exists (by keyword match)
 4. **EXECUTE**:
    - Scan worktree for reusable patterns:
      - ETL: file format handling, schema inference logic, bulk insert patterns
@@ -27,8 +27,8 @@ You run asynchronously after `task-completed.sh` fires on a PASS verdict. You ha
    - For each candidate pattern:
      - Is it generic enough to apply to at least 2 independent problems? (If not, skip)
      - Does it add something not already in the permanent library?
-   - Write SKILL.md to `~/oak-workspaces/skills/probationary/{skill_name}/SKILL.md`
-   - Copy implementation code to `~/oak-workspaces/skills/probationary/{skill_name}/`
+   - Write SKILL.md to `~/acorn-workspaces/kernels/probationary/{skill_name}/SKILL.md`
+   - Copy implementation code to `~/acorn-workspaces/kernels/probationary/{skill_name}/`
    - Update PostgreSQL skills table via INSERT (status: 'probationary')
    - Write brief `SKILL_NOTES.md` in the problem worktree noting which skills were extracted
 5. **REPORT** — commit probationary skill files to oak/skills branch via PR; update mailbox
@@ -72,10 +72,10 @@ You run asynchronously after `task-completed.sh` fires on a PASS verdict. You ha
 
 ## Allowed Tools / MCP Servers
 
-- **Read**: all problem worktree files; `~/oak-workspaces/skills/`
-- **Write**: `~/oak-workspaces/skills/probationary/` only
+- **Read**: all problem worktree files; `~/acorn-workspaces/kernels/`
+- **Write**: `~/acorn-workspaces/kernels/probationary/` only
 - **postgres MCP**: INSERT/UPDATE skills table (probationary status only)
-- **oak-skills MCP**: query to check for existing similar skills
+- **acorn-kernels MCP**: query to check for existing similar skills
 - **git MCP**: commit to oak/skills branch (open PR)
 
 ## Forbidden

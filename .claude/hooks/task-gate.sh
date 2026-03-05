@@ -1,5 +1,5 @@
 #!/bin/bash
-# OAK Task Gate Hook — blocks TaskUpdate status=completed without a Judge PASS.
+# ACORN Task Gate Hook — blocks TaskUpdate status=completed without a Judge PASS.
 # This is the hook referenced in settings.json as the second PreToolUse handler.
 # Receives JSON on stdin with tool call details.
 # Exit 2 = block. Exit 0 = allow.
@@ -38,19 +38,19 @@ if [ -z "$TASK_ID" ]; then
 fi
 
 # Query PostgreSQL for a PASS verdict
-HAS_PASS=$(psql "${DATABASE_URL:-postgresql://oak:oak@oak-postgres:5432/oak}" -t -A -c \
+HAS_PASS=$(psql "${DATABASE_URL:-postgresql://acorn:acorn@acorn-postgres:5432/acorn}" -t -A -c \
     "SELECT COUNT(*) FROM judge_verdicts WHERE task_id = '$TASK_ID' AND verdict = 'pass';" \
     2>/dev/null || echo "0")
 
 if [ "${HAS_PASS:-0}" -lt "1" ]; then
-    echo "[OAK task-gate] BLOCKED: task $TASK_ID has no Judge PASS verdict. Invoke the Judge Agent before closing this task." >&2
+    echo "[ACORN task-gate] BLOCKED: task $TASK_ID has no Judge PASS verdict. Invoke the Judge Agent before closing this task." >&2
     exit 2
 fi
 
 # PASS exists — also trigger skill extraction (async, non-blocking)
-curl -s -m 2 -X POST "http://oak-api:8000/internal/events" \
+curl -s -m 2 -X POST "http://acorn-api:8000/internal/events" \
     -H "Content-Type: application/json" \
-    -d "{\"event_type\":\"task_completed\",\"agent_id\":\"${OAK_AGENT_ID:-unknown}\",\"problem_uuid\":\"${OAK_PROBLEM_UUID:-unknown}\",\"timestamp_utc\":$(date +%s.%3N),\"schema_version\":\"1.0\",\"payload\":{\"task_id\":\"$TASK_ID\"}}" \
+    -d "{\"event_type\":\"task_completed\",\"agent_id\":\"${ACORN_AGENT_ID:-unknown}\",\"problem_uuid\":\"${ACORN_PROBLEM_UUID:-unknown}\",\"timestamp_utc\":$(date +%s.%3N),\"schema_version\":\"1.0\",\"payload\":{\"task_id\":\"$TASK_ID\"}}" \
     > /dev/null 2>&1 || true
 
 exit 0

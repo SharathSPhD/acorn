@@ -28,13 +28,13 @@ def test_get_agent_factory__dgx_default():
 
 def test_get_agent_factory__mini_mode():
     with patch("api.factories.agent_factory.settings") as mock_settings:
-        mock_settings.oak_mode = "mini"
+        mock_settings.acorn_mode = "mini"
         factory = get_agent_factory()
     assert isinstance(factory, MiniAgentFactory)
 
 
 def test_get_agent_factory__cloud_mode():
     with patch("api.factories.agent_factory.settings") as mock_settings:
-        mock_settings.oak_mode = "cloud"
+        mock_settings.acorn_mode = "cloud"
         factory = get_agent_factory()
     assert isinstance(factory, CloudAgentFactory)

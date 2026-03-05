@@ -52,7 +52,7 @@ def _load_patterns(prefix_filter: str | None = None) -> list[str]:
         if not line or line.startswith("#"):
             continue
         if prefix_filter is None:
-            if not line.startswith("OAK:"):
+            if not line.startswith("ACORN:"):
                 patterns.append(line)
         else:
             if line.startswith(prefix_filter):
@@ -73,17 +73,17 @@ class HardDenyListValidator(ToolValidator):
         return ValidationResult(allowed=True, reason="passed hard deny list")
 
 
-class OAKDenyListValidator(ToolValidator):
-    """Layer 2: OAK business-rule patterns (OAK: prefixed lines in deny-patterns.txt)."""
+class AcornDenyListValidator(ToolValidator):
+    """Layer 2: ACORN business-rule patterns (ACORN: prefixed lines in deny-patterns.txt)."""
 
     async def _check(self, call: ToolCall) -> ValidationResult:
-        for pattern in _load_patterns(prefix_filter="OAK:"):
+        for pattern in _load_patterns(prefix_filter="ACORN:"):
             if re.search(pattern, call.command, re.IGNORECASE):
                 return ValidationResult(
                     allowed=False,
-                    reason=f"Blocked by OAK business rule: {pattern!r}",
+                    reason=f"Blocked by ACORN business rule: {pattern!r}",
                 )
-        return ValidationResult(allowed=True, reason="passed OAK deny list")
+        return ValidationResult(allowed=True, reason="passed ACORN deny list")
 
 
 class ResourceCapValidator(ToolValidator):
@@ -97,9 +97,9 @@ class ResourceCapValidator(ToolValidator):
 
 
 def build_validation_chain() -> ToolValidator:
-    """Construct the default three-layer chain: Hard -> OAK -> ResourceCap."""
+    """Construct the default three-layer chain: Hard -> Acorn -> ResourceCap."""
     hard = HardDenyListValidator()
-    oak = OAKDenyListValidator()
+    acorn = AcornDenyListValidator()
     cap = ResourceCapValidator()
-    hard.set_next(oak).set_next(cap)
+    hard.set_next(acorn).set_next(cap)
     return hard

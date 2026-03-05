@@ -44,9 +44,9 @@ def test_entrypoint__passes_initial_prompt_with_p_flag():
 
 
 def test_entrypoint__exits_on_missing_problem_uuid():
-    """Entrypoint must guard against missing OAK_PROBLEM_UUID."""
+    """Entrypoint must guard against missing ACORN_PROBLEM_UUID."""
     script = _script()
-    assert "OAK_PROBLEM_UUID" in script
+    assert "ACORN_PROBLEM_UUID" in script
     assert "exit 1" in script
 
 

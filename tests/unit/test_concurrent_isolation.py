@@ -22,7 +22,7 @@ def test_agent_registry__keys_scoped_per_agent__no_cross_problem_leakage():
     agent_b = {"agent_id": "agent-b", "role": "coder", "problem_uuid": PROB_B,
                 "status": "running", "container_id": "c-b", "last_seen": time.time()}
 
-    mock_redis.keys = AsyncMock(return_value=["oak:agent:agent-a", "oak:agent:agent-b"])
+    mock_redis.keys = AsyncMock(return_value=["acorn:agent:agent-a", "acorn:agent:agent-b"])
     mock_redis.get = AsyncMock(side_effect=[json.dumps(agent_a), json.dumps(agent_b)])
 
     registry = AgentRegistry("redis://localhost:6379")
@@ -42,7 +42,7 @@ def test_agent_registry__keys_scoped_per_agent__no_cross_problem_leakage():
 @pytest.mark.asyncio
 async def test_promote__uses_for_update__prevents_double_promotion():
     """promote() uses SELECT ... FOR UPDATE inside a transaction to prevent races."""
-    from memory.skill_repository import PostgreSQLSkillRepository
+    from memory.kernel_repository import PostgreSQLKernelRepository
 
     skill_id = uuid4()
     mock_conn = AsyncMock()
@@ -53,12 +53,12 @@ async def test_promote__uses_for_update__prevents_double_promotion():
     mock_conn.fetchrow = AsyncMock(return_value={"verified_on_problems": ["prob1", "prob2"]})
     mock_conn.execute = AsyncMock()
 
-    with patch("memory.skill_repository.asyncpg") as mock_asyncpg, \
-         patch("memory.skill_repository.settings") as mock_settings:
+    with patch("memory.kernel_repository.asyncpg") as mock_asyncpg, \
+         patch("memory.kernel_repository.settings") as mock_settings:
         mock_asyncpg.connect = AsyncMock(return_value=mock_conn)
-        mock_settings.oak_skill_promo_threshold = 2
+        mock_settings.acorn_kernel_promo_threshold = 2
 
-        repo = PostgreSQLSkillRepository("postgresql://localhost/oak")
+        repo = PostgreSQLKernelRepository("postgresql://localhost/acorn")
         await repo.promote(skill_id)
 
     fetchrow_call = mock_conn.fetchrow.call_args
@@ -70,7 +70,7 @@ async def test_promote__uses_for_update__prevents_double_promotion():
 @pytest.mark.asyncio
 async def test_promote__threshold_not_met__raises_and_does_not_update():
     """promote() under threshold raises PromotionThresholdNotMet and never calls UPDATE."""
-    from memory.skill_repository import PostgreSQLSkillRepository
+    from memory.kernel_repository import PostgreSQLKernelRepository
     from memory.interfaces import PromotionThresholdNotMetError
 
     skill_id = uuid4()
@@ -82,12 +82,12 @@ async def test_promote__threshold_not_met__raises_and_does_not_update():
     mock_conn.fetchrow = AsyncMock(return_value={"verified_on_problems": ["prob1"]})
     mock_conn.execute = AsyncMock()
 
-    with patch("memory.skill_repository.asyncpg") as mock_asyncpg, \
-         patch("memory.skill_repository.settings") as mock_settings:
+    with patch("memory.kernel_repository.asyncpg") as mock_asyncpg, \
+         patch("memory.kernel_repository.settings") as mock_settings:
         mock_asyncpg.connect = AsyncMock(return_value=mock_conn)
-        mock_settings.oak_skill_promo_threshold = 2
+        mock_settings.acorn_kernel_promo_threshold = 2
 
-        repo = PostgreSQLSkillRepository("postgresql://localhost/oak")
+        repo = PostgreSQLKernelRepository("postgresql://localhost/acorn")
         with pytest.raises(PromotionThresholdNotMetError):
             await repo.promote(skill_id)
 

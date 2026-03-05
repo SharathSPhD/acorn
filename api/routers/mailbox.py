@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.config import OAKSettings
+from api.config import AcornSettings
 from api.db.connection import get_db
 from api.dependencies import get_settings
 from api.models import MailboxMessageCreate, MailboxMessageResponse
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/mailbox", tags=["mailbox"])
 async def send_message(
     body: MailboxMessageCreate,
     db: AsyncSession = Depends(get_db),
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> MailboxMessageResponse:
     """Send a message from one agent to another."""
     msg_id = uuid4()

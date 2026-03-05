@@ -114,9 +114,9 @@ class AgentStatusResponse(BaseModel):
     last_seen: datetime | None = None
 
 
-# ── Skills ───────────────────────────────────────────────────────────────────
+# ── Kernels ──────────────────────────────────────────────────────────────────
 
-class SkillResponse(BaseModel):
+class KernelResponse(BaseModel):
     id: UUID
     name: str
     category: str

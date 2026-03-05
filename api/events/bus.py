@@ -66,7 +66,7 @@ class TelemetrySubscriber(EventSubscriber):
 
 
 class WebSocketSubscriber(EventSubscriber):
-    """Publishes every event to Redis pub/sub channel oak:stream:{problem_uuid}."""
+    """Publishes every event to Redis pub/sub channel acorn:stream:{problem_uuid}."""
 
     async def on_event(self, event: AgentEvent) -> None:
         if event.problem_uuid in ("", "unknown"):
@@ -79,7 +79,7 @@ class WebSocketSubscriber(EventSubscriber):
             from api.config import settings as _settings
             r = _redis.from_url(_settings.redis_url, decode_responses=True)
             try:
-                channel = f"oak:stream:{event.problem_uuid}"
+                channel = f"acorn:stream:{event.problem_uuid}"
                 payload = _json.dumps({
                     "event_type": event.event_type,
                     "agent_id": event.agent_id,
@@ -105,7 +105,7 @@ class EpisodicMemorySubscriber(EventSubscriber):
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 resp = await client.post(
-                    "http://oak-ollama:11434/api/embeddings",
+                    "http://acorn-ollama:11434/api/embeddings",
                     json={"model": _embed_settings.embed_model, "prompt": text[:8000]},
                 )
                 if resp.status_code == 200:
@@ -152,13 +152,13 @@ class EpisodicMemorySubscriber(EventSubscriber):
 
 
 class SessionStateSubscriber(EventSubscriber):
-    """Updates oak:session:{agent_id} keys in Redis after tool calls."""
+    """Updates acorn:session:{agent_id} keys in Redis after tool calls."""
 
     async def on_event(self, event: AgentEvent) -> None:
         try:
-            from api.config import OAKSettings
+            from api.config import AcornSettings
             from api.services.agent_registry import AgentRegistry
-            registry = AgentRegistry(str(OAKSettings().redis_url))
+            registry = AgentRegistry(str(AcornSettings().redis_url))
             if event.event_type == "agent_spawned":
                 role = event.payload.get("role", "")
                 await registry.register(

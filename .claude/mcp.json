@@ -5,9 +5,9 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "/home/oak",
-        "/mnt/oak-data",
-        "/mnt/oak-skills"
+        "/home/acorn",
+        "/mnt/acorn-data",
+        "/mnt/acorn-kernels"
       ]
     },
     "postgres": {
@@ -15,20 +15,20 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-postgres",
-        "postgresql://oak:oak@oak-postgres:5432/oak"
+        "postgresql://acorn:acorn@acorn-postgres:5432/acorn"
       ]
     },
     "git": {
       "command": "uvx",
-      "args": ["mcp-server-git", "--repository", "/home/oak"]
+      "args": ["mcp-server-git", "--repository", "/home/acorn"]
     },
-    "oak-memory": {
+    "acorn-memory": {
       "command": "python3",
-      "args": ["/home/oak/oak_mcp/oak-memory-mcp/server.py"]
+      "args": ["/home/acorn/acorn_mcp/acorn-memory-mcp/server.py"]
     },
-    "oak-skills": {
+    "acorn-kernels": {
       "command": "python3",
-      "args": ["/home/oak/oak_mcp/oak-skills-mcp/server.py"]
+      "args": ["/home/acorn/acorn_mcp/acorn-kernels-mcp/server.py"]
     }
   }
 }

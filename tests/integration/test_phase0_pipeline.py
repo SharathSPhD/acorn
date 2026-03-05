@@ -35,7 +35,7 @@ def test_phase0_pipeline__csv_to_app__app_py_generated(
             csv_path=str(sample_csv),
             problem_uuid="test-uuid-0001",
             output_dir=str(tmp_path / "output"),
-            db_url="postgresql://oak:oak@localhost:5432/oak",
+            db_url="postgresql://acorn:acorn@localhost:5432/acorn",
         )
 
     app_path = pathlib.Path(result["app_path"])

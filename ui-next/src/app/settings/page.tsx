@@ -32,7 +32,7 @@ export default function SettingsPage() {
             {h ? (
               <div className="space-y-3">
                 <Row label="Status" value={h.status} />
-                <Row label="Platform Mode" value={h.oak_mode.toUpperCase()} />
+                <Row label="Platform Mode" value={h.acorn_mode.toUpperCase()} />
                 <Row label="Routing Strategy" value={h.routing_strategy} />
                 <Row label="API Key Present" value={h.api_key_present ? "Yes" : "No"} />
                 <Row label="Max Agents / Problem" value={String(h.max_agents_per_problem)} />

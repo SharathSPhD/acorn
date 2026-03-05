@@ -28,7 +28,7 @@ export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white">
       <div className="flex h-16 items-center gap-3 px-6 border-b border-slate-100">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-oak-600">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-acorn-600">
           <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
           </svg>
@@ -53,7 +53,7 @@ export function Sidebar() {
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-oak-50 text-oak-700"
+                      ? "bg-acorn-50 text-acorn-700"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   )}
                 >

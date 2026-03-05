@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from uuid import uuid4
 
-from api.config import OAKMode, settings
+from api.config import AcornMode, settings
 
 
 class ResourceCapExceededError(Exception):
@@ -20,11 +20,11 @@ class AgentSpec:
     role: str
     problem_uuid: str
     model: str = "qwen3-coder"
-    harness_image: str = "oak/harness:latest"
+    harness_image: str = "acorn/harness:latest"
     resource_limits: dict[str, str] = field(
         default_factory=lambda: {"memory": "4g", "cpus": "2.0"}
     )
-    network: str = "oak_oak-net"
+    network: str = "acorn_acorn-net"
     workspace_path: str = ""
     task_id: str = ""
     extra_env: dict[str, str] = field(default_factory=dict)
@@ -61,20 +61,20 @@ class DGXAgentFactory(AgentFactory):
         env_pairs: list[str] = []
 
         base_env = {
-            "ANTHROPIC_BASE_URL": "http://oak-api-proxy:9000",
+            "ANTHROPIC_BASE_URL": "http://acorn-api-relay:9000",
             "ANTHROPIC_AUTH_TOKEN": "ollama",
             "ANTHROPIC_API_KEY": "ollama",
             "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
-            "OAK_PROBLEM_UUID": spec.problem_uuid,
-            "OAK_AGENT_ID": spec.agent_id,
-            "OAK_ROLE": spec.role,
-            "OAK_API_URL": "http://oak-api:8000",
-            "OAK_MODEL": spec.model,
+            "ACORN_PROBLEM_UUID": spec.problem_uuid,
+            "ACORN_AGENT_ID": spec.agent_id,
+            "ACORN_ROLE": spec.role,
+            "ACORN_API_URL": "http://acorn-api:8000",
+            "ACORN_MODEL": spec.model,
             "REDIS_URL": settings.redis_url,
             "DATABASE_URL": settings.database_url,
         }
         if spec.task_id:
-            base_env["OAK_TASK_ID"] = spec.task_id
+            base_env["ACORN_TASK_ID"] = spec.task_id
 
         base_env.update(spec.extra_env)
 
@@ -128,9 +128,9 @@ class CloudAgentFactory(AgentFactory):
 
 
 def get_agent_factory() -> AgentFactory:
-    """Return the appropriate factory for the current OAK_MODE."""
-    if settings.oak_mode == OAKMode.MINI:
+    """Return the appropriate factory for the current ACORN_MODE."""
+    if settings.acorn_mode == AcornMode.MINI:
         return MiniAgentFactory()
-    if settings.oak_mode == OAKMode.CLOUD:
+    if settings.acorn_mode == AcornMode.CLOUD:
         return CloudAgentFactory()
     return DGXAgentFactory()

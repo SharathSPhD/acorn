@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
-from api.config import OAKSettings
+from api.config import AcornSettings
 from api.dependencies import get_settings
 
 router = APIRouter(prefix="/api/meta", tags=["meta"])
@@ -14,10 +14,10 @@ router = APIRouter(prefix="/api/meta", tags=["meta"])
 
 @router.get("/proposals")
 async def list_proposals(
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> dict[str, Any]:
     """Return the latest meta-agent proposals from all problem workspaces."""
-    base = Path(settings.oak_workspace_base)
+    base = Path(settings.acorn_workspace_base)
     proposals: list[dict[str, Any]] = []
 
     if base.exists():
@@ -38,14 +38,14 @@ async def list_proposals(
 
 @router.post("/apply-proposals")
 async def apply_proposals(
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> dict[str, Any]:
     """Read meta_proposals.json from the daemon workspace and store for review.
 
     Full auto-application is out of scope for safety. This endpoint makes
     proposals queryable and logs them for human review.
     """
-    daemon_ws = Path(settings.oak_workspace_base) / "daemon"
+    daemon_ws = Path(settings.acorn_workspace_base) / "daemon"
     fp = daemon_ws / "meta_proposals.json"
 
     if not fp.is_file():

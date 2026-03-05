@@ -1,5 +1,5 @@
 #!/bin/bash
-# OAK Notification Hook — refocus injection on agent idle.
+# ACORN Notification Hook — refocus injection on agent idle.
 # Fires when Claude Code sends a Notification event (typically on idle/waiting).
 # Receives JSON on stdin with notification details.
 # Never blocks (always exits 0).
@@ -13,17 +13,17 @@ if [ "$TYPE" != "idle" ] && [ "$TYPE" != "waiting" ]; then
     exit 0
 fi
 
-AGENT_ID="${OAK_AGENT_ID:-unknown}"
-PROBLEM_UUID="${OAK_PROBLEM_UUID:-unknown}"
+AGENT_ID="${ACORN_AGENT_ID:-unknown}"
+PROBLEM_UUID="${ACORN_PROBLEM_UUID:-unknown}"
 
 # Fetch current task description from DB
-CURRENT_TASK=$(psql "${DATABASE_URL:-postgresql://oak:oak@oak-postgres:5432/oak}" -t -A -c \
+CURRENT_TASK=$(psql "${DATABASE_URL:-postgresql://acorn:acorn@acorn-postgres:5432/acorn}" -t -A -c \
     "SELECT title || ': ' || COALESCE(description, 'no description') FROM tasks \
      WHERE problem_id = '$PROBLEM_UUID' AND assigned_to = '$AGENT_ID' AND status = 'claimed' \
      LIMIT 1;" 2>/dev/null || echo "unknown task")
 
 # Emit refocus event to API (will be relayed to agent via mailbox)
-curl -s -m 2 -X POST "http://oak-api:8000/internal/events" \
+curl -s -m 2 -X POST "http://acorn-api:8000/internal/events" \
     -H "Content-Type: application/json" \
     -d "{
         \"event_type\": \"agent_idle\",

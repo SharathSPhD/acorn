@@ -1,6 +1,6 @@
 """Unit tests for RoutingStrategy subclasses."""
 import sys, pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent / "oak_mcp" / "oak-api-proxy"))
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent / "acorn_mcp" / "acorn-api-relay"))
 import pytest
 from strategies import PassthroughStrategy, StallDetectionStrategy, ConfidenceThresholdStrategy
 

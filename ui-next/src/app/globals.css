@@ -11,7 +11,7 @@
   }
 
   ::selection {
-    @apply bg-oak-200 text-oak-900;
+    @apply bg-acorn-200 text-acorn-900;
   }
 }
 

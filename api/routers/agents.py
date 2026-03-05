@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.config import OAKSettings
+from api.config import AcornSettings
 from api.dependencies import get_settings
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/agents", tags=["agents"])
 async def spawn_agent(
     role: str,
     problem_uuid: UUID,
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> dict[str, str]:
     """Spawn an agent for a problem via DGXAgentFactory. Returns container ID."""
     from api.factories.agent_factory import DGXAgentFactory, ResourceCapExceededError
@@ -67,7 +67,7 @@ async def spawn_agent(
 
 @router.get("/status")
 async def get_agents_status(
-    settings: OAKSettings = Depends(get_settings),
+    settings: AcornSettings = Depends(get_settings),
 ) -> list[dict[str, Any]]:
     """Return status of all running agents from registry."""
     from api.services.agent_registry import AgentRegistry
@@ -77,7 +77,7 @@ async def get_agents_status(
 
 
 @router.get("/models")
-async def get_models(settings: OAKSettings = Depends(get_settings)) -> dict[str, Any]:
+async def get_models(settings: AcornSettings = Depends(get_settings)) -> dict[str, Any]:
     """List configured Ollama models and their role assignments."""
     return {
         "models": {

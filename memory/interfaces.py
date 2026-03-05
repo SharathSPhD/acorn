@@ -21,7 +21,7 @@ class Episode:
 
 
 @dataclass
-class Skill:
+class Kernel:
     id: UUID
     name: str
     category: str
@@ -65,20 +65,20 @@ class EpisodicMemoryRepository(ABC):
     async def mark_retrieved(self, episode_id: UUID) -> None: ...
 
 
-class SkillRepository(ABC):
+class KernelRepository(ABC):
     @abstractmethod
     async def find_by_keywords(self, query: str, category: str | None = None,
-                               top_k: int = 5) -> list[Skill]: ...
+                               top_k: int = 5) -> list[Kernel]: ...
 
     @abstractmethod
-    async def promote(self, skill_id: UUID) -> None: ...
+    async def promote(self, kernel_id: UUID) -> None: ...
 
     @abstractmethod
-    async def deprecate(self, skill_id: UUID, reason: str) -> None: ...
+    async def deprecate(self, kernel_id: UUID, reason: str) -> None: ...
 
 
 class WorkingMemoryRepository(ABC):
-    """Redis-backed; all keys are TTL-scoped to OAK_SESSION_TTL_HOURS."""
+    """Redis-backed; all keys are TTL-scoped to ACORN_SESSION_TTL_HOURS."""
     @abstractmethod
     async def set(self, agent_id: str, key: str, value: str) -> None: ...
 

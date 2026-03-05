@@ -1,20 +1,20 @@
-# OAK -- Orchestrated Agent Kernel
+# ACORN -- Agent Cortex Orchestration Runtime Network
 
 > A self-evolving AI software factory: submit a raw analytical problem, get back a working application. Runs on DGX Spark with local Ollama models -- no cloud API required by default.
 
-[![CI](https://github.com/SharathSPhD/oak/actions/workflows/ci.yml/badge.svg)](https://github.com/SharathSPhD/oak/actions/workflows/ci.yml)
+[![CI](https://github.com/SharathSPhD/acorn/actions/workflows/ci.yml/badge.svg)](https://github.com/SharathSPhD/acorn/actions/workflows/ci.yml)
 
 ## Architecture
 
-Seven-layer stack with self-healing daemon:
+Seven-layer stack with self-healing warden:
 
 ```
 CANOPY  -- React Hub UI (port 8501)          Problem submission + live agent monitoring
 TRUNK   -- FastAPI Gateway (port 8000)       REST API, EventBus, WebSocket streams
-GROVE   -- Agent Engine (oak-harness)        Claude Code agents in isolated containers
-PROXY   -- API Proxy (port 9000)             Routes Claude Code -> Ollama (or Claude API)
-DAEMON  -- Self-healing service              Health checks, cleanup, meta-agent triggers
-ROOTS   -- PostgreSQL 16 + pgvector, Redis 7 Schema, skills, episodes, session state
+GROVE   -- Agent Engine (acorn-harness)      Claude Code agents in isolated containers
+RELAY   -- API Relay (port 9000)              Routes Claude Code -> Ollama (or Claude API)
+WARDEN  -- Self-healing service               Health checks, cleanup, meta-agent triggers
+ROOTS   -- PostgreSQL 16 + pgvector, Redis 7 Schema, kernels, episodes, session state
 SOIL    -- DGX Spark GB10 (121 GB RAM)       GPU inference via Ollama
 ```
 
@@ -28,22 +28,22 @@ See [QUICKSTART.md](QUICKSTART.md) for the full guide.
 
 ### Option A: All-in-One (easiest)
 ```bash
-docker run -d --name oak-aio \
+docker run -d --name acorn-aio \
   --gpus all \
   -p 8501:3000 -p 8000:8000 -p 9000:9000 \
-  ghcr.io/sharathsphd/oak-aio:latest
+  ghcr.io/sharathsphd/acorn-aio:latest
 ```
 
 ### Option B: Multi-service (production)
 ```bash
-git clone https://github.com/SharathSPhD/oak.git && cd oak
+git clone https://github.com/SharathSPhD/acorn.git && cd acorn
 cp .env.example .env  # Edit with your paths
 bash scripts/bootstrap.sh dgx   # or mini or cloud
 ```
 
 ### Option C: Pre-built images
 ```bash
-curl -sL https://raw.githubusercontent.com/SharathSPhD/oak/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/SharathSPhD/acorn/main/install.sh | bash
 ```
 
 Access:
@@ -54,13 +54,13 @@ Access:
 ## How It Works
 
 1. **Problem submitted** via React UI or API -> stored in PostgreSQL
-2. **Pipeline started** -> creates git worktree + launches `oak-harness` container
+2. **Pipeline started** -> creates git worktree + launches `acorn-harness` container
 3. **Orchestrator agent** decomposes problem into tasks, spawns specialists
 4. **Specialist agents** (Data Engineer, Data Scientist, ML Engineer) work in isolated workspace
 5. **Judge agent** runs tests, issues PASS/FAIL verdict (gates task completion)
-6. **Skill Extractor** post-PASS extracts reusable patterns to skill library
+6. **Kernel Extractor** post-PASS extracts reusable patterns to kernel library
 7. **Meta Agent** (idle mode) analyzes telemetry and proposes prompt improvements
-8. **Self-healing daemon** monitors health, restarts services, cleans orphans
+8. **Self-healing warden** monitors health, restarts services, cleans orphans
 
 ## Agent Model Routing
 
@@ -82,13 +82,13 @@ The frontend is a production React/Next.js application with:
 - **Submit** -- problem creation with file upload and auto-start
 - **Gallery** -- problem list with filters, delete/archive, bulk cleanup
 - **Problem Detail** -- tasks, live WebSocket logs, files, judge verdicts
-- **Skill Library** -- search, filter, promote probationary skills
+- **Kernel Library** -- search, filter, promote probationary kernels
 - **Telemetry** -- agent metrics, model routing, feature flags
 - **Settings** -- system config reference, active agents
 
 ## Self-Healing and Self-Improvement
 
-OAK runs a daemon service (`oak-daemon`) that:
+ACORN runs a warden service (`acorn-warden`) that:
 - Health-checks all services every 60 seconds
 - Restarts crashed containers automatically
 - Syncs stale problems (marks exited containers as failed)
@@ -104,11 +104,11 @@ Every production module declares `__pattern__` at module level (CI enforced):
 | Configuration | `api/config.py` | Settings management |
 | Factory | `api/factories/agent_factory.py` | Agent container lifecycle |
 | Observer | `api/events/bus.py` | EventBus subscribers |
-| Repository | `memory/skill_repository.py` | Skill library |
+| Repository | `memory/kernel_repository.py` | Kernel library |
 | StateMachine | `api/state_machines/task.py` | Task transitions |
 | TemplateMethod | `api/lifecycle/agent_lifecycle.py` | Agent lifecycle |
-| Decorator | `memory/cached_skills.py` | Skill lookup cache |
-| Strategy | `oak_mcp/oak-api-proxy/strategies.py` | Routing strategies |
+| Decorator | `memory/cached_kernels.py` | Kernel lookup cache |
+| Strategy | `acorn_mcp/acorn-api-relay/strategies.py` | Routing strategies |
 | ChainOfResponsibility | `memory/validation_chain.py` | Validation chain |
 
 ## Development
@@ -118,7 +118,7 @@ Every production module declares `__pattern__` at module level (CI enforced):
 pytest tests/unit/ -v
 
 # Lint + type check
-ruff check api/ memory/ oak_mcp/
+ruff check api/ memory/ acorn_mcp/
 mypy --strict api/ memory/
 
 # Coverage

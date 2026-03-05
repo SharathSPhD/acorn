@@ -1,8 +1,8 @@
-name: OAK CI
+name: ACORN CI
 
 on:
   push:
-    branches: ["main", "oak/**"]
+    branches: ["main", "acorn/**"]
   pull_request:
     branches: ["main"]
 
@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: pip install -e ".[dev]"
       - name: Ruff lint
-        run: ruff check api/ memory/ oak_mcp/
+        run: ruff check api/ memory/ acorn_mcp/
       - name: Mypy type check
         run: mypy --strict api/ memory/
       - name: Check __pattern__ attributes

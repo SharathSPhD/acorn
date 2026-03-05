@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify completed problem in OAK Streamlit Hub. Run with: python scripts/verify_completed_problem.py"""
+"""Verify completed problem in ACORN Hub. Run with: python scripts/verify_completed_problem.py"""
 import asyncio
 import sys
 from pathlib import Path

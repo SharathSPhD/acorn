@@ -1,7 +1,7 @@
 const API_BASE =
   typeof window !== "undefined"
-    ? "/oak-api"
-    : process.env.API_BACKEND_URL || "http://oak-api:8000";
+    ? "/acorn-api"
+    : process.env.API_BACKEND_URL || "http://acorn-api:8000";
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -66,7 +66,7 @@ export interface Skill {
 
 export interface HealthData {
   status: string;
-  oak_mode: string;
+  acorn_mode: string;
   routing_strategy: string;
   models: Record<string, string>;
   feature_flags: Record<string, boolean>;
@@ -251,5 +251,5 @@ export function wsUrl(problemId: string): string {
     const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
     return `${proto}//${window.location.hostname}:8000/ws/${problemId}`;
   }
-  return `ws://oak-api:8000/ws/${problemId}`;
+  return `ws://acorn-api:8000/ws/${problemId}`;
 }

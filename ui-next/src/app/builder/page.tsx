@@ -15,7 +15,7 @@ function statusColor(status: string): string {
     idle: "bg-slate-100 text-slate-600",
     perceiving: "bg-blue-100 text-blue-700",
     deciding: "bg-amber-100 text-amber-700",
-    running: "bg-oak-100 text-oak-700",
+    running: "bg-acorn-100 text-acorn-700",
     resting: "bg-slate-100 text-slate-500",
     paused: "bg-yellow-100 text-yellow-700",
     deferred: "bg-indigo-100 text-indigo-700",
@@ -96,7 +96,7 @@ export default function BuilderPage() {
       <div className="page-header">
         <h1 className="page-title">Self-Build</h1>
         <p className="page-subtitle">
-          Autonomous cortex lifecycle, skill acquisition, and release management.
+          Autonomous cortex lifecycle, kernel acquisition, and release management.
         </p>
       </div>
 
@@ -141,7 +141,7 @@ export default function BuilderPage() {
           <CardContent>
             <div className="flex gap-3 flex-wrap">
               <button
-                className="rounded-lg bg-oak-600 px-4 py-2 text-sm font-medium text-white hover:bg-oak-700 disabled:opacity-50 transition-colors"
+                className="rounded-lg bg-acorn-600 px-4 py-2 text-sm font-medium text-white hover:bg-acorn-700 disabled:opacity-50 transition-colors"
                 onClick={() => startMutation.mutate()}
                 disabled={startMutation.isPending}
               >
@@ -209,10 +209,9 @@ export default function BuilderPage() {
                     </div>
                     <div className="h-2 rounded-full bg-slate-100">
                       <div
-                        className="h-2 rounded-full bg-oak-500 transition-all"
+                        className="h-2 rounded-full bg-acorn-500 transition-all"
                         style={{ width: `${Math.min(pct, 100)}%` }}
                       />
-                    </div>
                   </div>
                 );
               })}

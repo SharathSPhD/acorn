@@ -2,12 +2,12 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 from datetime import datetime
-from memory.skill_repository import PostgreSQLSkillRepository
+from memory.kernel_repository import PostgreSQLKernelRepository
 from memory.interfaces import PromotionThresholdNotMetError
 
 
 @pytest.mark.asyncio
-async def test_skill_repository__find_by_keywords__returns_matching_skills():
+async def test_kernel_repository__find_by_keywords__returns_matching_skills():
     """find_by_keywords with query returns skills from database."""
     skill_id = uuid4()
     mock_row = MagicMock()
@@ -15,7 +15,7 @@ async def test_skill_repository__find_by_keywords__returns_matching_skills():
         "id": skill_id,
         "name": "etl-pipeline",
         "category": "etl",
-        "description": "Skill for ETL",
+        "description": "Kernel for ETL",
         "trigger_keywords": ["pipeline", "etl"],
         "embedding": None,
         "status": "permanent",
@@ -32,7 +32,7 @@ async def test_skill_repository__find_by_keywords__returns_matching_skills():
         mock_connect.return_value = mock_conn
         mock_conn.fetch.return_value = [mock_row]
 
-        repo = PostgreSQLSkillRepository()
+        repo = PostgreSQLKernelRepository()
         result = await repo.find_by_keywords("pipeline", top_k=5)
 
         assert len(result) == 1
@@ -42,14 +42,14 @@ async def test_skill_repository__find_by_keywords__returns_matching_skills():
 
 
 @pytest.mark.asyncio
-async def test_skill_repository__find_by_keywords__with_category__calls_category_query():
+async def test_kernel_repository__find_by_keywords__with_category__calls_category_query():
     """find_by_keywords with category filters results."""
     with patch("asyncpg.connect") as mock_connect:
         mock_conn = AsyncMock()
         mock_connect.return_value = mock_conn
         mock_conn.fetch.return_value = []
 
-        repo = PostgreSQLSkillRepository()
+        repo = PostgreSQLKernelRepository()
         await repo.find_by_keywords("test", category="etl", top_k=5)
 
         # Verify the query with category was called
@@ -61,7 +61,7 @@ async def test_skill_repository__find_by_keywords__with_category__calls_category
 
 
 @pytest.mark.asyncio
-async def test_skill_repository__promote__below_threshold__raises_promotion_threshold_not_met():
+async def test_kernel_repository__promote__below_threshold__raises_promotion_threshold_not_met():
     """promote raises PromotionThresholdNotMet when verified_on_problems < threshold."""
     skill_id = uuid4()
 
@@ -74,7 +74,7 @@ async def test_skill_repository__promote__below_threshold__raises_promotion_thre
         mock_conn.transaction = MagicMock(return_value=mock_tx)
         mock_conn.fetchrow.return_value = {"verified_on_problems": [uuid4()]}  # Only 1, threshold is 2
 
-        repo = PostgreSQLSkillRepository()
+        repo = PostgreSQLKernelRepository()
         with pytest.raises(PromotionThresholdNotMetError):
             await repo.promote(skill_id)
 
@@ -82,7 +82,7 @@ async def test_skill_repository__promote__below_threshold__raises_promotion_thre
 
 
 @pytest.mark.asyncio
-async def test_skill_repository__promote__at_threshold__executes_update():
+async def test_kernel_repository__promote__at_threshold__executes_update():
     """promote executes UPDATE when verified_on_problems >= threshold."""
     skill_id = uuid4()
 
@@ -95,7 +95,7 @@ async def test_skill_repository__promote__at_threshold__executes_update():
         mock_conn.transaction = MagicMock(return_value=mock_tx)
         mock_conn.fetchrow.return_value = {"verified_on_problems": [uuid4(), uuid4()]}  # 2 verified
 
-        repo = PostgreSQLSkillRepository()
+        repo = PostgreSQLKernelRepository()
         await repo.promote(skill_id)
 
         # Verify UPDATE was called
@@ -106,7 +106,7 @@ async def test_skill_repository__promote__at_threshold__executes_update():
 
 
 @pytest.mark.asyncio
-async def test_skill_repository__deprecate__calls_execute_with_reason():
+async def test_kernel_repository__deprecate__calls_execute_with_reason():
     """deprecate updates skill status to deprecated with reason."""
     skill_id = uuid4()
     reason = "No longer maintained"
@@ -115,7 +115,7 @@ async def test_skill_repository__deprecate__calls_execute_with_reason():
         mock_conn = AsyncMock()
         mock_connect.return_value = mock_conn
 
-        repo = PostgreSQLSkillRepository()
+        repo = PostgreSQLKernelRepository()
         await repo.deprecate(skill_id, reason)
 
         # Verify the UPDATE was called with reason

@@ -1,4 +1,4 @@
-"""Root test configuration for OAK."""
+"""Root test configuration for ACORN."""
 import ast
 import pathlib
 import pytest

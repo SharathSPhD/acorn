@@ -17,9 +17,9 @@ def _run_proxy(cmd: str) -> subprocess.CompletedProcess:
     """Run tool-proxy.sh with given command, pointing DENY_FILE at real patterns."""
     env = os.environ.copy()
     env.update({
-        "OAK_TOOL_CMD": cmd,
-        "OAK_AGENT_ID": "test-agent",
-        "OAK_PROBLEM_UUID": "test-prob-001",
+        "ACORN_TOOL_CMD": cmd,
+        "ACORN_AGENT_ID": "test-agent",
+        "ACORN_PROBLEM_UUID": "test-prob-001",
         "REDIS_URL": "redis://localhost:6379",
     })
     import tempfile

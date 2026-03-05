@@ -25,7 +25,7 @@ async def test_agent_registry__register__stores_json_in_redis(mock_redis):
     await reg.register("agent-1", "data-engineer", "prob-001")
     mock_redis.set.assert_called_once()
     call_args = mock_redis.set.call_args
-    assert "oak:agent:agent-1" in str(call_args)
+    assert "acorn:agent:agent-1" in str(call_args)
 
 
 @pytest.mark.asyncio
@@ -45,7 +45,7 @@ async def test_agent_registry__update_status__changes_status_field(mock_redis):
 async def test_agent_registry__get_all__returns_agents(mock_redis):
     from api.services.agent_registry import AgentRegistry
     reg = AgentRegistry("redis://localhost:6379")
-    mock_redis.keys.return_value = ["oak:agent:a1"]
+    mock_redis.keys.return_value = ["acorn:agent:a1"]
     mock_redis.get.return_value = json.dumps({"agent_id": "a1", "role": "de",
         "status": "running", "problem_uuid": "p1", "container_id": "", "last_seen": 1.0})
     result = await reg.get_all()

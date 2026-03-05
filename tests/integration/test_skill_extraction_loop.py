@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 from memory.interfaces import PromotionThresholdNotMetError
-from memory.skill_repository import PostgreSQLSkillRepository
+from memory.kernel_repository import PostgreSQLKernelRepository
 
 
 @pytest.mark.integration
@@ -43,7 +43,7 @@ async def test_skill_extraction_loop__full_lifecycle():
             "updated_at": None,
         }
 
-        repo = PostgreSQLSkillRepository()
+        repo = PostgreSQLKernelRepository()
 
         # -- Phase 2: Try to promote with only 1 verified problem → must fail --
         mock_tx = MagicMock()
@@ -101,7 +101,7 @@ async def test_skill_extraction_loop__find_retrieves_promoted_skill():
         mock_connect.return_value = mock_conn
         mock_conn.fetch.return_value = [mock_row]
 
-        repo = PostgreSQLSkillRepository()
+        repo = PostgreSQLKernelRepository()
         results = await repo.find_by_keywords("classification", category="ml")
 
         assert len(results) == 1
@@ -120,7 +120,7 @@ async def test_skill_extraction_loop__deprecate__excludes_from_search():
         mock_connect.return_value = mock_conn
         mock_conn.fetch.return_value = []
 
-        repo = PostgreSQLSkillRepository()
+        repo = PostgreSQLKernelRepository()
 
         skill_id = uuid4()
         await repo.deprecate(skill_id, "Superseded by v2")

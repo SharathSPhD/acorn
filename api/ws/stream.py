@@ -18,14 +18,14 @@ REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 
 @router.websocket("/ws/{problem_uuid}")
 async def websocket_stream(websocket: WebSocket, problem_uuid: str) -> None:
-    """Stream agent events to Hub via WebSocket. Subscribes to oak:stream:{problem_uuid}."""
+    """Stream agent events to Hub via WebSocket. Subscribes to acorn:stream:{problem_uuid}."""
     await websocket.accept()
     redis_client = None
     pubsub = None
     try:
         redis_client = aioredis.from_url(REDIS_URL, decode_responses=True)
         pubsub = redis_client.pubsub()
-        channel = f"oak:stream:{problem_uuid}"
+        channel = f"acorn:stream:{problem_uuid}"
         await pubsub.subscribe(channel)
         while True:
             message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
@@ -48,7 +48,7 @@ async def websocket_stream(websocket: WebSocket, problem_uuid: str) -> None:
 async def websocket_docker_logs(websocket: WebSocket, problem_uuid: str) -> None:
     """Stream live Docker container logs via WebSocket (GAP 7 fix)."""
     await websocket.accept()
-    container_name = f"oak-harness-{problem_uuid}"
+        container_name = f"acorn-harness-{problem_uuid}"
     proc = None
     try:
         proc = await asyncio.create_subprocess_exec(

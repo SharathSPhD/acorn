@@ -6,22 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-OAK is currently in the **specification phase**. `spec.md` (v1.2) and `PRD.md` (v1.0) are the authoritative sources of truth. No implementation code exists yet. All development follows the phased roadmap in `spec.md §14`, starting with Phase 0 (walking skeleton).
+ACORN is currently in the **specification phase**. `spec.md` (v1.2) and `PRD.md` (v1.0) are the authoritative sources of truth. No implementation code exists yet. All development follows the phased roadmap in `spec.md §14`, starting with Phase 0 (walking skeleton).
 
-Remote repository: `https://github.com/SharathSPhD/oak.git`
+Remote repository: `https://github.com/SharathSPhD/acorn.git`
 
 ---
 
 ## Architecture Overview
 
-OAK is a self-evolving AI software factory organised into six layers:
+ACORN is a self-evolving AI software factory organised into six layers:
 
 | Layer | Component | Port |
 |---|---|---|
-| **CANOPY** | Streamlit Hub UI | 8501 |
+| **CANOPY** | React Hub UI | 8501 |
 | **TRUNK** | FastAPI API Gateway | 8000 |
-| **GROVE** | Agent Engine (`oak-harness` containers + Claude Code) | — |
-| **HARNESS PROXY** | `oak-api-proxy` — routes Claude Code calls to Ollama or Claude API | 9000 |
+| **GROVE** | Agent Engine (`acorn-harness` containers + Claude Code) | — |
+| **HARNESS RELAY** | `acorn-api-relay` — routes Claude Code calls to Ollama or Claude API | 9000 |
 | **ROOTS** | PostgreSQL 16 + pgvector, Redis 7 | 5432, 6379 |
 | **SOIL** | DGX Spark / Mac Mini M4 / Cloud GPU | — |
 
@@ -29,29 +29,29 @@ OAK is a self-evolving AI software factory organised into six layers:
 
 ### Agent Model
 
-Every Claude Code agent session runs inside an `oak-harness` Docker container. Claude Code is pointed at `oak-api-proxy` (not Ollama directly) via three environment variables — the canonical Ollama + Claude Code integration recipe:
+Every Claude Code agent session runs inside an `acorn-harness` Docker container. Claude Code is pointed at `acorn-api-relay` (not Ollama directly) via three environment variables — the canonical Ollama + Claude Code integration recipe:
 
 ```bash
-ANTHROPIC_BASE_URL=http://oak-api-proxy:9000
+ANTHROPIC_BASE_URL=http://acorn-api-relay:9000
 ANTHROPIC_AUTH_TOKEN=ollama
-ANTHROPIC_API_KEY=                    # Intentionally empty; proxy manages escalation
+ANTHROPIC_API_KEY=                    # Intentionally empty; relay manages escalation
 ```
 
-The proxy routes calls to local Ollama by default (`ROUTING_STRATEGY=passthrough`). Stall-based Claude API escalation is opt-in (`STALL_DETECTION_ENABLED=true`) and disabled in v1.
+The relay routes calls to local Ollama by default (`ROUTING_STRATEGY=passthrough`). Stall-based Claude API escalation is opt-in (`STALL_DETECTION_ENABLED=true`) and disabled in v1.
 
 ### Git Worktree Structure
 
-OAK uses Git worktrees — one per concern, one per problem. See `PROGRESS.md` for full workflow examples.
+ACORN uses Git worktrees — one per concern, one per problem. See `PROGRESS.md` for full workflow examples.
 
 | Branch | Worktree path | Concern | Who commits here |
 |---|---|---|---|
-| `main` | `~/oak/` | Core: API, memory, docker, scripts, tests | Feature PRs only — never direct commits |
-| `oak/agents` | `~/oak-workspaces/agents/` | Agent definitions (`.claude/agents/*.md`), hooks | Meta Agent (via PR) |
-| `oak/skills` | `~/oak-workspaces/skills/` | Skill library (`permanent/`, `probationary/`) | Skill Extractor Agent (automated) |
-| `oak/ui` | `~/oak-workspaces/ui/` | Streamlit Hub (`app.py`, `pages/`) | Software Architect (via PR) |
-| `oak/problem-{uuid}` | `~/oak-workspaces/problem-{uuid}/` | Per-problem solution code | Problem agents |
+| `main` | `~/acorn/` | Core: API, memory, docker, scripts, tests | Feature PRs only — never direct commits |
+| `acorn/agents` | `~/acorn-workspaces/agents/` | Agent definitions (`.claude/agents/*.md`), hooks | Meta Agent (via PR) |
+| `acorn/kernels` | `~/acorn-workspaces/kernels/` | Kernel library (`permanent/`, `probationary/`) | Kernel Extractor Agent (automated) |
+| `acorn/ui` | `~/acorn-workspaces/ui/` | React Hub (`app.py`, `pages/`) | Software Architect (via PR) |
+| `acorn/problem-{uuid}` | `~/acorn-workspaces/problem-{uuid}/` | Per-problem solution code | Problem agents |
 
-**Never commit directly to `main`.** Use feature branches + PRs for all core changes. Problem code lives on `oak/problem-{uuid}` branches only.
+**Never commit directly to `main`.** Use feature branches + PRs for all core changes. Problem code lives on `acorn/problem-{uuid}` branches only.
 
 ---
 
@@ -59,7 +59,7 @@ OAK uses Git worktrees — one per concern, one per problem. See `PROGRESS.md` f
 
 ### Bootstrap (first time on a new node)
 ```bash
-bash scripts/bootstrap.sh        # Full DGX setup: builds harness + proxy, pulls models, starts stack
+bash scripts/bootstrap.sh        # Full DGX setup: builds harness + relay, pulls models, starts stack
 ```
 
 ### Docker stack
@@ -80,10 +80,10 @@ docker compose --profile dgx up -d    # or --profile mini or cloud
 
 All images are built by `bootstrap.sh`. For manual control:
 ```bash
-docker build -t oak/api-proxy:latest ./oak_mcp/oak-api-proxy/
-docker build -t oak/harness:latest ./docker/claude-harness/
-docker build -t oak/api:latest -f ./docker/api/Dockerfile .
-docker build -t oak/ui:latest ./ui/
+docker build -t acorn/api-relay:latest ./acorn_mcp/acorn-api-relay/
+docker build -t acorn/harness:latest ./docker/acorn-harness/
+docker build -t acorn/api:latest -f ./docker/api/Dockerfile .
+docker build -t acorn/ui:latest ./ui-next/
 ```
 
 ### Start a new problem
@@ -93,7 +93,7 @@ bash scripts/new-problem.sh [problem-uuid]   # Creates worktree + launches orche
 
 ### Verify the routing chain
 ```bash
-# Proxy → Ollama
+# Relay → Ollama
 curl -s -H "Authorization: Bearer ollama" http://localhost:9000/v1/models | python3 -c "import sys,json; d=json.load(sys.stdin); print([m['id'] for m in d.get('data',[])])"
 
 # Direct Ollama (diagnostics only)
@@ -102,10 +102,10 @@ curl -s http://localhost:11434/api/tags
 
 ### Pull Ollama models
 ```bash
-docker exec oak-ollama ollama pull qwen3-coder   # Primary: all coding tasks
-docker exec oak-ollama ollama pull glm-4.7        # Analysis/EDA
-docker exec oak-ollama ollama pull llama3.3:70b   # Reasoning/synthesis
-docker exec oak-ollama ollama pull deepseek-v3    # ML scripting
+docker exec acorn-ollama ollama pull qwen3-coder   # Primary: all coding tasks
+docker exec acorn-ollama ollama pull glm-4.7        # Analysis/EDA
+docker exec acorn-ollama ollama pull llama3.3:70b   # Reasoning/synthesis
+docker exec acorn-ollama ollama pull deepseek-v3   # ML scripting
 ```
 
 ### Tests
@@ -116,7 +116,7 @@ pytest tests/unit/ -v
 # Integration tests (requires test containers: real PG + Redis, no Docker-in-Docker)
 pytest tests/integration/ -v
 
-# Contract tests (harness + proxy behaviour)
+# Contract tests (harness + relay behaviour)
 pytest tests/contract/ -v
 
 # Run a single test file
@@ -132,14 +132,14 @@ pytest tests/smoke/ -v
 pytest tests/system/ -v
 
 # Coverage
-pytest tests/unit/ --cov=api --cov=memory --cov=oak_mcp/oak-api-proxy --cov-report=term-missing
+pytest tests/unit/ --cov=api --cov=memory --cov=acorn_mcp/acorn-api-relay --cov-report=term-missing
 ```
 
 ### Linting and type checking
 ```bash
-ruff check api/ memory/ oak_mcp/          # Linting (includes C901 cyclomatic complexity)
-mypy --strict api/ memory/                # Type checking (required Phase 1+)
-pydocstyle api/ memory/                   # Docstring coverage
+ruff check api/ memory/ acorn_mcp/          # Linting (includes C901 cyclomatic complexity)
+mypy --strict api/ memory/                   # Type checking (required Phase 1+)
+pydocstyle api/ memory/                     # Docstring coverage
 ```
 
 ---
@@ -160,20 +160,20 @@ test_{unit_under_test}__{condition}__{expected_outcome}
 ```
 
 ### 3. Configuration-Driven
-`api/config.py` is the **only** file that reads `os.environ`. All other code imports `from api.config import settings`. Direct `os.environ` access elsewhere is a `ruff` violation and a CI blocker. All configuration lives in `OAKSettings` (Pydantic `BaseSettings`). Adding a new platform target never requires a code change — only a new `.env.{profile}` file.
+`api/config.py` is the **only** file that reads `os.environ`. All other code imports `from api.config import settings`. Direct `os.environ` access elsewhere is a `ruff` violation and a CI blocker. All configuration lives in `AcornSettings` (Pydantic `BaseSettings`). Adding a new platform target never requires a code change — only a new `.env.{profile}` file.
 
 ### 4. Hooks Are Thin Relays
-Each `.claude/hooks/*.sh` script does exactly one thing: POST a serialised `AgentEvent` to `http://oak-api:8000/internal/events`. All business logic lives in Python `EventSubscriber` classes. A hook with >10 lines of logic is a violation.
+Each `.claude/hooks/*.sh` script does exactly one thing: POST a serialised `AgentEvent` to `http://acorn-api:8000/internal/events`. All business logic lives in Python `EventSubscriber` classes. A hook with >10 lines of logic is a violation.
 
-### 5. Skill Promotion Is Gated
-Skills write to `skills/probationary/` only. Promotion to `skills/permanent/` goes exclusively through `SkillRepository.promote()`, which enforces `OAK_SKILL_PROMO_THRESHOLD` (default: 2 independent problems). Never write directly to `permanent/`.
+### 5. Kernel Promotion Is Gated
+Kernels write to `kernels/probationary/` only. Promotion to `kernels/permanent/` goes exclusively through `KernelRepository.promote()`, which enforces `ACORN_KERNEL_PROMO_THRESHOLD` (default: 2 independent problems). Never write directly to `permanent/`.
 
 ### 6. Anti-Patterns (forbidden)
-- **God Orchestrator**: Orchestrator only decomposes problems and spawns agents. State transitions, events, and skill promotion belong in their respective components.
-- **Inline routing conditionals**: All routing decisions live in a named `RoutingStrategy` subclass; the proxy's `proxy()` function never changes.
+- **God Orchestrator**: Orchestrator only decomposes problems and spawns agents. State transitions, events, and kernel promotion belong in their respective components.
+- **Inline routing conditionals**: All routing decisions live in a named `RoutingStrategy` subclass; the relay's `proxy()` function never changes.
 - **Direct `os.environ` access** outside `api/config.py`.
 - **Fat hooks**: hooks call the API; Python classes do the work.
-- **Probationary skill bypass**: no direct writes to `permanent/`.
+- **Probationary kernel bypass**: no direct writes to `permanent/`.
 
 ---
 
@@ -182,17 +182,17 @@ Skills write to `skills/probationary/` only. Promotion to `skills/permanent/` go
 | Phase | Scope | Key exit criteria |
 |---|---|---|
 | **0** | Walking skeleton: PG + Redis + Ollama + FastAPI + static CSV→app, no agents | All 4 services healthy; schema verified; non-agent CSV→app pipeline passes CI |
-| **1** | Hardened harness + single agent + proxy unit tests | All contract tests pass; tool-proxy blocks all deny patterns; session round-trips container restart |
+| **1** | Hardened harness + single agent + relay unit tests | All contract tests pass; tool-proxy blocks all deny patterns; session round-trips container restart |
 | **2** | Agent teams + task list + mailbox + Judge gate | Orchestrator + DE + DS + Judge complete two canonical problems end-to-end |
-| **3** | Memory + skill library + Hub | Skill extracted from Problem 1 reused on Problem 2; Hub live on Streamlit Cloud |
-| **4** | Mac Mini port + stall detection calibration | Full lifecycle on `OAK_MODE=mini`; stall escalation rate < 30% |
+| **3** | Memory + kernel library + Hub | Kernel extracted from Problem 1 reused on Problem 2; Hub live on Streamlit Cloud |
+| **4** | Mac Mini port + stall detection calibration | Full lifecycle on `ACORN_MODE=mini`; stall escalation rate < 30% |
 | **5** | Concurrency + cloud + vLLM | 3 concurrent problems; zero cross-problem leakage |
 
 ---
 
 ## PostgreSQL Schema Tables
 
-`problems`, `tasks`, `mailbox`, `episodes` (pgvector 1536-dim), `skills` (pgvector), `agent_telemetry`, `judge_verdicts`
+`problems`, `tasks`, `mailbox`, `episodes` (pgvector 1536-dim), `kernels` (pgvector), `agent_telemetry`, `judge_verdicts`
 
 Full DDL: `api/db/schema.sql` (to be created in Phase 0).
 
@@ -200,15 +200,15 @@ Full DDL: `api/db/schema.sql` (to be created in Phase 0).
 
 ## Environment Variables
 
-Platform selection: set `OAK_MODE=dgx|mini|cloud` and use the matching compose file. All other values have validated defaults in `OAKSettings`. See `PRD.md §4.7` for the full configuration reference table.
+Platform selection: set `ACORN_MODE=dgx|mini|cloud` and use the matching compose file. All other values have validated defaults in `AcornSettings`. See `PRD.md §4.7` for the full configuration reference table.
 
-**Security:** `.env` must be in `.gitignore`. Never commit real API keys. `ANTHROPIC_API_KEY_REAL` (the real Anthropic key used by the proxy for escalation) is never logged and never returned by `/health`.
+**Security:** `.env` must be in `.gitignore`. Never commit real API keys. `ANTHROPIC_API_KEY_REAL` (the real Anthropic key used by the relay for escalation) is never logged and never returned by `/health`.
 
 ---
 
 ## MCP Servers
 
-Defined in `.claude/mcp.json` (to be created): `filesystem`, `postgres`, `git`, `oak-memory` (pgvector retrieval), `oak-skills` (skill library lookup). Agents access PostgreSQL only through MCP — never via direct `psql` from agent containers.
+Defined in `.claude/mcp.json`: `filesystem`, `postgres`, `git`, `acorn-memory` (pgvector retrieval), `acorn-kernels` (kernel library lookup). Agents access PostgreSQL only through MCP — never via direct `psql` from agent containers.
 
 ---
 
@@ -223,4 +223,4 @@ Refs: #issue_number
 ```
 
 Types: `feat`, `fix`, `test`, `refactor`, `chore`, `docs`
-Scopes: `trunk`, `grove`, `harness`, `proxy`, `memory`, `canopy`, `skills`, `config`
+Scopes: `trunk`, `grove`, `harness`, `relay`, `memory`, `canopy`, `kernels`, `config`

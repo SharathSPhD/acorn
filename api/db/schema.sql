@@ -54,7 +54,7 @@ CREATE TABLE episodes (
 );
 CREATE INDEX ON episodes USING hnsw (embedding vector_cosine_ops);
 
-CREATE TABLE skills (
+CREATE TABLE kernels (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL UNIQUE,
     category TEXT NOT NULL CHECK (category IN ('etl','analysis','ml','ui','infra','sales','pricing','marketing','supply_chain','customer','finance','operations','human_capital','product','general')),
@@ -69,7 +69,7 @@ CREATE TABLE skills (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX ON skills USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX ON kernels USING hnsw (embedding vector_cosine_ops);
 
 CREATE TABLE agent_telemetry (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

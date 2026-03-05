@@ -2,10 +2,10 @@ __pattern__ = "Repository"
 
 from uuid import UUID
 
-from memory.interfaces import Skill, SkillRepository
+from memory.interfaces import Kernel, KernelRepository
 
 
-class FilesystemSkillRepository(SkillRepository):
+class FilesystemKernelRepository(KernelRepository):
     """Production: reads SKILL.md files from probationary/ and permanent/ directories."""
 
     def __init__(
@@ -17,13 +17,13 @@ class FilesystemSkillRepository(SkillRepository):
 
     async def find_by_keywords(
         self, query: str, category: str | None = None, top_k: int = 5
-    ) -> list[Skill]:
+    ) -> list[Kernel]:
         # TODO Phase 3: use pgvector similarity search
         raise NotImplementedError("Phase 3")
 
-    async def promote(self, skill_id: UUID) -> None:
-        # TODO Phase 3: check use_count >= threshold, move file, UPDATE skills table
+    async def promote(self, kernel_id: UUID) -> None:
+        # TODO Phase 3: check use_count >= threshold, move file, UPDATE kernels table
         raise NotImplementedError("Phase 3")
 
-    async def deprecate(self, skill_id: UUID, reason: str) -> None:
+    async def deprecate(self, kernel_id: UUID, reason: str) -> None:
         raise NotImplementedError("Phase 3")

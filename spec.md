@@ -1,310 +1,364 @@
-# OAK — Orchestrated Agent Kernel
-## Project Specification v1.2
+# ACORN — Adaptive Collaborative Orchestration and Reasoning Network
 
-> *Deep-rooted in local compute, branching into limitless agent groves, growing stronger with every problem solved.*
->
-> Remote repository: **https://github.com/SharathSPhD/oak.git**
-> Primary platform: **NVIDIA DGX Spark** (ports to Mac Mini M4 and cloud GPU)
-> Initiated via: **Claude Code agent teams**
+## Project Specification v1.0 · March 2026
 
-**v1.1 Amendment (harness.md):** Incorporated the OAK Harness architecture — `claude-harness` Docker container with sandboxed tool proxy, Redis session state, and `oak-api-proxy` dynamic routing layer. Updated Ollama+Claude Code environment variable recipe and model names. Changes in Sections 1.2, 4.1, 4.6 (new), 5.1, 7, and 13.
+> *From a single seed of intent, a network of reasoning agents grows outward,
+> each branch strengthening the whole — every problem solved leaves the grove
+> wiser, faster, and more capable than before.*
 
-**v1.2 Amendment (critique-driven):** Rewrote Section 1.1 as measurable outcome objectives (separating goals from implementation choices). Updated Section 1.2 scaling principle to acknowledge configurable resource caps. Added Section 1.3 (Self-Evolution Boundaries) and Section 1.4 (Mandatory vs Optional). Added harness/proxy risk mitigations to Section 4.6. Added `MAX_AGENTS_PER_PROBLEM`, `MAX_CONCURRENT_PROBLEMS`, `MAX_HARNESS_CONTAINERS` to Section 5.4. Added SLO-style exit criteria to all roadmap phases (Section 14). Added Section 16 (Observability) and Section 17 (Failure Mode Reference).
+**Remote repository:** https://github.com/SharathSPhD/acorn.git  
+**Primary platform:** NVIDIA DGX Spark (Apple Silicon Mac Mini M4 and Cloud GPU are profiles)  
+**Agent runtime:** Claude Code agent teams via acorn-harness  
+**Frontend:** Next.js Hub (port 8501)  
+**Version history:**
+- **v1.0** — Initial specification. Seven-layer stack, nine-agent catalogue, kernel grove, self-evolution boundaries, exit criteria (no phases).
 
 ---
 
 ## 1. Project Overview and Objectives
 
-OAK is a self-evolving AI software factory. It ingests raw problems — described in natural language, accompanied by data files or database connections — and produces tailored analytical dashboards and applications via dynamic teams of specialist AI agents. Every problem OAK solves teaches it something permanent. The system accumulates executable skills, refines its agent prompts from telemetry, and evolves its own UI as new capability classes are mastered. There is no fixed solution template and no finite capability ceiling.
+### 1.1 What ACORN Is
 
-The name is deliberate. An oak tree does not pre-plan its final shape; it grows in response to its environment, putting down deeper roots as it encounters harder ground, branching freely where there is light. OAK the system is the same: agent roles emerge from problem complexity rather than being fixed in advance, memory accumulates like growth rings, and the UI canopy expands as the agent grove below it matures.
+ACORN is a **self-evolving autonomous knowledge-work factory**. It extends OAK from a data-to-dashboard factory into a **general-purpose knowledge-work factory**. It accepts raw inputs — natural-language goals, documents, datasets, API endpoints, web sources — and produces high-quality, structured knowledge artefacts: analytical reports, decision recommendations, synthesised literature summaries, business intelligence dashboards, workflow automation scripts, and deployed interactive applications.
 
-### 1.1 Core Objectives
+Where OAK specialises in data-to-dashboard pipelines for structured analytical problems, ACORN operates across the full spectrum of knowledge work:
+- Unstructured document corpora → structured insights
+- Multi-source research questions → cited, reasoned synthesis reports
+- Business process descriptions → automated workflow scripts
+- Raw metrics streams → adaptive monitoring dashboards
+- Competitive intelligence requests → periodic briefing documents
 
-OAK's objectives are stated as measurable outcomes. The *how* — PostgreSQL, Streamlit/Dash, the tripartite memory architecture, the Voyager pattern, the OAK Harness — are design choices that serve these outcomes and may evolve independently.
+Every problem ACORN solves is distilled into a reusable **ACORN Kernel** — a versioned, testable, composable skill unit stored in the permanent kernel grove. Future problems of the same class are resolved faster, with higher confidence, by orchestrating retrieved kernels rather than reasoning from scratch.
 
-- **Autonomous problem-to-app conversion.** Given heterogeneous data and a natural-language goal, OAK must produce a deployed, usable analytical application with minimal human intervention — no hand-holding through individual analysis steps, no manual model selection. For any new problem type, OAK must complete a full end-to-end cycle (ingest → analyse → model → synthesise → validate → deploy) with zero runtime errors on basic user flows.
+The name is deliberate. An acorn contains the full blueprint of an oak within a seed too small to see. ACORN the system starts small — a handful of agents, a modest kernel grove — but carries within its architecture the capacity to grow into an arbitrarily capable knowledge engine, bounded only by the operator's hardware and the quality of problems submitted to it.
 
-- **Compounding skill reuse.** For recurring problem classes, the median time-to-first-useful-app must decrease by at least 50% after three similar problems have been solved, as measured via the `agent_telemetry` table. Skill reuse — not re-derivation — is the mechanism. Skills that cannot demonstrate reuse across at least two independent problems must not be promoted to permanent status.
+### 1.2 Measurable Core Objectives
 
-- **Self-evolving interface.** The Hub UI must reflect OAK's current capability set. New problem classes that are mastered cause new pages or widgets to appear in the Hub via automated PRs reviewed and merged by the human operator. The interface is never manually updated by the operator for capability reasons.
+1. **Autonomous knowledge-work completion.** Given a natural-language goal and any combination of input artefacts, ACORN must produce a usable output artefact with no human involvement beyond the initial submission.
 
-- **Data sovereignty.** All problem data, agent memory, compiled skills, and learned patterns must remain on operator-owned hardware at all times. Cloud escalation (Claude API) is strictly optional, stateless, and never retains problem context server-side. The system must function fully with no external API key.
+2. **Compounding kernel reuse.** For recurring knowledge-work classes, median time-to-first-useful-output must decrease by at least 50% after three similar problems have been solved. Kernels that cannot demonstrate reuse across at least two independent problems must not be promoted to permanent status.
 
-- **Platform portability.** OAK must run identically on DGX Spark, Mac Mini M4 Pro, and cloud GPU instances using only a single environment variable change (`OAK_MODE`). No application code changes are permitted between platforms.
+3. **Reasoning transparency.** Every output artefact must be accompanied by a `REASONING_TRAIL.md` that records agent decisions, source attributions, kernel retrievals, and judge verdicts. The operator must be able to audit any output without reading agent logs.
 
-### 1.2 Design Principles
+4. **Data sovereignty and privacy.** All problem data, intermediate reasoning, agent memory, and compiled kernels remain on operator-owned hardware. Cloud escalation (Claude API) is optional, stateless, and never retains problem context.
 
-**Sovereign compute.** No problem data, agent memory, or compiled skills leave the DGX Spark node. The system's growing intelligence is the operator's property. Claude API calls are optional escalation paths; the default inference path is entirely local via Ollama.
+5. **Platform portability.** ACORN must run identically on DGX Spark, Mac Mini M4, and cloud GPU instances using only `ACORN_MODE`. No application code changes are permitted between platforms.
 
-**Resource-aware scaling.** Agent count is not fixed at four, but it is not unconstrained either. The Orchestrator spawns as many agents as the problem requires — five for a simple ETL task, up to the configured maximum for a complex multi-modal forecasting problem. Two configurable caps (`MAX_AGENTS_PER_PROBLEM`, `MAX_CONCURRENT_PROBLEMS`) prevent resource exhaustion on any platform; these are tuning knobs, not architectural philosophy. Roles emerge from problem decomposition rather than being declared in advance.
+6. **Self-evolving capability surface.** The Hub UI must reflect ACORN's current mastered problem classes. As new classes are solved, new Hub sections appear via automated PRs. The operator's only responsibility is merging those PRs.
 
-**No security overhead.** OAK uses simple Docker network isolation. There are no OpenClaw components (which carry documented RCE and prompt-injection vulnerabilities), no third-party messaging integrations (no Slack, no WhatsApp, no email hooks), and no complex authentication layers. The system is designed for a single trusted operator on a private network.
+### 1.3 Design Principles
 
-**Portability by design.** A single `OAK_MODE` environment variable switches the Docker Compose configuration between `dgx`, `mini`, and `cloud` profiles. No code changes are required to port between platforms.
+**DGX Spark first.** ACORN is optimised for NVIDIA DGX Spark as the primary development and production target. Mac Mini M4 and cloud GPU are fully supported profiles but are not the design centre.
 
-**Sandboxed harness.** Claude Code does not run loose on the host. Every agent session runs inside a dedicated `claude-harness` Docker container that sandboxes the Claude Code binary, intercepts all tool calls through a deny-list proxy before execution, and maintains persistent session state in Redis — giving agents the stateful terminal context that OpenClaw would have provided, without any of OpenClaw's RCE or prompt-injection exposure. All API calls from Claude Code are routed through a lightweight `oak-api-proxy` container that dynamically switches between the local Ollama endpoint and the Claude API based on per-call confidence, with no static configuration change required.
+**Sovereign compute.** No problem data, agent memory, compiled kernels, or reasoning traces leave the operator's hardware. Cloud escalation is a quality-improvement option, never a correctness requirement.
 
-### 1.3 Self-Evolution Boundaries
+**Resource-aware agent spawning.** The Orchestrator spawns as many agents as the problem requires, up to the configured maximum. Resource caps are tuning knobs, not architectural philosophy.
 
-OAK changes itself autonomously in some ways and only with human approval in others. This boundary is load-bearing: without it, the system can drift into states the operator cannot understand or safely reverse.
+**No security anti-patterns.** ACORN uses Docker network isolation. It contains no components derived from OpenClaw, no third-party messaging integrations, and no complex authentication layers. It is designed for a single trusted operator on a private network.
 
-**What OAK changes autonomously (no human approval required):**
-- Promotes skills from `probationary` to `permanent` after two verified independent uses.
-- Generates and executes agent task plans within the current problem scope.
-- Writes session state, telemetry, episodic memory, and judge verdicts without approval.
-- Spawns and terminates agent sessions within the configured resource caps.
+**Reasoning as a first-class output.** ACORN treats structured reasoning (reports, recommendations, synthesised briefs) as equally valid top-level outputs. The Judge validates both code artefacts and document artefacts.
 
-**What requires a PR and human merge before taking effect:**
-- New Hub pages or widget additions (opened by Software Architect against `oak/ui`), subject to a churn limit: no more than 1 new UI PR per 3 problems solved without a human-triggered Hub architecture review. The total distinct Hub page count must not exceed 20 without explicit operator approval of a Hub restructure. Tabs added to existing pages do not count toward the page limit but are still subject to the per-3-problems rate.
-- Agent prompt amendments (opened by Meta Agent against `oak/agents`).
-- Any change to the Judge Agent's validation rules or the tool-proxy deny-list patterns.
-- Deprecation of permanent skills.
+**Composable kernel architecture.** ACORN Kernels are more than SKILL.md files. Each kernel is a testable, versioned unit containing: a natural-language description, an executable Python module or shell script, a unit test suite, and a benchmark result from the last verified application. Kernels compose — a complex problem may retrieve and chain three kernels in sequence.
 
-**What requires explicit operator action (no automation path):**
-- Schema migrations to existing tables.
-- Changes to the TRUNK API surface or Docker Compose files.
-- Changes to the resource cap variables (`MAX_AGENTS_PER_PROBLEM`, etc.).
-- Deletion of problem worktrees before the 30-day archive window.
+### 1.4 Self-Evolution Boundaries
 
-### 1.4 Mandatory vs Optional (v1 Scope)
+**Autonomous (no human approval):**
+- Kernel promotion after 2 verified uses
+- Agent task plans
+- Session state, telemetry, memory writes
+- Spawn/terminate agents within caps
+- Kernel retrieval, chaining, performance index updates
 
-Not all capabilities described in this spec are required for a functional v1. Attempting to build everything simultaneously is the most reliable path to a half-working system.
+**Requires PR + human merge:**
+- New Hub pages
+- Agent prompt amendments
+- Judge validation rule changes
+- Kernel deprecation
+- New kernel categories
 
-**Mandatory for v1 (Phases 0–3):**
-- **TRUNK:** FastAPI with all five routers (`problems`, `agents`, `tasks`, `skills`, `telemetry`) and WebSocket stream.
-- **GROVE:** Orchestrator, Data Engineer, Data Scientist, Judge Agent — four agents minimum. ML Engineer and Software Architect are optional for v1 (manual synthesis is acceptable).
-- **ROOTS:** Full PostgreSQL schema; Redis for working memory and session state; filesystem skill library.
-- **OAK Harness:** `claude-harness` container with tool proxy and Redis session state. Stall-based Claude API escalation is *disabled by default* — the proxy passes through to Ollama unconditionally until Phase 4 hardening.
-- **Streamlit Hub:** Pages 01–05 (new problem, status, gallery, skill library, telemetry).
-- **Skill library:** ETL category skills; probationary queue; basic promotion logic.
+**Requires explicit operator action:**
+- Schema migrations
+- TRUNK API surface changes
+- Docker Compose changes
+- Resource cap changes
+- Enabling/disabling cloud escalation
 
-**Optional / v1.1+:**
-- Meta Agent automated prompt rewrite (can be done manually in v1).
-- Stall detection heuristics and Claude API escalation in the proxy.
-- Plotly Dash spoke support (Streamlit-only is sufficient for v1).
-- Software Architect UI evolution PRs (Hub pages can be seeded manually in v1).
-- vLLM replacement for Ollama; Kubernetes overlay; cloud multi-GPU scaling.
-- Concurrent problem support beyond one active problem at a time (DGX-only in v1).
+### 1.5 WARDEN Scope
+
+WARDEN is an **infra-only daemon**. It has:
+- **No LLM** — no reasoning, no agent logic
+- **No self-build** — no OAK builder, no cortex, no code generation
+- **Only:** health checks, container restart, orphan cleanup, kernel index maintenance, research cache pruning, Calibration Agent triggers (when enabled)
 
 ---
 
 ## 2. System Architecture
 
-The system is organised into six named layers, each with clear responsibilities and boundaries.
+### 2.1 Layer Map (7-Layer Stack)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  CANOPY  — UI Hub (Streamlit / Plotly Dash)                             │
-│  Hosted: Streamlit Cloud / Render / Vercel (free tier)                  │
-│  Problem submission · Live agent stream · Solution gallery · Metrics    │
-└───────────────────────────────┬─────────────────────────────────────────┘
-                                │  REST + WebSocket
-                                ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  TRUNK  — API Gateway (FastAPI + uvicorn, port 8000)                    │
-│  /api/problems  /api/agents  /api/tasks  /api/skills  /api/telemetry    │
-│  WS: /ws/stream/{problem_id}                                            │
-└───────────────────────────────┬─────────────────────────────────────────┘
-                                ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  GROVE  — Agent Engine                                                  │
-│  oak-harness containers (one per agent session)                         │
-│  Claude Code binary · tool-proxy · Redis session state                  │
-│  Orchestrator  →  spawns N specialist agents dynamically                │
-│  Data Engineer · Data Scientist · ML Engineer · Software Architect      │
-│  Judge Agent · Skill Extractor · Meta Agent (async)                     │
-│  Coordination: Shared Task List (PostgreSQL) + Mailbox (Redis pub/sub)  │
-│  Hooks: PreToolUse · PostToolUse · TaskCompleted · TeammateIdle         │
-└───────────────────────────────┬─────────────────────────────────────────┘
-                                │  All Claude Code API calls
-                                ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  HARNESS PROXY  — oak-api-proxy (FastAPI, port 9000)                   │
-│  Dynamic routing: local Ollama ←→ Claude API (per-call confidence)      │
-│  Logs every routing decision to telemetry                               │
-└──────────┬────────────────────────────────────┬────────────────────────┘
-           │ default (local)                    │ escalation (optional)
-           ▼                                    ▼
-┌──────────────────────┐            ┌───────────────────────┐
-│  oak-ollama          │            │  api.anthropic.com     │
-│  port 11434          │            │  (if API key set)      │
-│  qwen3-coder         │            │  Sonnet / Haiku / Opus │
-│  glm-4.7             │            └───────────────────────┘
-│  llama3.3:70b        │
-│  deepseek-v3         │
-└──────────────────────┘
-                                ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  ROOTS  — Persistence (PostgreSQL 16 + pgvector · Redis 7)              │
-│  L1 Working Memory: Redis (TTL-scoped, per session + harness state)     │
-│  L2 Episodic Memory: PostgreSQL + pgvector (semantic retrieval)         │
-│  L3 Procedural Memory: SKILL.md filesystem + PostgreSQL index           │
-│  Task List · Mailbox · Telemetry · Problem Data · Agent Profiles        │
-└───────────────────────────────┬─────────────────────────────────────────┘
-                                ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  SOIL  — Hardware                                                        │
-│  DGX Spark (GB10 Grace Blackwell, 128GB unified, ~1 PFLOP)              │
-│  → Mac Mini M4 Pro 64GB   → RunPod / DigitalOcean multi-GPU             │
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│  LAYER 7: CANOPY — Next.js Hub UI (port 8501)                       │
+│  Problem submission · Live reasoning stream · Output gallery        │
+│  Kernel library · Telemetry · Reasoning trail viewer               │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 6: GROVE — Agent Engine (acorn-harness containers)           │
+│  Orchestrator · Research Analyst · Synthesis Agent · Domain         │
+│  Specialist · Validator · Judge · Kernel Extractor · Interface       │
+│  Agent · Calibration Agent                                          │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 5: RELAY — API Proxy (port 9000)                             │
+│  acorn-api-relay: routes Claude Code → Ollama or Claude API        │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 4: WARDEN — Self-healing Daemon (infra only)                 │
+│  acorn-warden: health checks · container restart · orphan cleanup   │
+│  kernel index maintenance · research cache prune                    │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 3: TRUNK — FastAPI Gateway (port 8000)                       │
+│  /api/problems · /api/agents · /api/tasks · /api/kernels           │
+│  /api/telemetry · /api/research · /api/reasoning · /api/mailbox     │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 2: ROOTS — Persistence Layer                                 │
+│  acorn-postgres (PostgreSQL 16 + pgvector) · acorn-redis (Redis 7)  │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 1: SOIL — Hardware                                            │
+│  DGX Spark (PRIMARY) · Mac Mini M4 · Cloud GPU                      │
+│  acorn-ollama (or vLLM in cloud) · Local inference by default       │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-**Orchestration boundary (hard rule).** The TRUNK and below own all computation, coordination, data, and intelligence. The CANOPY UI is a thin consumer of TRUNK API endpoints; it holds no agent logic and no problem data. The only state the CANOPY maintains locally is the user's browser session.
+### 2.2 Architectural Invariants
+
+1. **CANOPY holds no agent logic and no problem data.** The Hub is a thin consumer of TRUNK API endpoints. The only state the Hub maintains locally is the browser session.
+
+2. **All agent API calls route through RELAY.** No agent container has a direct network path to Ollama, Claude API, or any external endpoint. acorn-api-relay is the sole egress point for inference traffic.
+
+3. **TRUNK is the sole writer to ROOTS for schema-level data.** Agents write to working memory (Redis) and the problem worktree (filesystem). They do not issue DDL or direct PostgreSQL writes outside of MCP server calls.
+
+4. **Every kernel is testable in isolation.** A kernel that cannot be exercised by its own unit test suite without a running ACORN stack is not a valid kernel and will not be promoted to permanent status.
+
+5. **WARDEN never modifies agent logic.** The daemon is an infrastructure service only. It restarts containers, cleans orphans, and updates the kernel performance index. It does not amend prompts or modify kernel content.
+
+### 2.3 Agent Model Routing
+
+| Role | Default Model | Purpose |
+|------|---------------|---------|
+| orchestrator | qwen3-coder | Problem decomposition |
+| research-analyst | qwen2.5:14b | Web research, document retrieval |
+| synthesis-agent | qwen3-coder | Reasoning synthesis, report drafting |
+| domain-specialist | qwen2.5:14b | Deep domain reasoning |
+| validator | qwen2.5:14b | Output validation |
+| judge | qwen3-coder | Final PASS/FAIL — always local |
+| kernel-extractor | qwen2.5:14b | Pattern extraction |
+| interface-agent | qwen2.5:14b | UI code generation |
+| calibration-agent | qwen3-coder | Prompt analysis |
+
+Override any model via env: `SYNTHESIS_MODEL=deepseek-r1:14b bash scripts/bootstrap.sh dgx`
+
+### 2.4 Redis Channels
+
+| Channel | Purpose | Publisher | Subscribers |
+|---------|---------|-----------|-------------|
+| `acorn:stream:{problem_id}` | Live agent events | All agents via hook | Hub WebSocket, telemetry |
+| `acorn:mailbox:{agent_id}` | Peer-to-peer messages | Any agent | Named recipient |
+| `acorn:broadcast:{problem_id}` | Task announcements | Orchestrator | All agents for problem |
+| `acorn:blocked:{agent_id}` | Denied tool call log | tool-proxy.sh | Security telemetry |
+| `acorn:kernel:notify` | New kernel available | Kernel Extractor | Orchestrator |
+| `acorn:reasoning:{problem_id}` | Reasoning step events | All agents | Trail recorder |
+
+Event envelope schema (all channels):
+```json
+{
+  "event_type": "string",
+  "agent_id": "string",
+  "problem_id": "string",
+  "timestamp_utc": 1234567890.123,
+  "schema_version": "1.0",
+  "payload": {}
+}
+```
 
 ---
 
 ## 3. Repository Structure and Git Worktrees
 
-OAK uses Git worktrees to give each concern an isolated filesystem view while sharing a single repository history. This is load-bearing for Claude Code agent teams: agents writing solution code in `oak/problem-{uuid}` cannot interfere with agents writing skill definitions in `oak/skills`, even if both are running simultaneously.
-
 ### 3.1 Branch Map
 
 | Branch | Worktree path | Purpose |
-|---|---|---|
-| `main` | `~/oak/` | Stable core: Docker configs, schema DDL, FastAPI, shared libs |
-| `oak/agents` | `~/oak-workspaces/agents/` | Agent definitions, CLAUDE.md per agent, hook scripts |
-| `oak/skills` | `~/oak-workspaces/skills/` | Skill library: SKILL.md files, Python modules, probationary queue |
-| `oak/ui` | `~/oak-workspaces/ui/` | Streamlit Hub, Dash components, static assets |
-| `oak/problem-{uuid}` | `~/oak-workspaces/problem-{uuid}/` | Per-problem isolated workspace (created dynamically at problem start) |
+|--------|---------------|---------|
+| `main` | `acorn/` | Stable core: Docker configs, schema DDL, FastAPI, shared libs |
+| `acorn/agents` | `acorn-workspaces/agents` | Agent definitions, CLAUDE.md per agent, hook scripts |
+| `acorn/kernels` | `acorn-workspaces/kernels` | Kernel grove: KERNEL.md files, Python modules, test suites |
+| `acorn/ui` | `acorn-workspaces/ui` | Next.js Hub |
+| `acorn/problem-{uuid}` | `acorn-workspaces/problem-{uuid}` | Per-problem isolated workspace |
 
 ### 3.2 Directory Layout (main branch)
 
 ```
-~/oak/
+acorn/
 ├── .claude/
-│   ├── CLAUDE.md               # Root Claude Code project config
-│   ├── agents/                 # Subagent definition files
+│   ├── CLAUDE.md
+│   ├── agents/
 │   │   ├── orchestrator.md
-│   │   ├── data-engineer.md
-│   │   ├── data-scientist.md
-│   │   ├── ml-engineer.md
-│   │   ├── software-architect.md
+│   │   ├── research-analyst.md
+│   │   ├── synthesis-agent.md
+│   │   ├── domain-specialist.md
+│   │   ├── validator.md
 │   │   ├── judge-agent.md
-│   │   ├── skill-extractor.md
-│   │   └── meta-agent.md
-│   ├── hooks/                  # Lifecycle hook scripts
-│   │   ├── pre-tool-use.sh     # 2nd-layer deny-list (after tool-proxy)
-│   │   ├── post-tool-use.sh    # Telemetry + session state updates
-│   │   ├── task-completed.sh   # Triggers skill extraction on pass
-│   │   └── teammate-idle.sh    # Re-focus injection on idle
-│   ├── mcp.json                # MCP server configurations
-│   └── settings.json           # Claude Code project settings
-├── docker/
-│   ├── claude-harness/         # ← NEW: OAK Harness Docker image
-│   │   ├── Dockerfile          # Claude Code + tool-proxy + session-state
-│   │   └── scripts/
-│   │       ├── tool-proxy.sh   # 1st-layer deny-list interceptor
-│   │       └── session-state.py# Redis persistent terminal state
-│   ├── docker-compose.dgx.yml
-│   ├── docker-compose.mini.yml
-│   ├── docker-compose.cloud.yml
-│   └── docker-compose.base.yml # Shared service definitions
-├── api/                        # FastAPI application
-│   ├── main.py
+│   │   ├── kernel-extractor.md
+│   │   ├── interface-agent.md
+│   │   └── calibration-agent.md
+│   ├── hooks/
+│   │   ├── pre-tool-use.sh
+│   │   ├── post-tool-use.sh
+│   │   ├── task-completed.sh
+│   │   ├── teammate-idle.sh
+│   │   └── reasoning-step.sh
+│   ├── mcp.json
+│   └── settings.json
+├── api/
+│   ├── main.py, config.py (AcornSettings), dependencies.py, models.py
 │   ├── routers/
 │   │   ├── problems.py
 │   │   ├── agents.py
 │   │   ├── tasks.py
-│   │   ├── skills.py
-│   │   └── telemetry.py
-│   ├── models/                 # Pydantic schemas
-│   ├── db/
-│   │   ├── schema.sql          # Full DDL
-│   │   └── connection.py
-│   └── ws/
-│       └── stream.py           # WebSocket manager
-├── memory/                     # Memory utilities
-│   ├── episodic.py             # pgvector retrieval
-│   ├── skills.py               # Skill library operations
-│   └── redis_client.py
-├── oak_mcp/                    # Custom MCP servers
-│   ├── oak-api-proxy/          # ← NEW: Dynamic routing proxy (port 9000)
-│   │   ├── main.py             # FastAPI proxy: Ollama ↔ Claude API routing
-│   │   ├── Dockerfile
-│   │   └── requirements.txt
-│   ├── oak-memory-mcp/         # pgvector semantic retrieval MCP
-│   └── oak-skills-mcp/         # Skill library lookup MCP
+│   │   ├── kernels.py
+│   │   ├── telemetry.py
+│   │   ├── research.py
+│   │   ├── reasoning.py
+│   │   └── mailbox.py
+│   ├── factories/agent_factory.py
+│   ├── events/bus.py
+│   ├── state_machines/ (task.py, problem.py)
+│   ├── lifecycle/agent_lifecycle.py
+│   └── db/schema.sql
+├── memory/
+│   ├── interfaces.py
+│   ├── kernel_repository.py
+│   ├── episodic_repository.py
+│   ├── reasoning_trail.py
+│   ├── cached_kernels.py
+│   └── validation_chain.py
+├── acorn_mcp/
+│   ├── acorn-memory-mcp/
+│   ├── acorn-kernels-mcp/
+│   ├── acorn-research-mcp/
+│   └── acorn-api-relay/
+├── docker/
+│   ├── acorn-harness/
+│   ├── warden/
+│   ├── docker-compose.yml
+│   ├── docker-compose.dgx.yml
+│   ├── docker-compose.mini.yml
+│   └── docker-compose.cloud.yml
+├── ui-next/                    # Next.js CANOPY app
+├── tests/
 ├── scripts/
-│   ├── bootstrap.sh            # Full DGX setup sequence (builds harness + proxy)
-│   ├── new-problem.sh          # Creates worktree + launches harness container
-│   └── merge-solution.sh       # Merges problem branch → main after validation
-└── README.md
+│   ├── bootstrap.sh
+│   ├── new-problem.sh
+│   ├── merge-solution.sh
+│   └── cleanup-orphans.sh
+├── pyproject.toml
+├── .env.example
+├── QUICKSTART.md
+├── USER_MANUAL.md
+├── spec.md
+└── PRD.md
 ```
 
 ---
 
 ## 4. Claude Code Scaffolding
 
-This section defines everything Claude Code reads and executes. Every file here must exist before the first `claude` session is started.
-
 ### 4.1 Root CLAUDE.md
 
-The root `CLAUDE.md` is the single most important file — Claude Code reads it first and uses it to understand the project, available tools, and operational rules.
-
 ```markdown
-# OAK — Orchestrated Agent Kernel
+# ACORN — Adaptive Collaborative Orchestration and Reasoning Network
 
-You are operating within the OAK system on a NVIDIA DGX Spark node.
-OAK_MODE is set to: ${OAK_MODE} (dgx | mini | cloud)
+You are operating within the ACORN system on a {ACORN_MODE} node.
 
 ## Runtime Environment (Critical)
-Claude Code connects to local models via these environment variables —
-they are set by the claude-harness container and must NOT be overridden:
 
-  ANTHROPIC_BASE_URL=http://oak-api-proxy:9000   # OAK dynamic routing proxy
-  ANTHROPIC_AUTH_TOKEN=ollama                     # Required for Ollama compat
-  ANTHROPIC_API_KEY=                              # Explicitly empty; proxy manages real key
+Claude Code connects to local models via these environment variables — set by the
+acorn-harness container and must NOT be overridden:
 
-To invoke: claude --model qwen3-coder --workspace /workspace
-Alternative models: glm-4.7 (analysis), llama3.3:70b (reasoning)
+  ANTHROPIC_BASE_URL=http://acorn-api-relay:9000   # ACORN dynamic routing relay
+  ANTHROPIC_AUTH_TOKEN=ollama                       # Required for Ollama compat
+  ANTHROPIC_API_KEY=                                # Explicitly empty; relay manages real key
 
-The oak-api-proxy routes each call to Ollama or Claude API automatically
+To invoke: `claude --model qwen2.5:14b --workspace /workspace`
+Alternative models: `qwen3-coder` (reasoning), `qwen2.5:14b` (research), `llama3.3:70b` (synthesis)
+
+The `acorn-api-relay` routes each call to Ollama or Claude API automatically
 based on task type and response confidence. You do not need to manage this.
 
-## Your Role
-When invoked as Team Lead, your job is to:
-1. Read the problem statement and data manifest from the current problem worktree.
-2. Decompose the problem into tasks using TaskCreate.
-3. Spawn specialist teammates for each task class.
-4. Monitor the shared task list and synthesise outputs.
-5. Invoke the Judge Agent before any solution is marked complete.
+## Your Role (when invoked as Team Lead / Orchestrator)
+
+1. Read the problem statement and input manifest from the current problem worktree.
+2. Decompose the problem into typed tasks using TaskCreate.
+3. Determine the required agent specialisations (research, synthesis, domain, validate).
+4. Spawn specialist teammates for each task class.
+5. Monitor the shared task list and synthesise outputs into the final artefact.
+6. Invoke the Judge Agent before any solution is marked complete.
 
 ## Environment
-- API proxy (your Anthropic endpoint): http://oak-api-proxy:9000
-- Ollama (local models): http://oak-ollama:11434
-- PostgreSQL: postgresql://oak:oak@oak-postgres:5432/oak
-- Redis: redis://oak-redis:6379 (also holds your session state)
-- Skill library: ~/oak-workspaces/skills/
-- Problem workspace: ~/oak-workspaces/problem-${PROBLEM_UUID}/
+
+- API relay (your Anthropic endpoint): http://acorn-api-relay:9000
+- Ollama (local models): http://acorn-ollama:11434
+- PostgreSQL: postgresql://acorn:acorn@acorn-postgres:5432/acorn
+- Redis: redis://acorn-redis:6379 (also holds your session state)
+- Kernel grove: /acorn-workspaces/kernels/
+- Problem workspace: /acorn-workspaces/problem-{PROBLEM_UUID}/
+- Research cache: /acorn-workspaces/research-cache/
 
 ## Agent Team Setup
-CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-Team name convention: oak-${PROBLEM_UUID}
-Task folder: ~/.claude/tasks/oak-${PROBLEM_UUID}/
+
+  CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+  Team name convention: acorn-{PROBLEM_UUID}
+  Task folder: .claude/tasks/acorn-{PROBLEM_UUID}
 
 ## Available Subagents
-See .claude/agents/ — invoke by name (e.g., `use agent data-engineer`).
+
+See `.claude/agents/` — invoke by name, e.g., `use agent research-analyst`.
 
 ## Session State
-Your session state (open files, command history, git state) persists in Redis
-under oak:session:${AGENT_ID}. The harness restores this at session start.
-You do not need to re-establish context from scratch between invocations.
 
-## MCP Servers
-See .claude/mcp.json — filesystem, postgres, git, oak-memory, oak-skills are all available.
+Your session state (open files, command history, git state, kernel retrievals,
+reasoning chain so far) persists in Redis under `acorn:session:{AGENT_ID}`.
+The harness restores this at session start. You do not need to re-establish
+context from scratch between invocations.
 
-## Hooks
-All hooks are in .claude/hooks/. They run automatically — do not disable them.
-Note: hooks execute AFTER the tool-proxy layer in the claude-harness container.
-The proxy catches dangerous commands first; hooks add OAK-specific logic.
+## MCP Servers (see .claude/mcp.json)
+
+- `filesystem`: read/write access to /workspace and /acorn-workspaces/kernels
+- `postgres`: full DB access via MCP (never raw psql from agent code)
+- `git`: repository operations
+- `acorn-memory`: pgvector episodic memory retrieval
+- `acorn-kernels`: kernel grove lookup and retrieval
+- `acorn-research`: web search, document fetch, URL content extraction
+
+## Hooks (auto-run, do not disable)
+
+All hooks are in `.claude/hooks/`. They run automatically.
+- `pre-tool-use.sh`: deny-list (layer 2 after tool-proxy)
+- `post-tool-use.sh`: telemetry + session state
+- `task-completed.sh`: blocks closure without Judge PASS; triggers kernel extraction
+- `teammate-idle.sh`: re-focus on idle (>120s without tool call)
+- `reasoning-step.sh`: records every significant reasoning decision to trail
 
 ## Rules
+
 - Never drop tables or delete files without a pre-tool-use hook approval.
-- Never commit to main directly — always use oak/problem-{uuid} branch.
+- Never commit to `main` directly — always use `acorn/problem-{uuid}` branch.
 - Always run the Judge Agent before marking a problem TaskCompleted.
-- Log all tool invocations via the post-tool-use hook (automated).
-- No third-party messaging. No external API calls except through oak-api-proxy.
+- Log all tool invocations via post-tool-use hook (automated).
+- No third-party messaging integrations. No external API calls except through
+  acorn-api-relay.
+- Every significant reasoning step must emit a `reasoning-step` event via the hook.
+- When retrieving kernels, always check permanent grove first via acorn-kernels MCP.
+  Do not re-derive what the kernel grove already contains.
+- The REASONING_TRAIL.md file must be written to the problem worktree before the
+  Judge is invoked. It is a required input to the Judge's verdict.
 ```
 
 ### 4.2 MCP Server Configuration (.claude/mcp.json)
@@ -315,463 +369,1297 @@ The proxy catches dangerous commands first; hooks add OAK-specific logic.
     "filesystem": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem",
-               "/home/oak", "/mnt/oak-data", "/mnt/oak-skills"]
+               "/workspace", "/acorn-workspaces/kernels",
+               "/acorn-workspaces/research-cache"]
     },
     "postgres": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres",
-               "postgresql://oak:oak@oak-postgres:5432/oak"]
+               "postgresql://acorn:acorn@acorn-postgres:5432/acorn"]
     },
     "git": {
       "command": "uvx",
-      "args": ["mcp-server-git", "--repository", "/home/oak"]
+      "args": ["mcp-server-git", "--repository", "/home/acorn"]
     },
-    "oak-memory": {
+    "acorn-memory": {
       "command": "python3",
-      "args": ["/home/oak/oak_mcp/oak-memory-mcp/server.py"]
+      "args": ["/home/acorn/acorn_mcp/acorn-memory-mcp/server.py"]
     },
-    "oak-skills": {
+    "acorn-kernels": {
       "command": "python3",
-      "args": ["/home/oak/oak_mcp/oak-skills-mcp/server.py"]
+      "args": ["/home/acorn/acorn_mcp/acorn-kernels-mcp/server.py"]
+    },
+    "acorn-research": {
+      "command": "python3",
+      "args": ["/home/acorn/acorn_mcp/acorn-research-mcp/server.py"]
     }
   }
 }
 ```
 
-### 4.3 Subagent Definitions (.claude/agents/)
+### 4.3 Agent Definitions (.claude/agents/)
 
-Each file in `.claude/agents/` defines a Claude Code subagent with a constrained persona and specific tool access. The format follows Claude Code's subagent spec: a markdown file with a YAML front-matter block.
+Each file in `.claude/agents/` defines a Claude Code subagent with a constrained persona, specific tool access, and a declared `__pattern__` compatible with the PRD's design pattern registry.
 
-**orchestrator.md** is the Team Lead. Its system prompt instructs it to decompose problems into typed tasks (ingest / analyse / model / synthesise / validate), assign them to appropriate specialist agents, monitor progress via the task list, and synthesise final output. It has read access to all worktrees and write access to the task list and mailbox.
-
-**data-engineer.md** restricts the agent to ETL operations: reading raw files from `/mnt/oak-data/`, profiling columns (types, nulls, cardinality), generating DDL via the postgres MCP, and executing schema migrations. It is explicitly forbidden from writing application code or touching the UI worktree.
-
-**data-scientist.md** focuses on analysis: running statistical profiles, generating pgvector embeddings via the oak-memory MCP, producing correlation matrices, and writing analysis reports to the problem worktree. It may invoke the postgres MCP for read operations but not DDL.
-
-**ml-engineer.md** handles model selection and inference integration. It first queries the oak-skills MCP to find any matching skill (e.g., "time-series anomaly detection") before reasoning from scratch. It writes model code and inference scripts to the problem worktree.
-
-**software-architect.md** synthesises all agent outputs into a Streamlit or Dash application. It reads analysis reports and model code from the problem worktree, generates `app.py` (the solution spoke), and commits it to the problem branch. It also generates any new Hub components required by this problem type and opens a PR to `oak/ui`.
-
-**judge-agent.md** is the quality gate. It runs linting (`ruff`, `mypy`), schema validation, and a smoke-test suite against the generated application. It posts a structured verdict (PASS / FAIL + reasons) to the mailbox. If FAIL, the relevant agent is re-tasked. A task cannot be marked `TaskCompleted` until the judge posts PASS.
-
-**skill-extractor.md** runs asynchronously after every PASS verdict. It reads the problem worktree, identifies reusable patterns, and writes candidate SKILL.md entries to the probationary queue in `~/oak-workspaces/skills/probationary/`. It also updates the skill index in PostgreSQL.
-
-**meta-agent.md** runs on a schedule (daily, or after every 10 problems). It reads the telemetry table, identifies recurring friction points, and proposes updates to agent system prompts — opening PRs against the `oak/agents` branch for human review.
-
-### 4.4 Skill Library (.claude/skills/ and ~/oak-workspaces/skills/)
-
-OAK implements the Voyager pattern: successful solution patterns are compiled into executable skills that future agents retrieve rather than re-derive. A skill is a SKILL.md file plus an optional Python module. The SKILL.md follows this template:
+#### orchestrator.md
 
 ```markdown
-# Skill: {skill_name}
-## Category: {etl | analysis | ml | ui | infra}
-## Trigger keywords: {comma-separated terms for semantic retrieval}
-## Verified on problems: {list of problem UUIDs}
-## Status: {probationary | permanent}
+***
+name: orchestrator
+description: Team Lead. Decomposes problems, assigns tasks, spawns specialist agents, monitors progress, synthesises final output. Invokes Judge before closure.
+tools:
+  - Read
+  - Write
+  - Bash
+  - mcp__postgres
+  - mcp__acorn-kernels
+  - mcp__acorn-memory
+  - mcp__filesystem
+  - mcp__git
+***
+
+# Orchestrator — Team Lead
+
+## Identity
+
+You are the Orchestrator, the team lead for ACORN problem-solving. You read the problem manifest, query the kernel grove for relevant prior kernels, decompose the problem into typed tasks (research, synthesise, domain-analyse, validate, deliver), assign tasks to appropriate specialist agents, monitor progress via the task list, and synthesise final output. You must emit a reasoning step event for every decomposition decision.
+
+## Lifecycle
+
+1. **RESTORE** — session state restored automatically from Redis
+2. **ORIENT** — read PROBLEM.md, input manifest, output format
+3. **KERNEL QUERY** — query acorn-kernels MCP for kernels matching this problem class
+4. **DECOMPOSE** — create typed tasks in PostgreSQL, write task briefs to .claude/tasks/acorn-{PROBLEM_UUID}/
+5. **SPAWN** — invoke research-analyst, domain-specialist (if needed), synthesis-agent, validator, judge-agent in sequence
+6. **MONITOR** — read mailbox, task status, synthesise outputs
+7. **CLOSE** — invoke Judge; on PASS, mark task complete; trigger kernel-extractor
+
+## Output Contract
+
+- orchestrator_plan.md in task folder
+- status.json updated after each agent completes
+- REASONING_TRAIL.md populated via reasoning-step.sh (you emit steps)
+
+## Constraints
+
+- Never skip the Judge. A task cannot be TaskCompleted without Judge PASS.
+- Always check kernel grove before reasoning from scratch.
+```
+
+#### research-analyst.md
+
+```markdown
+***
+name: research-analyst
+description: Information gathering specialist. Claims research tasks. Queries acorn-research MCP for web search and document fetches. Writes RESEARCH.md with citations. Forbidden from synthesising conclusions.
+tools:
+  - Read
+  - Write
+  - Bash
+  - mcp__postgres
+  - mcp__acorn-kernels
+  - mcp__acorn-research
+  - mcp__filesystem
+***
+
+# Research Analyst
+
+## Identity
+
+You are the Research Analyst. You claim `research` tasks. You query `acorn-research` MCP for web search results and document fetches. You extract structured information from unstructured sources. You write `RESEARCH.md` (citations, extracted facts, confidence scores per source) to the problem worktree. You are forbidden from synthesising conclusions — your output is raw sourced information only. If a research kernel exists for the query type, use it rather than re-deriving the search strategy.
+
+## Lifecycle
+
+1. RESTORE, ORIENT, KERNEL QUERY (as per root CLAUDE.md)
+2. **EXECUTE** — run web search, fetch documents, extract facts, assign confidence per source
+3. **REPORT** — write RESEARCH.md with citations
+4. CLOSE, SAVE
+
+## Output Contract
+
+- RESEARCH.md: structured list of sources, snippets, confidence scores, no conclusions
+
+## Constraints
+
+- No synthesis. No recommendations. Only sourced facts.
+```
+
+#### synthesis-agent.md
+
+```markdown
+***
+name: synthesis-agent
+description: Reasoning and drafting specialist. Claims synthesise tasks. Reads RESEARCH.md and domain analysis. Produces primary knowledge artefact: report, recommendation, structured summary, or app skeleton. Writes SYNTHESIS.md or app.py.
+tools:
+  - Read
+  - Write
+  - Bash
+  - mcp__postgres
+  - mcp__acorn-kernels
+  - mcp__acorn-memory
+  - mcp__filesystem
+  - mcp__git
+***
+
+# Synthesis Agent
+
+## Identity
+
+You are the Synthesis Agent. You claim `synthesise` tasks. You read `RESEARCH.md` and any domain analysis outputs. You produce the primary knowledge artefact: report, recommendation document, structured summary, or Streamlit/Next.js app skeleton. You write `SYNTHESIS.md` or `app.py` to the problem worktree. Every synthesis step must be recorded as a reasoning event. You must not fabricate citations — all claims must trace to `RESEARCH.md` entries.
+
+## Lifecycle
+
+1. RESTORE, ORIENT, KERNEL QUERY
+2. **EXECUTE** — read RESEARCH.md, DOMAIN_ANALYSIS.md (if present), apply synthesis kernel if found, draft artefact
+3. **REPORT** — write SYNTHESIS.md or primary artefact
+4. CLOSE, SAVE
+
+## Output Contract
+
+- SYNTHESIS.md or app.py (or equivalent primary artefact)
+- All citations traceable to RESEARCH.md
+
+## Constraints
+
+- No fabricated citations. All claims must trace to RESEARCH.md.
+```
+
+#### domain-specialist.md
+
+```markdown
+***
+name: domain-specialist
+description: Deep domain reasoning. Claims domain-analyse tasks when Orchestrator identifies specialised domain (finance, legal, science, engineering). Writes DOMAIN_ANALYSIS.md. Flags uncertain claims with [UNCERTAIN].
+tools:
+  - Read
+  - Write
+  - Bash
+  - mcp__postgres
+  - mcp__acorn-kernels
+  - mcp__acorn-memory
+  - mcp__filesystem
+***
+
+# Domain Specialist
+
+## Identity
+
+You are the Domain Specialist. You claim `domain-analyse` tasks when the Orchestrator identifies a specialised domain (financial modelling, legal interpretation, scientific literature, engineering specifications). You read domain context from the problem worktree plus retrieved episodic memory from prior domain problems. You write `DOMAIN_ANALYSIS.md`. You maintain a strict factual discipline — if confidence in a domain claim is below 0.7, you must flag the claim as `[UNCERTAIN]` in your output rather than asserting it.
+
+## Lifecycle
+
+1. RESTORE, ORIENT, KERNEL QUERY
+2. **EXECUTE** — analyse domain context, retrieve episodic memory, write DOMAIN_ANALYSIS.md
+3. **REPORT** — write DOMAIN_ANALYSIS.md with [UNCERTAIN] flags where appropriate
+4. CLOSE, SAVE
+
+## Output Contract
+
+- DOMAIN_ANALYSIS.md: domain-specific insights, [UNCERTAIN] for low-confidence claims
+
+## Constraints
+
+- Confidence < 0.7 → [UNCERTAIN] flag. Never assert uncertain claims as fact.
+```
+
+#### validator.md
+
+```markdown
+***
+name: validator
+description: Output validation specialist. Claims validate tasks. Checks structural, factual, and executable (for code) validation. Writes VALIDATION_REPORT.md. Blocks Judge until all layers pass.
+tools:
+  - Read
+  - Write
+  - Bash
+  - mcp__postgres
+  - mcp__filesystem
+***
+
+# Validator
+
+## Identity
+
+You are the Validator. You claim `validate` tasks. You check the primary artefact against three validation layers:
+1. **Structural**: required sections present, formatting correct, no empty placeholders
+2. **Factual**: all citations trace to RESEARCH.md; [UNCERTAIN] claims appropriately hedged
+3. **Executable** (for code): ruff check, mypy --strict, smoke test; for Streamlit/Next.js, verify run completes
+
+You write `VALIDATION_REPORT.md` to the problem worktree. A failed validation blocks the Judge from issuing PASS. If all three layers pass, emit `validation_complete` and notify Judge via mailbox.
+
+## Lifecycle
+
+1. RESTORE, ORIENT
+2. **EXECUTE** — run structural, factual, executable checks
+3. **REPORT** — write VALIDATION_REPORT.md
+4. CLOSE, SAVE
+
+## Output Contract
+
+- VALIDATION_REPORT.md: structural, factual, executable results
+
+## Constraints
+
+- All three layers must pass before Judge can issue PASS.
+```
+
+#### judge-agent.md
+
+```markdown
+***
+name: judge-agent
+description: Quality gate. Reads REASONING_TRAIL.md, VALIDATION_REPORT.md, primary artefact. Issues PASS or FAIL verdict. Judge runs fully locally — never escalates to Claude API.
+tools:
+  - Read
+  - mcp__postgres
+  - mcp__filesystem
+***
+
+# Judge Agent
+
+## Identity
+
+You are the Judge. You read `REASONING_TRAIL.md`, `VALIDATION_REPORT.md`, and the primary artefact. You issue a structured `PASS` or `FAIL` verdict with granular check results posted to `judge_verdicts` table and the mailbox. A task cannot be marked `TaskCompleted` until you post PASS. If FAIL, you must identify exactly which agent produced the failing output and re-task that agent specifically. You run fully locally — you are the one agent role that must never escalate to Claude API.
+
+## Lifecycle
+
+1. RESTORE, ORIENT
+2. **EXECUTE** — read trail, validation report, artefact; evaluate; post verdict
+3. **REPORT** — write to judge_verdicts, mailbox
+4. CLOSE, SAVE
+
+## Output Contract
+
+- judge_verdicts row: verdict, checks, reasoning, failing_agent (if FAIL)
+
+## Constraints
+
+- Never escalate. Always local model.
+```
+
+#### kernel-extractor.md
+
+```markdown
+***
+name: kernel-extractor
+description: Runs after every PASS verdict. Identifies reusable patterns from reasoning chain, research strategy, synthesis approach, or code. Writes KERNEL.md + Python module + test suite to probationary grove.
+tools:
+  - Read
+  - Write
+  - Bash
+  - mcp__postgres
+  - mcp__acorn-kernels
+  - mcp__filesystem
+  - mcp__git
+***
+
+# Kernel Extractor
+
+## Identity
+
+You run asynchronously after every PASS verdict. You read the problem worktree and identify reusable patterns from the reasoning chain, research strategy, synthesis approach, or code produced. You write candidate `KERNEL.md` entries plus a Python module and test suite to the probationary queue at `acorn-workspaces/kernels/probationary/`. You update the kernel index in PostgreSQL with metadata, trigger keywords, and a pgvector embedding of the kernel description. You enforce: a kernel must describe a pattern reusable across problem classes — it must not be a transcription of the specific problem's solution.
+
+## Lifecycle
+
+1. RESTORE, ORIENT (triggered by task-completed.sh on PASS)
+2. **EXECUTE** — analyse worktree, extract pattern, write KERNEL.md, implementation, tests
+3. **REPORT** — write to probationary/, update PostgreSQL
+4. CLOSE, SAVE
+
+## Output Contract
+
+- KERNEL.md in probationary/
+- Python module + test suite
+- PostgreSQL kernels row (probationary status)
+
+## Constraints
+
+- Pattern must be reusable. No problem-specific transcription.
+```
+
+#### interface-agent.md
+
+```markdown
+***
+name: interface-agent
+description: UI evolution specialist. Activated when new problem class mastered. Generates new Next.js page code or widget additions. Opens PR against acorn/ui. Subject to churn limit: one UI PR per three problems.
+tools:
+  - Read
+  - Write
+  - Bash
+  - mcp__postgres
+  - mcp__acorn-kernels
+  - mcp__filesystem
+  - mcp__git
+***
+
+# Interface Agent
+
+## Identity
+
+You are the Interface Agent. You are activated when a new problem class is mastered (three consecutive PASSes for the same class). You read the Hub's current page structure and generate new Next.js page code or widget additions to represent the newly mastered class. You open a PR against `acorn/ui`. Subject to the churn limit: no more than one UI PR per three problems solved. If the PR churn limit is active, you queue the change and open it when the limit resets.
+
+## Lifecycle
+
+1. RESTORE, ORIENT (triggered by Orchestrator or WARDEN)
+2. **EXECUTE** — read Hub structure, generate new page/widget code
+3. **REPORT** — open PR against acorn/ui
+4. CLOSE, SAVE
+
+## Output Contract
+
+- PR against acorn/ui with new page or widget
+
+## Constraints
+
+- Churn limit: one UI PR per three problems.
+```
+
+#### calibration-agent.md
+
+```markdown
+***
+name: calibration-agent
+description: Prompt improvement specialist. Runs on schedule (daily or every 10 problems). Reads agent_telemetry for failure patterns. Proposes prompt amendments. Opens PR against acorn/agents. Never self-applies.
+tools:
+  - Read
+  - Write
+  - mcp__postgres
+  - mcp__filesystem
+  - mcp__git
+***
+
+# Calibration Agent
+
+## Identity
+
+You are the Calibration Agent. You run on schedule (daily or after every ten problems). You read `agent_telemetry` for recurring failure patterns: high re-task rates, low judge scores, excessive reasoning steps for simple problems. You propose targeted prompt amendments for the affected agent. You open a PR against `acorn/agents` for human review. You never self-apply your own amendments — all changes require a human merge.
+
+## Lifecycle
+
+1. RESTORE, ORIENT (triggered by WARDEN)
+2. **EXECUTE** — analyse telemetry, identify patterns, draft amendments
+3. **REPORT** — open PR against acorn/agents
+4. CLOSE, SAVE
+
+## Output Contract
+
+- PR against acorn/agents with prompt amendments
+
+## Constraints
+
+- Never self-apply. Human merge required.
+```
+
+### 4.4 Kernel Grove Format and Lifecycle
+
+**Kernel file format (KERNEL.md):**
+
+```markdown
+***
+name: {kernel-name}
+version: 1.0.0
+category: {research|synthesis|domain|validation|code|workflow}
+status: probationary|permanent|deprecated
+trigger_keywords: [comma-separated terms for semantic retrieval]
+verified_on_problems: [list of problem UUIDs]
+benchmark:
+  last_run: {ISO timestamp}
+  median_execution_ms: {number}
+  pass_rate: {0.0–1.0}
+  problems_tested: {count}
+created_at: {ISO timestamp}
+promoted_at: {ISO timestamp or null}
+deprecated_at: {ISO timestamp or null}
+deprecation_reason: {string or null}
+***
 
 ## Description
-Plain English description of what this skill does and when to use it.
+
+Plain English description of what this kernel does and when to use it.
 
 ## Prerequisites
-Environment / library requirements.
+
+- Required environment variables, Python packages, input artefacts
+
+## Composition
+
+List any other kernels this kernel depends on or chains with.
 
 ## Implementation
+
 ```python
-# The actual executable code block or procedure
+# Full executable Python module. Must be importable without running ACORN stack.
+__pattern__ = "Strategy"
+
+from typing import Any
+
+def execute(inputs: dict[str, Any]) -> dict[str, Any]:
+    """Execute the kernel against the given inputs."""
+    ...
 ```
 
-## Known edge cases
-List of failure modes and how they are handled.
+## Tests
 
-## Do not use when
-Explicit contra-indications.
+```python
+# Unit test suite. Must pass: pytest kernel_name_test.py -v
+def test_kernel_name__standard_input__produces_expected_output():
+    ...
 ```
 
-Skills start in `skills/probationary/`. The Skill Extractor promotes a skill to `skills/permanent/` only after it has been successfully applied to at least two independent problems. This prevents noise accumulation from one-off solutions.
+## Known Edge Cases
+
+Explicit list of known failure modes and handling strategy.
+
+## Do Not Use When
+
+Contra-indications — problem classes where this kernel produces poor results.
+
+## Changelog
+
+- v1.0.0 — Initial promotion. Verified on {problem_uuid_1}, {problem_uuid_2}.
+```
+
+**Kernel lifecycle:**
+```
+Kernel Extractor writes KERNEL.md
+          ↓
+  probationary/
+  (indexed in PostgreSQL, retrievable but not auto-applied)
+          ↓
+  Applied to Problem #2 (independent) → PASS verdict
+          ↓
+  use_count >= ACORN_KERNEL_PROMO_THRESHOLD (default: 2)
+          ↓
+  PromotionRequest raised by KernelRepository
+          ↓
+  permanent/
+  (auto-retrieved by Orchestrator for matching future problems)
+          ↓
+  If benchmark pass_rate drops below KERNEL_DEPRECATION_THRESHOLD (default: 0.4)
+  over trailing 10 uses → deprecation PR
+          ↓
+  deprecated/ (never deleted — archived for audit)
+```
 
 ### 4.5 Lifecycle Hooks (.claude/hooks/)
 
-Hooks intercept Claude Code's tool execution pipeline. They are shell scripts that receive tool context via environment variables and stdin.
-
-**pre-tool-use.sh** runs before any tool invocation. For Bash commands containing `DROP`, `DELETE`, `rm -rf`, or `truncate`, it prints a warning, logs the attempted command, and exits with code 2 (blocking the tool call). For all other commands it exits 0.
-
-**post-tool-use.sh** runs after every tool call. It inserts a row into the `agent_telemetry` table via `psql`, recording: `agent_id`, `tool_name`, `duration_ms`, `problem_uuid`, `timestamp`. This is the data the meta-agent analyses.
-
-**task-completed.sh** fires when an agent attempts to close a task. It checks the PostgreSQL `tasks` table for a corresponding judge verdict. If no PASS verdict exists, it exits with code 2 (blocking closure) and appends a message instructing the agent to invoke the Judge Agent. If PASS exists, it triggers the skill-extractor agent asynchronously.
-
-**teammate-idle.sh** fires if an agent session has produced no tool calls for more than 120 seconds. It injects a structured prompt: "You appear to be idle. Your current task is: {task description}. Last known state: {last tool output}. Please continue or flag a blocker."
-
-### 4.6 OAK Harness (claude-harness container)
-
-This section describes the most architecturally significant addition from harness.md: the `oak-harness` Docker container, which is the actual execution environment for every Claude Code agent session in OAK. Rather than running Claude Code loosely on the host or in a generic container, every agent runs inside `oak-harness` — a custom image that bundles the Claude Code binary alongside a tool-call proxy, Redis session state, and a dynamic API routing layer. This is how OAK gets OpenClaw's benefits (persistent terminal state, sandboxed execution) without any of OpenClaw's documented security liabilities.
-
-#### Why the Harness Exists
-
-Claude Code running on a bare host has two gaps: it is stateless between invocations (each session starts with no memory of open files or recent commands), and it has unrestricted access to the host filesystem and network. OpenClaw solves both by wrapping Claude Code in a persistent Dockerised terminal — but OpenClaw's exposed UI and prompt-injection attack surface introduce RCE risk that the security principle in §1.2 explicitly rules out. The OAK Harness solves the same problems differently: stateless Claude Code + Redis session state gives persistent context; a tool-call proxy + Docker network isolation gives the sandbox. The result is functionally equivalent to OpenClaw's dev experience with none of its exposure.
-
-#### Dockerfile
-
-```dockerfile
-# docker/claude-harness/Dockerfile
-FROM node:20-slim
-
-# Claude Code binary (~100MB) — the full harness: subagents, skills,
-# agent teams, hooks, MCP orchestration. All of this works against Ollama.
-RUN npm install -g @anthropic-ai/claude-code
-
-# Python for the tool proxy and Redis session state scripts
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip git curl jq \
-    && rm -rf /var/lib/apt/lists/*
-RUN pip3 install --no-cache-dir redis psycopg2-binary requests fastapi uvicorn
-
-# OAK-specific scripts
-COPY scripts/tool-proxy.sh   /usr/local/bin/oak-tool-proxy
-COPY scripts/session-state.py /usr/local/bin/oak-session
-RUN chmod +x /usr/local/bin/oak-tool-proxy /usr/local/bin/oak-session
-
-# All agent work is sandboxed to /workspace — no host filesystem access
-WORKDIR /workspace
-
-# These three variables are the canonical Ollama + Claude Code recipe.
-# ANTHROPIC_BASE_URL points to the oak-api-proxy (not directly to Ollama)
-# so the proxy can dynamically route to Ollama or Claude API per call.
-# ANTHROPIC_API_KEY is intentionally empty — the proxy holds the real key.
-ENV ANTHROPIC_BASE_URL=http://oak-api-proxy:9000
-ENV ANTHROPIC_AUTH_TOKEN=ollama
-ENV ANTHROPIC_API_KEY=
-
-# Restore session state from Redis before starting, then invoke Claude Code.
-# qwen3-coder is Ollama's recommended model for code-heavy agent tasks.
-ENTRYPOINT ["/bin/sh", "-c", "python3 /usr/local/bin/oak-session restore && \
-            exec claude --model qwen3-coder --workspace /workspace \"$@\""]
-```
-
-#### Tool Proxy (tool-proxy.sh)
-
-The tool proxy intercepts every Bash and shell tool call that Claude Code attempts, before the `.claude/hooks/pre-tool-use.sh` hook fires. The proxy is the first line of defence; the hook is the second. Together they form two independent deny-list layers catching different threat classes.
+#### pre-tool-use.sh
 
 ```bash
 #!/bin/bash
-# scripts/tool-proxy.sh
-# Called by Claude Code's tool execution pipeline for every Bash invocation.
-# Receives: OAK_TOOL_CMD (the proposed command), OAK_AGENT_ID, OAK_PROBLEM_UUID
-
+# Layer 2 deny-list. Runs before any tool invocation.
+# Layer 1 is tool-proxy.sh inside harness container.
 set -euo pipefail
 
-CMD="${OAK_TOOL_CMD:-}"
-AGENT="${OAK_AGENT_ID:-unknown}"
+CMD="${ACORN_TOOL_CMD:-}"
+AGENT="${ACORN_AGENT_ID:-unknown}"
+PROBLEM="${ACORN_PROBLEM_UUID:-unknown}"
 
-# Hard deny-list: commands that must never execute inside the harness.
-DENY_PATTERNS=("rm -rf /" "DROP TABLE" "DROP DATABASE" "truncate /" \
-               "chmod 777" "curl.*\|.*sh" "wget.*\|.*sh" ">/dev/sda")
+# Acorn-specific business rules beyond hard system deny-list
+# Blocks: git push --force to main/agents/kernels/ui
+# Blocks: writes outside /workspace and /acorn-workspaces/problem-{PROBLEM_UUID}/
+# Blocks: curl/wget to non-relay endpoints
+# Blocks: DROP TABLE, DROP DATABASE, TRUNCATE in SQL
 
-for pattern in "${DENY_PATTERNS[@]}"; do
-    if echo "$CMD" | grep -qi "$pattern"; then
-        echo "[OAK-PROXY] BLOCKED by deny-list: $pattern" >&2
-        # Log to Redis for telemetry
-        redis-cli -u "${REDIS_URL}" LPUSH "oak:blocked:${AGENT}" \
-            "{\"cmd\":\"${CMD}\",\"pattern\":\"${pattern}\",\"ts\":\"$(date -u +%s)\"}"
-        exit 2  # Exit code 2 blocks the tool call in Claude Code
-    fi
-done
+if echo "$CMD" | grep -qiE "git\s+push\s+--force\s+(origin\s+)?(main|acorn/agents|acorn/kernels|acorn/ui)"; then
+  echo "ACORN-PRE-TOOL BLOCKED: force push to protected branch" >&2
+  exit 2
+fi
 
-# Network egress restriction: only oak-net Docker network is reachable.
-# Any attempt to reach external IPs is silently blocked by Docker network config.
-# Log approved commands to Redis session history.
-redis-cli -u "${REDIS_URL}" LPUSH "oak:session:${AGENT}:cmd_history" \
-    "{\"cmd\":\"${CMD}\",\"ts\":\"$(date -u +%s)\"}" > /dev/null
-redis-cli -u "${REDIS_URL}" LTRIM "oak:session:${AGENT}:cmd_history" 0 49
+if echo "$CMD" | grep -qiE "DROP\s+(TABLE|DATABASE)|TRUNCATE\s+TABLE"; then
+  echo "ACORN-PRE-TOOL BLOCKED: destructive SQL" >&2
+  exit 2
+fi
 
-exit 0  # Allow
+# POST to TRUNK for full validation (hook is thin relay)
+curl -sf -X POST "http://acorn-api:8000/internal/hooks/pre-tool-use" \
+  -H "Content-Type: application/json" \
+  -d "{\"cmd\":\"${CMD}\",\"agent_id\":\"${AGENT}\",\"problem_id\":\"${PROBLEM}\"}" \
+  && exit 0 || exit 2
 ```
 
-#### Redis Session State (session-state.py)
+#### post-tool-use.sh
 
-This script implements the "persistent state lite" that replaces OpenClaw's stateful terminal. At the start of each agent session, it restores the agent's last known context from Redis. At the end (via the `post-tool-use` hook), it updates the state. Agents no longer start from a cold blank context even after a container restart.
+```bash
+#!/bin/bash
+# Runs after every tool call. Records telemetry, updates session state, publishes stream event.
+set -euo pipefail
+
+# POST serialised AgentEvent to TRUNK
+curl -sf -X POST "http://acorn-api:8000/internal/events" \
+  -H "Content-Type: application/json" \
+  -d @- << EOF
+{
+  "event_type": "tool_use",
+  "agent_id": "${ACORN_AGENT_ID}",
+  "problem_id": "${ACORN_PROBLEM_UUID}",
+  "tool_name": "${ACORN_TOOL_NAME}",
+  "duration_ms": ${ACORN_DURATION_MS:-0},
+  "success": ${ACORN_SUCCESS:-true},
+  "timestamp_utc": $(date +%s).$(date +%N | cut -c1-3)
+}
+EOF
+```
+
+#### task-completed.sh
+
+```bash
+#!/bin/bash
+# Fires when agent attempts to close a task. Blocks closure without Judge PASS.
+set -euo pipefail
+
+TASK_ID="${ACORN_TASK_ID:-}"
+PROBLEM_ID="${ACORN_PROBLEM_UUID:-}"
+
+# Check judge_verdicts for PASS
+PASS=$(curl -sf "http://acorn-api:8000/api/judge/verdict?task_id=${TASK_ID}" | jq -r '.verdict // "none"')
+
+if [ "$PASS" != "pass" ]; then
+  echo "ACORN-TASK-COMPLETED BLOCKED: Judge PASS required. Invoke Judge Agent first." >&2
+  exit 2
+fi
+
+# Trigger kernel-extractor asynchronously
+curl -sf -X POST "http://acorn-api:8000/internal/trigger-kernel-extract" \
+  -H "Content-Type: application/json" \
+  -d "{\"problem_id\":\"${PROBLEM_ID}\",\"task_id\":\"${TASK_ID}\"}" &
+
+# Mark task complete
+curl -sf -X POST "http://acorn-api:8000/api/tasks/${TASK_ID}/status" \
+  -H "Content-Type: application/json" \
+  -d '{"status":"complete"}'
+
+exit 0
+```
+
+#### teammate-idle.sh
+
+```bash
+#!/bin/bash
+# Fires if no tool calls for > ACORN_IDLE_TIMEOUT_SECONDS (default: 120).
+# Injects re-focus prompt.
+set -euo pipefail
+
+TIMEOUT="${ACORN_IDLE_TIMEOUT_SECONDS:-120}"
+TASK_DESC="${ACORN_CURRENT_TASK:-unknown}"
+LAST_STEP="${ACORN_LAST_REASONING_STEP:-none}"
+KERNELS="${ACORN_KERNELS_RETRIEVED:-none}"
+
+# Publish re-focus event to Redis for agent to consume
+redis-cli -u "${REDIS_URL}" PUBLISH "acorn:mailbox:${ACORN_AGENT_ID}" \
+  "{\"type\":\"refocus\",\"message\":\"You appear to be idle. Your current task is: ${TASK_DESC}. Last reasoning step: ${LAST_STEP}. Kernels retrieved: ${KERNELS}. Please continue or flag a blocker in the mailbox.\"}"
+```
+
+#### reasoning-step.sh
+
+```bash
+#!/bin/bash
+# Called at significant decision points. Records step to Redis and flushes to REASONING_TRAIL.md on completion.
+set -euo pipefail
+
+STEP_TYPE="${ACORN_STEP_TYPE:-decision}"
+SUMMARY="${ACORN_STEP_SUMMARY:-}"
+CONFIDENCE="${ACORN_CONFIDENCE:-1.0}"
+SOURCES="${ACORN_SOURCES:-[]}"
+
+# Publish to acorn:reasoning:{problem_id}
+redis-cli -u "${REDIS_URL}" PUBLISH "acorn:reasoning:${ACORN_PROBLEM_UUID}" \
+  "{\"step_type\":\"${STEP_TYPE}\",\"summary\":\"${SUMMARY}\",\"confidence\":${CONFIDENCE},\"sources\":${SOURCES},\"agent_id\":\"${ACORN_AGENT_ID}\",\"ts\":$(date +%s)}"
+
+# Also append to reasoning_steps table via API
+curl -sf -X POST "http://acorn-api:8000/api/reasoning/steps" \
+  -H "Content-Type: application/json" \
+  -d "{\"problem_id\":\"${ACORN_PROBLEM_UUID}\",\"agent_id\":\"${ACORN_AGENT_ID}\",\"step_type\":\"${STEP_TYPE}\",\"summary\":\"${SUMMARY}\",\"confidence\":${CONFIDENCE},\"sources\":${SOURCES}}"
+```
+
+---
+
+## 5. Harness and Relay
+
+### 5.1 acorn-harness Dockerfile
+
+```dockerfile
+# docker/acorn-harness/Dockerfile
+
+FROM node:20-slim
+
+# Claude Code binary — full harness: subagents, kernels, agent teams, hooks, MCP
+RUN npm install -g @anthropic-ai/claude-code
+
+# Python for tool proxy, session state, and reasoning trail scripts
+RUN apt-get update && apt-get install -y python3 python3-pip git curl jq \
+    && rm -rf /var/lib/apt/lists/*
+RUN pip3 install --no-cache-dir redis psycopg2-binary requests httpx
+
+# ACORN-specific scripts
+COPY scripts/tool-proxy.sh   /usr/local/bin/acorn-tool-proxy
+COPY scripts/session-state.py /usr/local/bin/acorn-session
+COPY scripts/deny-patterns.txt /etc/acorn/deny-patterns.txt
+RUN chmod +x /usr/local/bin/acorn-tool-proxy /usr/local/bin/acorn-session
+
+WORKDIR /workspace
+
+# Canonical relay recipe
+ENV ANTHROPIC_BASE_URL=http://acorn-api-relay:9000
+ENV ANTHROPIC_AUTH_TOKEN=ollama
+ENV ANTHROPIC_API_KEY=
+
+ENTRYPOINT ["/bin/sh", "-c", \
+  "python3 /usr/local/bin/acorn-session restore && \
+   exec claude --model qwen2.5:14b --workspace /workspace"]
+```
+
+### 5.2 tool-proxy.sh
+
+```bash
+#!/bin/bash
+# docker/acorn-harness/scripts/tool-proxy.sh
+# Layer 1 deny-list interceptor — runs before pre-tool-use.sh hook
+set -euo pipefail
+
+CMD="${ACORN_TOOL_CMD:-}"
+AGENT="${ACORN_AGENT_ID:-unknown}"
+REDIS_URL="${REDIS_URL:-redis://acorn-redis:6379}"
+
+while IFS= read -r pattern; do
+  [[ -z "$pattern" || "$pattern" =~ ^# ]] && continue
+  if echo "$CMD" | grep -qiE "$pattern"; then
+    echo "ACORN-PROXY BLOCKED: matched deny pattern '$pattern'" >&2
+    redis-cli -u "${REDIS_URL}" LPUSH "acorn:blocked:${AGENT}" \
+      "{\"cmd\":\"${CMD}\",\"pattern\":\"${pattern}\",\"ts\":$(date +%s)}" \
+      > /dev/null
+    exit 2
+  fi
+done < /etc/acorn/deny-patterns.txt
+
+redis-cli -u "${REDIS_URL}" LPUSH "acorn:session:${AGENT}:cmd_history" \
+  "{\"cmd\":\"${CMD}\",\"ts\":$(date +%s)}" > /dev/null
+redis-cli -u "${REDIS_URL}" LTRIM "acorn:session:${AGENT}:cmd_history" 0 49
+
+exit 0
+```
+
+### 5.3 deny-patterns.txt
+
+```
+rm\s+-rf\s+/
+DROP\s+TABLE
+DROP\s+DATABASE
+TRUNCATE\s+TABLE
+chmod\s+777
+curl\s+.*\s+[|>]\s*sh
+wget\s+.*\s+[|>]\s*sh
+git\s+push\s+--force\s+(origin\s+)?(main|acorn/agents|acorn/kernels|acorn/ui)
+/dev/sd[a-z]
+dd\s+if=
+mkfs\.
+```
+
+### 5.4 session-state.py
 
 ```python
-# scripts/session-state.py
 """
-Manages agent session state in Redis — mimics OpenClaw's persistent terminal
-without any of its security exposure. State keys per agent:
-  oak:session:{agent_id}:open_files  → sorted set (path, last_access_ts)
-  oak:session:{agent_id}:cmd_history → list (last 50 commands as JSON)
-  oak:session:{agent_id}:cwd         → string (current working directory)
-  oak:session:{agent_id}:git_state   → hash (branch, staged, last_commit)
-All keys expire after OAK_SESSION_TTL_HOURS (default: 24h).
+Manages ACORN agent session state in Redis.
+State keys: acorn:session:{agent_id}:open_files, cmd_history, cwd, git_state, kernels_used, reasoning_steps
+All keys expire after ACORN_SESSION_TTL_HOURS (default: 24h).
 """
-import sys, json, os, redis
+import sys
+import json
+import os
+import redis
 
 r = redis.from_url(os.environ["REDIS_URL"])
-agent_id = os.environ.get("OAK_AGENT_ID", "default")
-ttl = int(os.environ.get("OAK_SESSION_TTL_HOURS", 24)) * 3600
+agent_id = os.environ.get("ACORN_AGENT_ID", "default")
+ttl = int(os.environ.get("ACORN_SESSION_TTL_HOURS", 24)) * 3600
 
-def restore():
-    """Print session context to stdout — Claude Code reads this as startup context."""
-    state = {}
-    cwd = r.get(f"oak:session:{agent_id}:cwd")
+def restore() -> None:
+    state: dict = {}
+    cwd = r.get(f"acorn:session:{agent_id}:cwd")
     if cwd:
         state["cwd"] = cwd.decode()
         os.chdir(state["cwd"])
-    git = r.hgetall(f"oak:session:{agent_id}:git_state")
+    git = r.hgetall(f"acorn:session:{agent_id}:git_state")
     if git:
         state["git"] = {k.decode(): v.decode() for k, v in git.items()}
-    files = r.zrange(f"oak:session:{agent_id}:open_files", 0, 9, withscores=True)
+    files = r.zrange(f"acorn:session:{agent_id}:open_files", 0, 9, withscores=True)
     if files:
-        state["recent_files"] = [f[0].decode() for f in files]
-    history = r.lrange(f"oak:session:{agent_id}:cmd_history", 0, 9)
+        state["recent_files"] = [f.decode() for f in files]
+    history = r.lrange(f"acorn:session:{agent_id}:cmd_history", 0, 9)
     if history:
         state["recent_commands"] = [json.loads(h) for h in history]
+    kernels = r.lrange(f"acorn:session:{agent_id}:kernels_used", 0, -1)
+    if kernels:
+        state["kernels_retrieved_this_session"] = [k.decode() for k in kernels]
+    reasoning = r.lrange(f"acorn:session:{agent_id}:reasoning_steps", 0, 4)
+    if reasoning:
+        state["last_reasoning_steps"] = [json.loads(s) for s in reasoning]
     if state:
-        print(f"[OAK Session Restored] {json.dumps(state, indent=2)}")
+        print(f"ACORN Session Restored:\n{json.dumps(state, indent=2)}")
+    else:
+        print(f"ACORN Session: fresh start for agent {agent_id}")
 
-def save(key, value):
-    """Called by post-tool-use hook to update specific state keys."""
-    full_key = f"oak:session:{agent_id}:{key}"
+def save(key: str, value: str) -> None:
+    full_key = f"acorn:session:{agent_id}:{key}"
     r.set(full_key, value)
     r.expire(full_key, ttl)
+
+def record_kernel(kernel_name: str) -> None:
+    list_key = f"acorn:session:{agent_id}:kernels_used"
+    r.lpush(list_key, kernel_name)
+    r.ltrim(list_key, 0, 49)
+    r.expire(list_key, ttl)
+
+def record_reasoning_step(summary: str, step_type: str) -> None:
+    list_key = f"acorn:session:{agent_id}:reasoning_steps"
+    r.lpush(list_key, json.dumps({"summary": summary, "type": step_type, "ts": __import__("time").time()}))
+    r.ltrim(list_key, 0, 19)
+    r.expire(list_key, ttl)
 
 if __name__ == "__main__":
     if sys.argv[1] == "restore":
         restore()
-    elif sys.argv[1] == "save" and len(sys.argv) == 4:
+    elif sys.argv[1] == "save" and len(sys.argv) >= 4:
         save(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == "kernel" and len(sys.argv) >= 3:
+        record_kernel(sys.argv[2])
+    elif sys.argv[1] == "reasoning" and len(sys.argv) >= 4:
+        record_reasoning_step(sys.argv[2], sys.argv[3])
 ```
 
-#### oak-api-proxy (Dynamic Routing Layer)
-
-The proxy is a small FastAPI application that sits between Claude Code and both Ollama and the Claude API. Claude Code is always configured with `ANTHROPIC_BASE_URL=http://oak-api-proxy:9000` — it never knows whether a given request went to Ollama or to Anthropic's cloud. The proxy decides per call.
+### 5.5 acorn-api-relay (main.py)
 
 ```python
-# oak_mcp/oak-api-proxy/main.py
+# acorn_mcp/acorn-api-relay/main.py
 """
-OAK API Proxy — dynamic routing between Ollama and Claude API.
-Routing logic:
-  1. Forward request to Ollama (default).
-  2. Inspect response: if empty, starts with "I cannot", or confidence
-     field below threshold → mark as "local stall".
-  3. If ANTHROPIC_API_KEY is set and stall detected → retry via Claude API.
-  4. Log every routing decision to Redis telemetry.
-  5. Return whichever response was used to Claude Code transparently.
+ACORN API Relay — dynamic routing between Ollama and Claude API.
+All routing decisions delegated to RoutingStrategy (Strategy pattern).
 """
-import os, httpx, json
+__pattern__ = "Strategy"
+
+import os
+import json
+import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
+from strategies import get_routing_strategy
 
-app = FastAPI()
-OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "http://oak-ollama:11434")
-CLAUDE_URL  = "https://api.anthropic.com"
-CLAUDE_KEY  = os.environ.get("ANTHROPIC_API_KEY", "")
-STALL_PHRASES = ["i cannot", "i don't know how", "i'm unable", "as an ai"]
+app = FastAPI(title="ACORN API Relay")
 
-async def is_stalled(text: str) -> bool:
-    """Detect low-quality local model responses that warrant API escalation."""
-    t = text.lower().strip()
-    return not t or any(t.startswith(p) for p in STALL_PHRASES)
+OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "http://acorn-ollama:11434")
+CLAUDE_URL = "https://api.anthropic.com"
+CLAUDE_KEY = os.environ.get("ANTHROPIC_API_KEY_REAL", "")
 
-@app.api_route("/{path:path}", methods=["GET","POST","PUT","DELETE"])
-async def proxy(path: str, request: Request):
+routing_strategy = get_routing_strategy(
+    strategy_name=os.environ.get("ROUTING_STRATEGY", "passthrough"),
+    stall_min_tokens=int(os.environ.get("STALL_MIN_TOKENS", "20")),
+    confidence_threshold=float(os.environ.get("LOCAL_CONFIDENCE_THRESHOLD", "0.8")),
+)
+
+@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def relay(path: str, request: Request) -> StreamingResponse:
     body = await request.body()
-    headers = dict(request.headers)
+    headers = {k: v for k, v in request.headers.items() if k != "host"}
 
-    # Step 1: Try Ollama
     async with httpx.AsyncClient(timeout=120) as client:
         ollama_resp = await client.request(
             method=request.method,
             url=f"{OLLAMA_URL}/{path}",
             content=body,
-            headers={k: v for k, v in headers.items() if k != "host"}
+            headers=headers,
         )
 
-    # Step 2: Check for stall and escalate if possible
-    try:
-        resp_json = ollama_resp.json()
-        content = resp_json.get("content", [{}])[0].get("text", "")
-        if await is_stalled(content) and CLAUDE_KEY:
-            # Log escalation decision
-            import redis; r = redis.from_url(os.environ.get("REDIS_URL","redis://oak-redis:6379"))
-            r.incr("oak:telemetry:escalations")
-            # Retry via Claude API with real key
-            async with httpx.AsyncClient(timeout=120) as client:
-                claude_resp = await client.request(
-                    method=request.method,
-                    url=f"{CLAUDE_URL}/{path}",
-                    content=body,
-                    headers={**headers, "x-api-key": CLAUDE_KEY,
-                             "anthropic-version": "2023-06-01"}
-                )
-            return StreamingResponse(claude_resp.aiter_bytes(),
-                                     status_code=claude_resp.status_code,
-                                     media_type=claude_resp.headers.get("content-type"))
-    except Exception:
-        pass  # If parsing fails, return original Ollama response
+        try:
+            resp_json = ollama_resp.json()
+            should_escalate = await routing_strategy.should_escalate(
+                request_body=json.loads(body) if body else {},
+                local_response=resp_json,
+            )
+        except Exception:
+            should_escalate = False
+
+        if should_escalate and CLAUDE_KEY:
+            import redis
+            r = redis.from_url(os.environ.get("REDIS_URL", "redis://acorn-redis:6379"))
+            r.incr("acorn:telemetry:escalations")
+            claude_resp = await client.request(
+                method=request.method,
+                url=f"{CLAUDE_URL}/{path}",
+                content=body,
+                headers={**headers, "x-api-key": CLAUDE_KEY, "anthropic-version": "2023-06-01"},
+            )
+            return StreamingResponse(
+                iter([claude_resp.content]),
+                status_code=claude_resp.status_code,
+                media_type=claude_resp.headers.get("content-type"),
+            )
 
     return StreamingResponse(
         iter([ollama_resp.content]),
         status_code=ollama_resp.status_code,
-        media_type=ollama_resp.headers.get("content-type", "application/json")
+        media_type=ollama_resp.headers.get("content-type", "application/json"),
     )
+
+@app.get("/health")
+async def health() -> dict:
+    return {"status": "healthy", "routing_strategy": os.environ.get("ROUTING_STRATEGY", "passthrough")}
 ```
 
-The proxy lives in `oak_mcp/oak-api-proxy/` and runs as its own Docker service (`oak-api-proxy`, port 9000). It is lightweight — a single Python file — and adds negligible latency since it is always on the same Docker network as Ollama.
+### 5.6 acorn-api-relay strategies.py
 
-#### Known Risks and Mitigations (Harness + Proxy Stack)
+```python
+# acorn_mcp/acorn-api-relay/strategies.py
+"""Routing strategy implementations. All routing decisions live here."""
+__pattern__ = "Strategy"
 
-The harness/proxy combination is the highest-complexity part of OAK — many moving pieces where a silent bug can produce strange agent behaviour. The following risks are acknowledged and mitigated before agent swarms are enabled.
+from abc import ABC, abstractmethod
 
-| Risk | Description | Mitigation |
-|---|---|---|
-| **Stall detection false positives** | Heuristics (`"I cannot"`, short length) may misclassify valid short Ollama responses as failures, triggering unnecessary Claude API escalation. | Stall detection is opt-in (`STALL_DETECTION_ENABLED=false` by default). When enabled, all escalation decisions are logged to Redis (`oak:telemetry:escalations`). Review telemetry before enabling in production. |
-| **Stall detection false negatives** | A confidently wrong local response will not trigger escalation. | Treat local-only mode as the production baseline. Escalation is a quality improvement, not a correctness guarantee. The Judge Agent catches bad outputs regardless of which model produced them. |
-| **Dual deny-list drift** | `tool-proxy.sh` (layer 1) and `pre-tool-use.sh` (layer 2) can diverge if one is updated and the other is not. | Both scripts import shared deny patterns from a single source file (`scripts/deny-patterns.txt`). Any pattern change must update this file; hooks and proxy read from it at runtime. |
-| **Redis session state inconsistency** | Concurrent or crashed sessions can leave stale or partial state keys, misleading agents on restore. | All session keys carry TTL (default 24h). A health-check endpoint (`GET /api/agents/session/{id}/health`) validates key completeness and purges stale sessions. |
-| **Container proliferation** | Without caps, long-running or stalled harness containers can exhaust host memory. | `MAX_HARNESS_CONTAINERS` is enforced by the TRUNK before launching new containers. `docker stats` is exposed via the telemetry API. |
+class RoutingStrategy(ABC):
+    @abstractmethod
+    async def should_escalate(self, request_body: dict, local_response: dict) -> bool: ...
 
-**Testing requirements before enabling agent swarms.** The harness and proxy must have passing unit tests for: `tool-proxy.sh` pattern matching (allowed and denied commands); `session-state.py` round-trip state, TTL, and concurrent-session behaviour; `oak-api-proxy` Ollama happy path, stall trigger, and missing-key fallback. These tests must pass in CI before Phase 2 begins.
+class PassthroughStrategy(RoutingStrategy):
+    async def should_escalate(self, request_body: dict, local_response: dict) -> bool:
+        return False
+
+class StallDetectionStrategy(RoutingStrategy):
+    def __init__(self, min_tokens: int, stall_phrases: list[str]) -> None:
+        self.min_tokens = min_tokens
+        self.stall_phrases = stall_phrases
+
+    async def should_escalate(self, request_body: dict, local_response: dict) -> bool:
+        text = (local_response.get("content", [{}])[0].get("text", "")
+                if isinstance(local_response.get("content"), list)
+                else local_response.get("choices", [{}])[0].get("message", {}).get("content", ""))
+        t = text.lower().strip()
+        if not t:
+            return True
+        if len(t.split()) < self.min_tokens:
+            return True
+        return any(t.startswith(p) for p in self.stall_phrases)
+
+class ConfidenceThresholdStrategy(RoutingStrategy):
+    def __init__(self, threshold: float) -> None:
+        self.threshold = threshold
+
+    async def should_escalate(self, request_body: dict, local_response: dict) -> bool:
+        confidence = local_response.get("confidence", 1.0)
+        return float(confidence) < self.threshold
+
+_STALL_PHRASES = ["i cannot", "i don't know how", "i'm unable", "as an ai", "i lack the ability", "i don't have access"]
+
+def get_routing_strategy(strategy_name: str, stall_min_tokens: int = 20, confidence_threshold: float = 0.8) -> RoutingStrategy:
+    import os
+    if strategy_name == "stall":
+        return StallDetectionStrategy(min_tokens=stall_min_tokens, stall_phrases=_STALL_PHRASES)
+    if strategy_name == "confidence":
+        return ConfidenceThresholdStrategy(threshold=confidence_threshold)
+    return PassthroughStrategy()
+```
 
 ---
 
-## 5. Docker Infrastructure
+## 6. WARDEN Implementation
 
-### 5.1 Base Compose (docker-compose.base.yml)
+### 6.1 WARDEN Responsibilities
 
-All platform-specific compose files extend this base. Services defined here: `oak-postgres`, `oak-redis`, `oak-ollama`, `oak-api-proxy` (new), `oak-harness` (new), `oak-api`, `oak-ui`.
+- **Every 30s:** health-check services, scan orphaned containers, sync stale problems
+- **Every 5min:** cleanup-orphans.sh, prune expired research cache
+- **Daily / every 10 problems:** trigger Calibration Agent if enabled
 
-```yaml
-# docker-compose.base.yml
-version: "3.9"
+### 6.2 warden.py
 
-x-oak-common: &oak-common
-  restart: unless-stopped
-  networks:
-    - oak-net
-  env_file:
-    - .env
+```python
+# docker/warden/warden.py
+"""
+ACORN WARDEN — self-healing infrastructure daemon.
+Pure infrastructure: no LLM calls, no agent logic, no self-build.
+"""
+__pattern__ = "Observer"
 
-services:
-  oak-postgres:
-    <<: *oak-common
-    image: pgvector/pgvector:pg16
-    environment:
-      POSTGRES_USER: oak
-      POSTGRES_PASSWORD: oak
-      POSTGRES_DB: oak
-    volumes:
-      - oak-pgdata:/var/lib/postgresql/data
-      - ./api/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-    ports:
-      - "5432:5432"
+import asyncio
+import json
+import logging
+import os
+import subprocess
+import time
+from datetime import datetime, UTC
 
-  oak-redis:
-    <<: *oak-common
-    image: redis:7-alpine
-    volumes:
-      - oak-redisdata:/data
-    ports:
-      - "6379:6379"
+import httpx
+import redis.asyncio as aioredis
 
-  oak-ollama:
-    <<: *oak-common
-    image: ollama/ollama:latest
-    volumes:
-      - oak-ollamadata:/root/.ollama
-    ports:
-      - "11434:11434"
-    # Ollama exposes Anthropic-compatible /v1/ endpoint natively.
-    # Claude Code reaches it via oak-api-proxy, not directly.
+logger = logging.getLogger("acorn.warden")
 
-  # ── NEW: Dynamic API routing proxy ────────────────────────────────────────
-  # Sits between Claude Code (in oak-harness) and both Ollama + Claude API.
-  # Routes each call to local Ollama by default; escalates to Claude API on stall.
-  oak-api-proxy:
-    <<: *oak-common
-    build:
-      context: ./oak_mcp/oak-api-proxy
-      dockerfile: Dockerfile
-    ports:
-      - "9000:9000"
-    environment:
-      OLLAMA_BASE_URL: http://oak-ollama:11434
-      REDIS_URL: redis://oak-redis:6379
-      # ANTHROPIC_API_KEY is read from .env — empty by default (local-only mode)
-    depends_on:
-      - oak-ollama
-      - oak-redis
+REDIS_URL = os.environ["REDIS_URL"]
+API_URL = os.environ.get("ACORN_API_URL", "http://acorn-api:8000")
+STALE_THRESHOLD_SECONDS = int(os.environ.get("STALE_THRESHOLD_SECONDS", "1800"))
+POLL_INTERVAL = int(os.environ.get("WARDEN_POLL_INTERVAL", "30"))
+FIVE_MIN = 300
+_shutdown = False
 
-  # ── NEW: Claude Code harness container ────────────────────────────────────
-  # Each agent session runs as an instance of this image.
-  # Bundles: Claude Code binary + tool-proxy + Redis session state.
-  # All API calls route through oak-api-proxy.
-  # All filesystem access is sandboxed to /workspace.
-  oak-harness:
-    <<: *oak-common
-    build:
-      context: ./docker/claude-harness
-      dockerfile: Dockerfile
-    environment:
-      ANTHROPIC_BASE_URL: http://oak-api-proxy:9000   # The canonical Ollama recipe
-      ANTHROPIC_AUTH_TOKEN: ollama                     # Required for Ollama compat
-      ANTHROPIC_API_KEY: ""                            # Explicitly empty; proxy manages
-      REDIS_URL: redis://oak-redis:6379
-      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
-      CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
-    volumes:
-      - ~/oak-workspaces:/workspace                   # Worktrees accessible in sandbox
-      - /mnt/oak-data:/mnt/oak-data                   # Raw problem data (read-only mount)
-      - ~/.claude:/root/.claude                        # Claude Code config, agents, hooks
-    depends_on:
-      - oak-api-proxy
-      - oak-postgres
-      - oak-redis
-    # Not started automatically — launched per problem by new-problem.sh
-    profiles: ["harness"]
+async def check_service_health(client: httpx.AsyncClient) -> dict[str, bool]:
+    results: dict[str, bool] = {}
+    for name, url in [
+        ("api", f"{API_URL}/health"),
+        ("ollama", "http://acorn-ollama:11434/api/tags"),
+        ("relay", "http://acorn-api-relay:9000/health"),
+    ]:
+        try:
+            r = await client.get(url, timeout=5)
+            results[name] = r.status_code == 200
+        except Exception:
+            results[name] = False
+    return results
 
-  oak-api:
-    <<: *oak-common
-    build: ./api
-    ports:
-      - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql://oak:oak@oak-postgres:5432/oak
-      REDIS_URL: redis://oak-redis:6379
-      OLLAMA_BASE_URL: http://oak-ollama:11434
-    depends_on:
-      - oak-postgres
-      - oak-redis
-      - oak-ollama
+async def find_orphaned_containers() -> list[str]:
+    result = subprocess.run(
+        ["docker", "ps", "--filter", "name=acorn-agent", "--format", "{{.Names}}"],
+        capture_output=True, text=True, timeout=10,
+    )
+    return [n.strip() for n in result.stdout.strip().split("\n") if n.strip()]
 
-  oak-ui:
-    <<: *oak-common
-    build: ./ui
-    ports:
-      - "8501:8501"
-    environment:
-      OAK_API_URL: http://oak-api:8000
-    depends_on:
-      - oak-api
+async def write_heartbeat(r: aioredis.Redis, status: str) -> None:
+    await r.set(
+        "acorn:warden:heartbeat",
+        json.dumps({"status": status, "ts": datetime.now(UTC).isoformat()}),
+        ex=POLL_INTERVAL * 3,
+    )
 
-volumes:
-  oak-pgdata:
-  oak-redisdata:
-  oak-ollamadata:
+async def prune_research_cache(r: aioredis.Redis) -> None:
+    """Prune expired research cache entries (called every 5 min)."""
+    # Delegate to API endpoint
+    async with httpx.AsyncClient() as client:
+        await client.post(f"{API_URL}/internal/research/prune", timeout=10)
 
-networks:
-  oak-net:
-    driver: bridge
-    # Only services on oak-net can communicate. The harness container has no
-    # external network access — Docker enforces egress restriction by design.
+async def run_cleanup_orphans() -> None:
+    subprocess.run(["bash", "/app/scripts/cleanup-orphans.sh"], capture_output=True, timeout=60)
+
+async def main_loop() -> None:
+    r = await aioredis.from_url(REDIS_URL)
+    last_five_min = time.time()
+    async with httpx.AsyncClient() as client:
+        while not _shutdown:
+            try:
+                health = await check_service_health(client)
+                unhealthy = [svc for svc, ok in health.items() if not ok]
+                if unhealthy:
+                    logger.warning("Unhealthy services: %s", unhealthy)
+                    await r.lpush("acorn:alerts",
+                                  json.dumps({"unhealthy": unhealthy, "ts": time.time()}))
+
+                orphans = await find_orphaned_containers()
+                for container in orphans:
+                    logger.info("Stopping orphaned container: %s", container)
+                    subprocess.run(["docker", "rm", "-f", container], capture_output=True, timeout=15)
+
+                if time.time() - last_five_min >= FIVE_MIN:
+                    await prune_research_cache(r)
+                    await run_cleanup_orphans()
+                    last_five_min = time.time()
+
+                await write_heartbeat(r, "ok")
+            except Exception as exc:
+                logger.exception("WARDEN loop error: %s", exc)
+                await write_heartbeat(r, "error")
+
+            await asyncio.sleep(POLL_INTERVAL)
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    asyncio.run(main_loop())
 ```
 
-### 5.2 DGX Spark Profile (docker-compose.dgx.yml)
+---
+
+## 7. PostgreSQL Schema (Full DDL)
+
+```sql
+-- api/db/schema.sql
+-- Run once on first postgres startup via docker-entrypoint-initdb.d
+
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ─── Problems ─────────────────────────────────────────────────────────────────
+
+CREATE TABLE problems (
+    id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title            TEXT NOT NULL,
+    description      TEXT,
+    status           TEXT NOT NULL DEFAULT 'pending'
+                     CHECK (status IN ('pending','assembling','active','validating','complete','failed')),
+    problem_class    TEXT,
+    input_manifest   JSONB,
+    output_format    TEXT,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    completed_at     TIMESTAMPTZ,
+    worktree_path    TEXT
+);
+
+-- ─── Tasks ────────────────────────────────────────────────────────────────────
+
+CREATE TABLE tasks (
+    id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    problem_id     UUID NOT NULL REFERENCES problems(id) ON DELETE CASCADE,
+    task_type      TEXT NOT NULL
+                   CHECK (task_type IN ('research','synthesise','domain-analyse','validate','deliver','kernel-extract')),
+    title          TEXT NOT NULL,
+    status         TEXT NOT NULL DEFAULT 'pending'
+                   CHECK (status IN ('pending','claimed','complete','failed')),
+    assigned_agent TEXT,
+    claimed_at     TIMESTAMPTZ,
+    completed_at   TIMESTAMPTZ,
+    result         JSONB,
+    reasoning_steps INT DEFAULT 0,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX ON tasks (problem_id, status);
+
+-- ─── Mailbox ──────────────────────────────────────────────────────────────────
+
+CREATE TABLE mailbox (
+    id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    problem_id   UUID NOT NULL REFERENCES problems(id) ON DELETE CASCADE,
+    from_agent   TEXT NOT NULL,
+    to_agent     TEXT,
+    message_type TEXT NOT NULL,
+    payload      JSONB NOT NULL DEFAULT '{}',
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    read_at      TIMESTAMPTZ
+);
+
+CREATE INDEX ON mailbox (problem_id, to_agent);
+
+-- ─── Episodic Memory ──────────────────────────────────────────────────────────
+
+CREATE TABLE episodes (
+    id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    problem_id       UUID REFERENCES problems(id) ON DELETE SET NULL,
+    agent_id         TEXT NOT NULL,
+    event_type       TEXT NOT NULL,
+    payload          JSONB NOT NULL DEFAULT '{}',
+    embedding        vector(768),
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX ON episodes USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX ON episodes (agent_id, created_at DESC);
+
+-- ─── Kernels ───────────────────────────────────────────────────────────────────
+
+CREATE TABLE kernels (
+    id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name             TEXT NOT NULL UNIQUE,
+    version          TEXT NOT NULL DEFAULT '1.0.0',
+    category         TEXT NOT NULL
+                     CHECK (category IN ('research','synthesis','domain','validation','code','workflow','general')),
+    status           TEXT NOT NULL DEFAULT 'probationary'
+                     CHECK (status IN ('probationary','permanent','deprecated')),
+    description      TEXT NOT NULL,
+    trigger_keywords TEXT[] NOT NULL DEFAULT '{}',
+    implementation   TEXT,
+    test_suite       TEXT,
+    benchmark        JSONB,
+    use_count        INT NOT NULL DEFAULT 0,
+    embedding        vector(768),
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    promoted_at      TIMESTAMPTZ,
+    deprecated_at    TIMESTAMPTZ
+);
+
+CREATE INDEX ON kernels USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX ON kernels (status, category);
+CREATE INDEX ON kernels USING gin (trigger_keywords);
+
+-- ─── Reasoning Steps ──────────────────────────────────────────────────────────
+
+CREATE TABLE reasoning_steps (
+    id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    problem_id   UUID NOT NULL REFERENCES problems(id) ON DELETE CASCADE,
+    agent_id     TEXT NOT NULL,
+    step_type    TEXT NOT NULL,
+    summary      TEXT NOT NULL,
+    confidence   FLOAT,
+    sources      JSONB,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX ON reasoning_steps (problem_id, created_at);
+
+-- ─── Research Cache ───────────────────────────────────────────────────────────
+
+CREATE TABLE research_cache (
+    id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    query_hash    TEXT NOT NULL UNIQUE,
+    query_text    TEXT NOT NULL,
+    results       JSONB NOT NULL DEFAULT '{}',
+    source_urls   TEXT[] DEFAULT '{}',
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at   TIMESTAMPTZ
+);
+
+CREATE INDEX ON research_cache (query_hash);
+
+-- ─── Agent Telemetry ──────────────────────────────────────────────────────────
+
+CREATE TABLE agent_telemetry (
+    id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    agent_id       TEXT NOT NULL,
+    problem_id     UUID REFERENCES problems(id) ON DELETE SET NULL,
+    tool_name      TEXT NOT NULL,
+    duration_ms    INT,
+    model_used     TEXT,
+    tokens_in      INT,
+    tokens_out     INT,
+    success        BOOLEAN NOT NULL DEFAULT TRUE,
+    error_msg      TEXT,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX ON agent_telemetry (problem_id, agent_id);
+CREATE INDEX ON agent_telemetry (created_at DESC);
+
+-- ─── Judge Verdicts ───────────────────────────────────────────────────────────
+
+CREATE TABLE judge_verdicts (
+    id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    problem_id   UUID NOT NULL REFERENCES problems(id) ON DELETE CASCADE,
+    task_id      UUID REFERENCES tasks(id) ON DELETE SET NULL,
+    agent_id     TEXT NOT NULL,
+    verdict      TEXT NOT NULL CHECK (verdict IN ('pass','fail')),
+    checks       JSONB NOT NULL DEFAULT '{}',
+    reasoning    TEXT,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX ON judge_verdicts (problem_id, created_at);
+```
+
+---
+
+## 8. Docker Compose
+
+### 8.1 Base (docker/docker-compose.yml)
 
 ```yaml
-# docker-compose.dgx.yml — extends base with DGX GPU config
-include:
-  - docker-compose.base.yml
+name: acorn
+version: "3.9"
+
+x-acorn-common: &acorn-common
+  restart: unless-stopped
+  networks: [acorn-net]
+  env_file: [.env]
 
 services:
-  oak-ollama:
+  acorn-postgres:
+    <<: *acorn-common
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: acorn
+      POSTGRES_PASSWORD: acorn
+      POSTGRES_DB: acorn
+    volumes:
+      - acorn-pgdata:/var/lib/postgresql/data
+      - ./api/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U acorn -d acorn"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  acorn-redis:
+    <<: *acorn-common
+    image: redis:7-alpine
+    volumes: [acorn-redisdata:/data]
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  acorn-ollama:
+    <<: *acorn-common
+    image: ollama/ollama:latest
+    volumes: [acorn-ollamadata:/root/.ollama]
+    ports: ["11434:11434"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/tags || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  acorn-api-relay:
+    <<: *acorn-common
+    build: ./acorn_mcp/acorn-api-relay
+    ports: ["9000:9000"]
+    environment:
+      OLLAMA_BASE_URL: http://acorn-ollama:11434
+      REDIS_URL: redis://acorn-redis:6379
+    depends_on:
+      acorn-ollama: {condition: service_healthy}
+      acorn-redis: {condition: service_healthy}
+
+  acorn-api:
+    <<: *acorn-common
+    build: ./api
+    ports: ["8000:8000"]
+    environment:
+      DATABASE_URL: postgresql://acorn:acorn@acorn-postgres:5432/acorn
+      REDIS_URL: redis://acorn-redis:6379
+      OLLAMA_BASE_URL: http://acorn-ollama:11434
+    depends_on:
+      acorn-postgres: {condition: service_healthy}
+      acorn-redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  acorn-ui:
+    <<: *acorn-common
+    build: ./ui-next
+    ports: ["8501:8501"]
+    environment:
+      ACORN_API_URL: http://acorn-api:8000
+    depends_on:
+      acorn-api: {condition: service_healthy}
+
+  acorn-warden:
+    <<: *acorn-common
+    build: ./docker/warden
+    environment:
+      REDIS_URL: redis://acorn-redis:6379
+      ACORN_API_URL: http://acorn-api:8000
+    depends_on:
+      acorn-api: {condition: service_healthy}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  acorn-pgdata:
+  acorn-redisdata:
+  acorn-ollamadata:
+  acorn-workspaces:
+
+networks:
+  acorn-net:
+    driver: bridge
+```
+
+### 8.2 DGX Spark Profile (docker/docker-compose.dgx.yml)
+
+```yaml
+# PRIMARY platform. NVIDIA GPU. Up to 5 concurrent problems.
+include: [docker-compose.yml]
+
+services:
+  acorn-ollama:
     deploy:
       resources:
         reservations:
@@ -780,660 +1668,381 @@ services:
               count: all
               capabilities: [gpu]
     environment:
-      OAK_MODE: dgx
+      ACORN_MODE: dgx
       NVIDIA_VISIBLE_DEVICES: all
-      NVIDIA_DRIVER_CAPABILITIES: compute,utility
 
-  oak-api:
+  acorn-api:
     environment:
-      OAK_MODE: dgx
-      # DGX has full memory — enable 70B models by default
-      DEFAULT_MODEL: llama3.3:70b
-      CODER_MODEL: qwen2.5-coder:32b
-      ANALYSIS_MODEL: llama3.3:70b
+      ACORN_MODE: dgx
+      DEFAULT_MODEL: qwen3-coder
+      SYNTHESIS_MODEL: qwen3-coder
+      RESEARCH_MODEL: qwen2.5:14b
+      MAX_AGENTS_PER_PROBLEM: "10"
+      MAX_CONCURRENT_PROBLEMS: "5"
+      MAX_HARNESS_CONTAINERS: "20"
+      ROUTING_STRATEGY: passthrough
 ```
 
-### 5.3 Mac Mini Profile (docker-compose.mini.yml)
-
-The mini profile uses SQLite as the persistence backend for the skill index (PostgreSQL still runs for problem data, but smaller footprint settings apply), and constrains model choices to those that run at acceptable speed on M4 Pro 64GB via Ollama's Metal backend.
+### 8.3 Mac Mini M4 Profile (docker/docker-compose.mini.yml)
 
 ```yaml
-# docker-compose.mini.yml
-include:
-  - docker-compose.base.yml
+# Metal backend. Up to 2 concurrent problems.
+include: [docker-compose.yml]
 
 services:
-  oak-api:
+  acorn-ollama:
     environment:
-      OAK_MODE: mini
-      DEFAULT_MODEL: llama3.2:3b      # Fast on M4
-      CODER_MODEL: qwen2.5-coder:7b
-      ANALYSIS_MODEL: llama3.2:8b
-      # Escalate more aggressively to Claude API on mini
-      LOCAL_CONFIDENCE_THRESHOLD: "0.7"
+      ACORN_MODE: mini
+      OLLAMA_METAL: "1"
+
+  acorn-api:
+    environment:
+      ACORN_MODE: mini
+      DEFAULT_MODEL: qwen3-coder
+      SYNTHESIS_MODEL: qwen2.5:14b
+      RESEARCH_MODEL: qwen2.5:14b
+      MAX_AGENTS_PER_PROBLEM: "4"
+      MAX_CONCURRENT_PROBLEMS: "2"
+      MAX_HARNESS_CONTAINERS: "8"
+      ROUTING_STRATEGY: confidence
+      LOCAL_CONFIDENCE_THRESHOLD: "0.72"
 ```
 
-### 5.4 Environment File (.env template)
+### 8.4 Cloud GPU Profile (docker/docker-compose.cloud.yml)
 
-```bash
-OAK_MODE=dgx                          # dgx | mini | cloud
+```yaml
+# vLLM replaces Ollama. Up to 10 concurrent.
+include: [docker-compose.yml]
 
-# ── Ollama + Claude Code canonical recipe (harness.md) ─────────────────────
-# These three variables together tell Claude Code to use Ollama locally.
-# ANTHROPIC_BASE_URL points to the oak-api-proxy, not directly to Ollama,
-# so the proxy can dynamically escalate to Claude API on stall detection.
-ANTHROPIC_BASE_URL=http://oak-api-proxy:9000
-ANTHROPIC_AUTH_TOKEN=ollama           # Required — Ollama expects this
-ANTHROPIC_API_KEY=                    # Intentionally empty; proxy holds real key
+services:
+  acorn-ollama:
+    image: vllm/vllm-openai:latest
+    command: ["--model", "Qwen/Qwen2.5-14B-Instruct", "--served-model-name", "qwen2.5:14b", "--port", "11434"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
-# ── Optional Claude API escalation ─────────────────────────────────────────
-# Set this to enable the proxy's escalation tier. Leave empty for fully local.
-ANTHROPIC_API_KEY_REAL=               # The real Anthropic key (proxy reads this)
-
-PROBLEM_UUID=                          # Set per problem by new-problem.sh
-OAK_SKILL_PROMO_THRESHOLD=2            # Problems before probationary → permanent
-OAK_MEMORY_TTL_DAYS=90                 # Episodic memory before cold archive
-OAK_IDLE_TIMEOUT_SECONDS=120           # Teammate-idle hook threshold
-OAK_SESSION_TTL_HOURS=24               # Redis session state expiry
-
-# ── Resource caps (tuning knobs, not architectural limits) ──────────────────────────────
-# Orchestrator enforces MAX_AGENTS_PER_PROBLEM by refusing to spawn beyond it.
-# TRUNK enforces MAX_CONCURRENT_PROBLEMS by returning 429 on the 4th active problem.
-# Docker enforces MAX_HARNESS_CONTAINERS via container count check in new-problem.sh.
-MAX_AGENTS_PER_PROBLEM=10              # Soft cap per problem (dgx: 10, mini: 4)
-MAX_CONCURRENT_PROBLEMS=3             # Hard cap on active problems at once
-MAX_HARNESS_CONTAINERS=20             # Total harness containers across all problems
-
-# ── Proxy behaviour ──────────────────────────────────────────────────────────────
-STALL_DETECTION_ENABLED=false          # Opt-in: enable heuristic escalation
-LOCAL_CONFIDENCE_THRESHOLD=0.8        # (mini only) escalate more aggressively
-```
-
----
-
-## 6. PostgreSQL Schema (Full DDL)
-
-```sql
--- schema.sql: Run once on first postgres startup
-
-CREATE EXTENSION IF NOT EXISTS vector;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- ─── Problems ────────────────────────────────────────────────────────────────
-CREATE TABLE problems (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  title         TEXT NOT NULL,
-  description   TEXT,
-  status        TEXT NOT NULL DEFAULT 'pending'
-                  CHECK (status IN ('pending','assembling','active','complete','failed')),
-  data_manifest JSONB,          -- list of ingested file paths / table names
-  solution_url  TEXT,           -- Streamlit spoke URL when complete
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  completed_at  TIMESTAMPTZ
-);
-
--- ─── Tasks (Shared Task List) ─────────────────────────────────────────────────
-CREATE TABLE tasks (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  problem_id    UUID REFERENCES problems(id) ON DELETE CASCADE,
-  type          TEXT NOT NULL   -- ingest | analyse | model | synthesise | validate
-                  CHECK (type IN ('ingest','analyse','model','synthesise','validate')),
-  title         TEXT NOT NULL,
-  description   TEXT,
-  status        TEXT NOT NULL DEFAULT 'pending'
-                  CHECK (status IN ('pending','claimed','complete','failed')),
-  assigned_to   TEXT,           -- agent name
-  depends_on    UUID[],         -- task IDs that must be complete first
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  claimed_at    TIMESTAMPTZ,
-  completed_at  TIMESTAMPTZ
-);
-
--- ─── Mailbox (peer-to-peer agent messages) ────────────────────────────────────
-CREATE TABLE mailbox (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  problem_id    UUID REFERENCES problems(id) ON DELETE CASCADE,
-  from_agent    TEXT NOT NULL,
-  to_agent      TEXT,           -- NULL = broadcast
-  subject       TEXT,
-  body          TEXT NOT NULL,
-  read          BOOLEAN DEFAULT FALSE,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- ─── Episodic Memory ─────────────────────────────────────────────────────────
-CREATE TABLE episodes (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  problem_id    UUID REFERENCES problems(id),
-  agent_id      TEXT NOT NULL,
-  event_type    TEXT NOT NULL,  -- observation | decision | error | outcome
-  content       TEXT NOT NULL,
-  importance    FLOAT NOT NULL DEFAULT 0.5,  -- 0-1 score
-  embedding     vector(1536),   -- pgvector embedding of content
-  retrieved_at  TIMESTAMPTZ,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX ON episodes USING hnsw (embedding vector_cosine_ops);
-CREATE INDEX ON episodes (agent_id, importance DESC);
-
--- ─── Skill Library Index ──────────────────────────────────────────────────────
-CREATE TABLE skills (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name          TEXT UNIQUE NOT NULL,
-  category      TEXT NOT NULL,  -- etl | analysis | ml | ui | infra
-  keywords      TEXT[],
-  file_path     TEXT NOT NULL,  -- path to SKILL.md on filesystem
-  status        TEXT NOT NULL DEFAULT 'probationary'
-                  CHECK (status IN ('probationary','permanent','deprecated')),
-  problem_uses  UUID[],         -- problem IDs where this skill was applied
-  use_count     INT NOT NULL DEFAULT 0,
-  last_used_at  TIMESTAMPTZ,
-  embedding     vector(1536),   -- pgvector embedding of skill description
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX ON skills USING hnsw (embedding vector_cosine_ops);
-
--- ─── Agent Telemetry ──────────────────────────────────────────────────────────
-CREATE TABLE agent_telemetry (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  problem_id    UUID REFERENCES problems(id),
-  agent_id      TEXT NOT NULL,
-  tool_name     TEXT NOT NULL,
-  duration_ms   INT,
-  success       BOOLEAN NOT NULL DEFAULT TRUE,
-  error_msg     TEXT,
-  model_used    TEXT,
-  tokens_in     INT,
-  tokens_out    INT,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- ─── Judge Verdicts ───────────────────────────────────────────────────────────
-CREATE TABLE judge_verdicts (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  task_id       UUID REFERENCES tasks(id),
-  verdict       TEXT NOT NULL CHECK (verdict IN ('pass','fail')),
-  checks        JSONB,          -- { lint: true, schema: true, smoke: false, ... }
-  notes         TEXT,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+  acorn-api:
+    environment:
+      ACORN_MODE: cloud
+      MAX_AGENTS_PER_PROBLEM: "15"
+      MAX_CONCURRENT_PROBLEMS: "10"
+      MAX_HARNESS_CONTAINERS: "40"
+      ROUTING_STRATEGY: stall
+      STALL_DETECTION_ENABLED: "true"
 ```
 
 ---
 
-## 7. Inference Tiering Policy
-
-Claude Code's Anthropic SDK calls are routed through the `oak-api-proxy` container, which forwards them to Ollama's Anthropic-compatible `/v1/` endpoint by default. This is the concrete implementation of the Ollama + Claude Code integration: `ANTHROPIC_BASE_URL` points to the proxy, `ANTHROPIC_AUTH_TOKEN=ollama` satisfies Ollama's auth expectation, and `ANTHROPIC_API_KEY` is left empty in the harness (the proxy holds the real key and uses it only on escalation).
-
-**Default routing strategy: `PassthroughStrategy`.** The proxy is controlled by the `ROUTING_STRATEGY` configuration value. The default — and the correct v1 production setting — is `ROUTING_STRATEGY=passthrough`. In this mode every call goes to Ollama unconditionally; no escalation logic is active regardless of response content. There is no code path through which a stall condition can trigger escalation unless `STALL_DETECTION_ENABLED=true` is explicitly set in `.env`. This is the "no accidental cleverness" guarantee: cloud escalation is opt-in per operator decision, not triggered by a heuristic firing in production when the operator did not intend it. The routing strategy is defined as a `RoutingStrategy` enum in `api/config.py` (see PRD §2.2); changing it requires only a `.env` edit and a proxy restart — no code change.
-
-The primary coding model is `qwen3-coder`, named explicitly in the Ollama integration documentation as excelling at code-heavy agent tasks. `glm-4.7` is an effective alternative for analytical workloads. Heavier reasoning still uses `llama3.3:70b`.
-
-| Task class | Default model (Ollama) | Escalation trigger | Claude API model |
-|---|---|---|---|
-| ETL scripting, DDL, boilerplate | `qwen3-coder` | Never | — |
-| Statistical analysis, EDA | `glm-4.7` | Novel domain flag | `claude-haiku-4-5` |
-| Standard ML setup | `deepseek-v3` | Never | — |
-| Cross-domain synthesis | `llama3.3:70b` | Local stall detected by proxy | `claude-sonnet-4-5` |
-| Solution architecture | `llama3.3:70b` | Always (high-consequence; proxy forces escalation) | `claude-sonnet-4-5` |
-| Judge validation | `qwen3-coder` | Never | — |
-| Meta-agent prompt rewrite | `glm-4.7` | Always | `claude-haiku-4-5` |
-| Emergency re-try | `llama3.3:70b` | After 2 Sonnet failures | `claude-opus-4-5` |
-
-The proxy detects "local stall" via three signals: an empty completion, a response opening with known failure phrases (`"I cannot"`, `"I'm unable"`, `"As an AI"`), or a response shorter than 20 tokens for a task that clearly warrants more. Any of these triggers a transparent retry via the Claude API without the agent being aware the routing changed. If `ANTHROPIC_API_KEY` is absent, the system logs the escalation failure, retries locally with an adjusted prompt, and continues.
-
----
-
-## 8. FastAPI Surface
-
-The API lives in `api/main.py` and is the sole interface between the CANOPY UI and the GROVE agent engine. Every endpoint returns JSON; errors follow RFC 7807 Problem Details.
-
-```python
-# api/main.py (abbreviated)
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from api.routers import problems, agents, tasks, skills, telemetry
-from api.ws.stream import router as ws_router
-
-app = FastAPI(title="OAK API", version="1.0.0")
-app.add_middleware(CORSMiddleware, allow_origins=["*"])
-
-app.include_router(problems.router, prefix="/api/problems")
-app.include_router(agents.router,   prefix="/api/agents")
-app.include_router(tasks.router,    prefix="/api/tasks")
-app.include_router(skills.router,   prefix="/api/skills")
-app.include_router(telemetry.router,prefix="/api/telemetry")
-app.include_router(ws_router)
-```
-
-**Key endpoints:**
-
-`POST /api/problems` — Accept problem description + data file upload. Creates a UUID, writes to `problems` table, copies data to `/mnt/oak-data/{uuid}/`, calls `new-problem.sh` to create a git worktree, and triggers the Orchestrator agent as a subprocess. Returns `{problem_id, status: "assembling"}`.
-
-`GET /api/problems/{id}` — Returns full problem record including `solution_url` when available.
-
-`GET /api/agents/status` — Returns current agent session list with status (idle / active / blocked) and current task.
-
-`GET /api/tasks?problem_id={id}` — Returns the full task list for a problem with status and assignee.
-
-`GET /api/skills?query={text}&category={cat}` — Semantic search over the skill library using pgvector cosine similarity. Returns top-5 matching skills with relevance scores.
-
-`GET /api/telemetry?problem_id={id}` — Returns aggregated telemetry for a problem: tokens per agent, duration per task, error counts.
-
-`WS /ws/stream/{problem_id}` — WebSocket endpoint. The agent engine publishes events to a Redis pub/sub channel `oak:stream:{problem_id}`; this endpoint subscribes and forwards to the browser. Event types: `agent_spawned`, `task_claimed`, `mailbox_message`, `judge_verdict`, `solution_ready`.
-
----
-
-## 9. UI Canopy (Streamlit Hub)
-
-The Hub is a Streamlit multi-page application at `~/oak-workspaces/ui/`. It is the human's window into OAK. It self-evolves: when the Software Architect agent solves a new problem class, it generates new Streamlit pages and opens a PR against `oak/ui`. The human merges the PR; Streamlit Cloud redeploys automatically.
-
-### 9.1 Pages
-
-`canopy.py` (main) — Dashboard: active problems, recent completions, skill library summary, system health.
-
-`pages/01_new_problem.py` — Problem submission: text description field, file upload (CSV/JSON/TXT), optional DB connection string. Calls `POST /api/problems` and redirects to the problem status page.
-
-`pages/02_problem_status.py` — Live view of an active problem. Connects to `WS /ws/stream/{problem_id}` and renders agent events as a real-time activity feed. Shows task board (Kanban columns: pending / claimed / complete). Shows Judge verdicts as they arrive.
-
-`pages/03_solution_gallery.py` — Grid of all completed problems with title, date, and link to the deployed solution spoke. Solutions are Streamlit apps deployed to Streamlit Cloud from the problem branch.
-
-`pages/04_skill_library.py` — Searchable catalog of all permanent and probationary skills. Shows use count, last used, and a link to the SKILL.md file.
-
-`pages/05_telemetry.py` — Aggregated metrics: tokens per agent, problem throughput, model usage breakdown, error rates, skill library growth over time.
-
-### 9.2 Solution Spokes
-
-Each problem produces a standalone Streamlit or Dash application committed to `oak/problem-{uuid}` branch. This is the deployed solution the user actually works with. The spoke is self-contained: it includes its own data loading, visualisations, and any interactive controls specific to that problem. The Software Architect agent generates spoke code; the Judge Agent validates it; once merged and deployed, the Hub's solution gallery links to it.
-
----
-
-## 10. Problem Lifecycle (End-to-End)
-
-This section traces a single problem from submission to deployed solution.
-
-**Step 1 — Arrival.** User submits via Hub. `POST /api/problems` creates a UUID (`p-abc123`), copies uploaded files to `/mnt/oak-data/p-abc123/`, writes the problem record, and calls `scripts/new-problem.sh p-abc123`. That script runs: `git worktree add ~/oak-workspaces/problem-p-abc123 -b oak/problem-p-abc123` and writes a `PROBLEM.md` manifest to the new worktree. The WebSocket stream channel `oak:stream:p-abc123` is opened. Status → `assembling`.
-
-**Step 2 — Assembly.** The Orchestrator agent session starts. It reads `PROBLEM.md`, queries the oak-skills MCP for relevant prior skills, and decomposes the problem into typed tasks. Tasks are written to the `tasks` table with dependency edges. Example decomposition for a time-series CSV problem: `ingest:profile-csv` → `analyse:eda-timeseries` → `model:anomaly-detection` → `synthesise:dashboard` → `validate:judge`. The Orchestrator broadcasts task availability to the Redis mailbox and publishes `agent_spawned` events to the stream.
-
-**Step 3 — Data ingestion.** The Data Engineer agent claims the `ingest` task. It reads from `/mnt/oak-data/p-abc123/`, profiles every column using pandas, infers DDL, and creates tables in PostgreSQL via the postgres MCP. It applies the `etl-csv-ingestion` skill if present in the permanent library, otherwise derives the approach and flags it for skill extraction. Completion publishes `task_claimed → task_complete` events.
-
-**Step 4 — Analysis.** The Data Scientist agent claims `analyse`. It runs statistical analysis against the new PostgreSQL tables, generates pgvector embeddings of text columns via the oak-memory MCP, and writes an `analysis_report.md` to the problem worktree. It messages the ML Engineer via the mailbox with key findings.
-
-**Step 5 — Modelling.** The ML Engineer reads the analysis report and mailbox message. It queries the oak-skills MCP: "time-series anomaly detection". If a permanent skill exists, it applies it; otherwise it selects an approach (Isolation Forest, LSTM autoencoder, etc.), writes the model code, and generates an inference wrapper. It writes `model/` to the problem worktree.
-
-**Step 6 — Synthesis.** The Software Architect reads all worktree artefacts and generates `app.py` — the solution spoke. This is a self-contained Streamlit app with data loading, model inference, and visualisations tailored to this specific problem. The Architect also checks: does this problem class require a new Hub page? If yes, it generates `pages/06_timeseries_explorer.py` and opens a PR against `oak/ui`.
-
-**Step 7 — Validation.** The Judge Agent runs: `ruff check app.py`, `mypy app.py`, and a smoke test (imports, data load, render without crash). If all pass, it inserts a PASS verdict into `judge_verdicts` and publishes `judge_verdict: pass` to the stream. The `task-completed.sh` hook unblocks the validate task closure.
-
-**Step 8 — Delivery.** The Orchestrator marks the problem `complete`. The API updates `solution_url` in the problems table. The Hub's solution gallery gains a new entry. The Skill Extractor runs asynchronously, inspecting the worktree for promotable patterns.
-
-**Step 9 — Learning.** The Skill Extractor writes candidate skills to `skills/probationary/`. If the same skill pattern has been seen twice before, it is promoted to `skills/permanent/` and indexed in PostgreSQL. The `tasks`, `episodes`, and `agent_telemetry` records persist for future meta-agent analysis. The problem worktree is retained for 30 days then archived (branch preserved in git history).
-
----
-
-## 11. Self-Evolution Loop
-
-OAK's intelligence compounds across problems via three mechanisms.
-
-**Skill compounding.** Every problem that adds a new permanent skill makes all subsequent problems of that class faster. The first time OAK encounters a gas turbine vibration dataset, it reasons from first principles. The second time, it retrieves the `rotating-equipment-anomaly` skill and composes rather than derives. By the tenth similar problem, the agent grove executes the pattern in a fraction of the original time.
-
-**UI evolution.** When the Software Architect opens a PR for a new Hub page (e.g., `pages/06_timeseries_explorer.py`), the operator reviews and merges. GitHub Actions triggers a Streamlit Cloud redeploy. The Hub now surfaces a new entry point for time-series problems. Future users submitting similar problems find a pre-built analysis template waiting for them.
-
-**Prompt evolution.** The Meta Agent (running daily or after every 10 problems) reads the `agent_telemetry` table and identifies patterns: if the Data Engineer agent fails to handle semicolon-delimited files 80% of the time, the Meta Agent generates a proposed CLAUDE.md amendment for the `data-engineer` subagent and opens a PR against `oak/agents`. The operator reviews and merges; from that point forward every Data Engineer agent instance has the improvement built into its context.
-
----
-
-## 12. Hardware Journey
-
-The `OAK_MODE` environment variable and the corresponding compose file control all platform differences. No application code changes are required to switch platforms.
+## 9. Hardware Profiles
 
 | Platform | Compose file | Default models | Notes |
-|---|---|---|---|
-| DGX Spark (init) | `docker-compose.dgx.yml` | Llama-3.3-70B, Qwen2.5-Coder-32B | Full NVIDIA GPU passthrough; 128GB unified; concurrent problems |
-| Mac Mini M4 Pro (port) | `docker-compose.mini.yml` | Llama-3.2-8B, Qwen2.5-Coder-7B | Metal backend via Ollama; single problem at a time; faster Claude API escalation |
-| Cloud multi-GPU (scale) | `docker-compose.cloud.yml` | Llama-3.3-70B (multi-GPU) | RunPod / DigitalOcean A100 cluster; Kubernetes overlay for concurrent problems |
-
-The cloud compose extends the base with GPU node selectors and scales `oak-ollama` horizontally via vLLM rather than Ollama for higher throughput on concurrent requests.
+|----------|--------------|---------------|-------|
+| DGX Spark | docker-compose.dgx.yml | qwen3-coder, qwen2.5:14b, llama3.3:70b | **PRIMARY.** NVIDIA GPU. Up to 5 concurrent problems. |
+| Mac Mini M4 | docker-compose.mini.yml | qwen3-coder, qwen2.5:14b | Metal backend. Up to 2 concurrent problems. |
+| Cloud GPU | docker-compose.cloud.yml | qwen3-coder, qwen2.5:14b | vLLM replaces Ollama. Up to 10 concurrent. |
 
 ---
 
-## 13. Bootstrap Sequence (Claude Code Entry Point)
+## 10. Scripts
 
-These are the exact commands a Claude Code session should execute to initialise OAK on a fresh DGX Spark node. Save this as `scripts/bootstrap.sh` and run it as the first action. The sequence installs infrastructure, builds the two new harness-related Docker images, pulls local models including qwen3-coder, and verifies the full routing chain from Claude Code → proxy → Ollama before any agent work begins.
+### 10.1 bootstrap.sh
 
 ```bash
 #!/bin/bash
+# scripts/bootstrap.sh
+# Full ACORN setup — run once on a fresh machine.
+# Usage: bash scripts/bootstrap.sh [dgx|mini|cloud]
+# Default: dgx (PRIMARY)
+
 set -euo pipefail
 
-echo "=== OAK Bootstrap v1.1: DGX Spark ==="
+MODE="${1:-dgx}"
+echo "═══════════════════════════════════════════════════"
+echo "  ACORN Bootstrap — mode: ${MODE}"
+echo "  $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+echo "═══════════════════════════════════════════════════"
 
-# 1. Clone repository
-git clone https://github.com/SharathSPhD/oak.git ~/oak
-cd ~/oak
+# Clone if not present
+if [ ! -d "acorn" ]; then
+  git clone https://github.com/SharathSPhD/acorn.git acorn
+fi
+cd acorn
 
-# 2. Create branch structure
-git checkout -b oak/agents  && git push -u origin oak/agents
-git checkout -b oak/skills  && git push -u origin oak/skills
-git checkout -b oak/ui      && git push -u origin oak/ui
+# Create branch structure
+git checkout -b acorn/agents 2>/dev/null || true
+git checkout -b acorn/kernels 2>/dev/null || true
+git checkout -b acorn/ui 2>/dev/null || true
 git checkout main
 
-# 3. Create workspace directory and worktrees
-mkdir -p ~/oak-workspaces
-git worktree add ~/oak-workspaces/agents oak/agents
-git worktree add ~/oak-workspaces/skills oak/skills
-git worktree add ~/oak-workspaces/ui     oak/ui
+# Create workspace directories and worktrees
+mkdir -p acorn-workspaces
+git worktree add acorn-workspaces/agents acorn/agents 2>/dev/null || true
+git worktree add acorn-workspaces/kernels acorn/kernels 2>/dev/null || true
+git worktree add acorn-workspaces/ui acorn/ui 2>/dev/null || true
 
-# 4. Create skill library directories
-mkdir -p ~/oak-workspaces/skills/{permanent,probationary}
-touch ~/oak-workspaces/skills/permanent/.gitkeep
-touch ~/oak-workspaces/skills/probationary/.gitkeep
+# Kernel grove structure
+mkdir -p acorn-workspaces/kernels/{permanent,probationary,deprecated}
+touch acorn-workspaces/kernels/permanent/.gitkeep
+touch acorn-workspaces/kernels/probationary/.gitkeep
+touch acorn-workspaces/kernels/deprecated/.gitkeep
 
-# 5. Configure environment
-cp .env.template .env
-# The three critical Ollama + Claude Code variables are pre-set in .env.template:
-#   ANTHROPIC_BASE_URL=http://oak-api-proxy:9000  (proxy, not Ollama directly)
-#   ANTHROPIC_AUTH_TOKEN=ollama
-#   ANTHROPIC_API_KEY=                            (empty; proxy manages escalation)
-echo "Review .env — optionally set ANTHROPIC_API_KEY to enable Claude API escalation."
-echo "Leave it empty to run fully local. Press enter to continue."
-read -r
+# Research cache
+mkdir -p acorn-workspaces/research-cache
+touch acorn-workspaces/research-cache/.gitkeep
 
-# 6. Build the two harness-related images BEFORE starting the stack.
-# These must be built first so docker compose up finds them.
-echo "--- Building oak-api-proxy (dynamic routing layer) ---"
-docker build -t oak/api-proxy:latest ./oak_mcp/oak-api-proxy/
+# Configure environment
+cp .env.example .env 2>/dev/null || true
+[ -f ".env.${MODE}" ] && cat ".env.${MODE}" >> .env
 
-echo "--- Building oak-harness (Claude Code sandbox container) ---"
-docker build -t oak/harness:latest ./docker/claude-harness/
+# Build images
+echo "─── Building acorn-api-relay ───"
+docker build -t acorn-api-relay:latest ./acorn_mcp/acorn-api-relay
 
-# 7. Start the core Docker stack (DGX profile)
-docker compose -f docker/docker-compose.dgx.yml up -d \
-    oak-postgres oak-redis oak-ollama oak-api-proxy oak-api oak-ui
-sleep 15  # Wait for postgres to be ready
+echo "─── Building acorn-harness ───"
+docker build -t acorn-harness:latest ./docker/acorn-harness
 
-# 8. Verify database schema (schema.sql auto-runs via initdb)
-docker exec oak-postgres psql -U oak -d oak -c "\dt" | grep -c "oak" && \
-    echo "✓ Schema verified" || echo "✗ Schema check failed — re-run schema.sql manually"
+echo "─── Building acorn-warden ───"
+docker build -t acorn-warden:latest ./docker/warden
 
-# 9. Pull local models — qwen3-coder is the primary (recommended by Ollama docs
-#    for code-heavy Claude Code agent tasks); others cover reasoning and analysis.
-echo "--- Pulling Ollama models (this will take several minutes on first run) ---"
-docker exec oak-ollama ollama pull qwen3-coder         # Primary: all coding tasks
-docker exec oak-ollama ollama pull glm-4.7              # Analysis and EDA tasks
-docker exec oak-ollama ollama pull llama3.3:70b         # Heavy reasoning, synthesis
-docker exec oak-ollama ollama pull deepseek-v3          # ML task scripting
+# Start stack
+COMPOSE_FILE="docker/docker-compose.${MODE}.yml"
+docker compose -f "${COMPOSE_FILE}" up -d \
+  acorn-postgres acorn-redis acorn-ollama \
+  acorn-api-relay acorn-api acorn-ui acorn-warden
 
-# 10. Verify the full routing chain:
-#     Claude Code → oak-api-proxy (port 9000) → Ollama /v1/models
-echo "--- Verifying proxy routing chain ---"
-curl -s -H "Authorization: Bearer ollama" \
-    http://localhost:9000/v1/models | \
-    python3 -c "import sys,json; d=json.load(sys.stdin); \
-    print('✓ Proxy OK. Models:', [m['id'] for m in d.get('data',[])])"
+echo "Waiting for services..."
+sleep 20
 
-# Also verify direct Ollama access (bypassing proxy) for diagnostics
-curl -s http://localhost:11434/api/tags | \
-    python3 -c "import sys,json; d=json.load(sys.stdin); \
-    print('✓ Ollama OK. Models:', [m['name'] for m in d.get('models',[])])"
+# Verify schema
+docker exec acorn-postgres psql -U acorn -d acorn -c "\dt" | grep -c "table" \
+  && echo "✓ Schema verified" || echo "✗ Schema check failed"
 
-# 11. Enable Claude Code agent teams (set globally, also inside harness container env)
-export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-echo "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1" >> ~/.bashrc
+# Pull models (DGX)
+if [ "${MODE}" = "dgx" ]; then
+  docker exec acorn-ollama ollama pull qwen3-coder
+  docker exec acorn-ollama ollama pull qwen2.5:14b
+  docker exec acorn-ollama ollama pull llama3.3:70b
+  docker exec acorn-ollama ollama pull nomic-embed-text
+elif [ "${MODE}" = "mini" ]; then
+  docker exec acorn-ollama ollama pull qwen3-coder
+  docker exec acorn-ollama ollama pull qwen2.5:14b
+  docker exec acorn-ollama ollama pull nomic-embed-text
+fi
 
-# 12. Install MCP server dependencies
-npm install -g @modelcontextprotocol/server-filesystem
-npm install -g @modelcontextprotocol/server-postgres
-pip install mcp-server-git --break-system-packages
+# Verify relay
+curl -sf -H "Authorization: Bearer ollama" http://localhost:9000/v1/models \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print('✓ Relay OK')" \
+  || echo "✗ Relay check failed"
 
-# 13. Install and verify custom OAK MCP servers
-cd ~/oak/oak_mcp/oak-memory-mcp && pip install -e . --break-system-packages
-cd ~/oak/oak_mcp/oak-skills-mcp && pip install -e . --break-system-packages
-cd ~/oak
-
-# 14. Launch UI Hub
-docker compose -f docker/docker-compose.dgx.yml exec oak-ui \
-    streamlit run canopy.py --server.port 8501 --server.headless true &
+# Verify API
+curl -sf http://localhost:8000/health | python3 -c "import sys,json; print('✓ API OK')" || echo "✗ API failed"
 
 echo ""
-echo "=== OAK Bootstrap v1.1 Complete ==="
-echo "Hub:         http://localhost:8501"
-echo "API:         http://localhost:8000/docs"
-echo "API Proxy:   http://localhost:9000  (Claude Code → this → Ollama/Claude API)"
-echo "Ollama:      http://localhost:11434"
-echo ""
-echo "To start a new problem:    scripts/new-problem.sh"
-echo "To launch a harness agent: docker run --rm --network oak_oak-net \\"
-echo "    -e OAK_AGENT_ID=orchestrator -e PROBLEM_UUID=\$PROBLEM_UUID \\"
-echo "    -v ~/oak-workspaces:/workspace oak/harness:latest"
+echo "═══════════════════════════════════════════════════"
+echo "  ACORN Bootstrap Complete"
+echo "  Hub UI: http://localhost:8501"
+echo "  API:    http://localhost:8000"
+echo "  Relay:  http://localhost:9000"
+echo "  To start a problem: bash scripts/new-problem.sh"
+echo "═══════════════════════════════════════════════════"
 ```
 
-**new-problem.sh** — creates an isolated worktree and launches the orchestrator agent inside an `oak-harness` container:
+### 10.2 new-problem.sh
 
 ```bash
 #!/bin/bash
-PROBLEM_UUID=${1:-$(uuidgen | tr '[:upper:]' '[:lower:]' | cut -c1-8)}
-BRANCH="oak/problem-${PROBLEM_UUID}"
-WORKSPACE="${HOME}/oak-workspaces/problem-${PROBLEM_UUID}"
+# scripts/new-problem.sh
+# Creates isolated git worktree and launches Orchestrator agent.
 
-cd ~/oak
-git worktree add ${WORKSPACE} -b ${BRANCH}
-git push -u origin ${BRANCH}
+set -euo pipefail
+
+PROBLEM_UUID="${1:-$(uuidgen | tr '[:upper:]' '[:lower:]' | cut -c1-8)}"
+BRANCH="acorn/problem-${PROBLEM_UUID}"
+WORKSPACE="${PWD}/acorn-workspaces/problem-${PROBLEM_UUID}"
+
+cd acorn
+
+# Create isolated git worktree
+git worktree add "${WORKSPACE}" -b "${BRANCH}" 2>/dev/null || git worktree add "${WORKSPACE}" "${BRANCH}"
 
 # Write problem manifest stub
-cat > ${WORKSPACE}/PROBLEM.md << EOF
-# Problem: ${PROBLEM_UUID}
-## Status: pending
-## Data location: /mnt/oak-data/${PROBLEM_UUID}/
-## Created: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+cat > "${WORKSPACE}/PROBLEM.md" << EOF
+# Problem ${PROBLEM_UUID}
+
+**Status:** pending
+**Created:** $(date -u '+%Y-%m-%dT%H:%M:%SZ')
 
 ## Description
-[Agent will populate after reading problem submission]
+Agent will populate after reading problem submission from TRUNK API.
 
-## Data manifest
-[Agent will populate after ingestion]
+## Input Manifest
+Agent will populate after reading input artefacts.
+
+## Output Format
+Agent will populate after Orchestrator decomposition.
+
+## Constraints
+- All sources must be cited in RESEARCH.md
+- All uncertainty must be flagged with [UNCERTAIN]
+- REASONING_TRAIL.md must be written before Judge invocation
 EOF
 
-export PROBLEM_UUID=${PROBLEM_UUID}
+# Create task coordination folder
+mkdir -p "${WORKSPACE}/.claude/tasks/acorn-${PROBLEM_UUID}"
+echo '{"problem_id":"'${PROBLEM_UUID}'","tasks":{},"kernels_applied":[],"last_updated":"'$(date -u '+%Y-%m-%dT%H:%M:%SZ')'"}' \
+  > "${WORKSPACE}/.claude/tasks/acorn-${PROBLEM_UUID}/status.json"
+
+# Insert problem into PostgreSQL via API
+curl -sf -X POST "http://localhost:8000/api/problems" \
+  -H "Content-Type: application/json" \
+  -d "{\"title\":\"Problem ${PROBLEM_UUID}\",\"description\":\"Pending\",\"id\":\"${PROBLEM_UUID}\",\"worktree_path\":\"${WORKSPACE}\"}" \
+  || true
+
 echo "Problem workspace ready: ${WORKSPACE}"
 echo "Branch: ${BRANCH}"
-echo ""
-echo "Launching orchestrator agent in oak-harness container..."
-# The harness container receives the three Ollama env vars from the image ENV
-# directives plus problem-specific vars below. It starts claude --model qwen3-coder
-# pointed at the api-proxy, which routes to Ollama by default.
+echo "Launching Orchestrator..."
+
 docker run --rm \
-    --network oak_oak-net \
-    --name "oak-agent-${PROBLEM_UUID}-orchestrator" \
-    -e OAK_AGENT_ID="orchestrator" \
-    -e OAK_PROBLEM_UUID="${PROBLEM_UUID}" \
-    -e REDIS_URL="redis://oak-redis:6379" \
-    -e DATABASE_URL="postgresql://oak:oak@oak-postgres:5432/oak" \
-    -v ${HOME}/oak-workspaces:/workspace \
-    -v /mnt/oak-data:/mnt/oak-data:ro \
-    -v ${HOME}/.claude:/root/.claude \
-    oak/harness:latest
+  --network acorn_acorn-net \
+  --name "acorn-agent-${PROBLEM_UUID}-orchestrator" \
+  -e ACORN_AGENT_ID=orchestrator \
+  -e ACORN_PROBLEM_UUID="${PROBLEM_UUID}" \
+  -e REDIS_URL=redis://acorn-redis:6379 \
+  -e DATABASE_URL=postgresql://acorn:acorn@acorn-postgres:5432/acorn \
+  -e ANTHROPIC_BASE_URL=http://acorn-api-relay:9000 \
+  -e ANTHROPIC_AUTH_TOKEN=ollama \
+  -e ANTHROPIC_API_KEY= \
+  -e CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 \
+  -v acorn_acorn-workspaces:/acorn-workspaces \
+  -v "${PWD}/.claude:/root/.claude:ro" \
+  acorn-harness:latest
+```
+
+### 10.3 cleanup-orphans.sh
+
+```bash
+#!/bin/bash
+# scripts/cleanup-orphans.sh
+# Stops harness containers with no matching active task.
+
+set -euo pipefail
+
+for name in $(docker ps --filter "name=acorn-agent" --format "{{.Names}}" 2>/dev/null); do
+  # Check if problem/task still active in DB; if not, stop container
+  uuid=$(echo "$name" | sed -n 's/acorn-agent-\([^-]*\)-.*/\1/p')
+  if [ -n "$uuid" ]; then
+    status=$(curl -sf "http://localhost:8000/api/problems/${uuid}" 2>/dev/null | jq -r '.status // "unknown"')
+    if [ "$status" = "complete" ] || [ "$status" = "failed" ] || [ "$status" = "unknown" ]; then
+      echo "Stopping orphan: $name"
+      docker rm -f "$name" 2>/dev/null || true
+    fi
+  fi
+done
 ```
 
 ---
 
-## 14. Phased Implementation Roadmap
+## 11. Next.js Hub (CANOPY)
 
-Each phase must reach its exit criteria before the next phase begins. Exit criteria are SLO-style: they specify observable, testable conditions, not feature presence. A phase is not complete because the feature exists — it is complete because the feature is correct, tested, and observable.
+### 11.1 Hub Pages
 
-### Phase 0 — Walking Skeleton (Weeks 1–2, DGX Spark)
+| Page | Path | Purpose |
+|------|------|---------|
+| Submit | `/submit` | Problem submission: title, description, input artefacts, output format |
+| Status | `/status/[id]` | Live status: task list, agent activity feed via WebSocket, kernel retrievals, reasoning steps |
+| Gallery | `/gallery` | Completed problems: filters, links to outputs and reasoning trails |
+| Kernel Library | `/kernels` | Kernel grove browser: search, promote probationary, benchmark history |
+| Telemetry | `/telemetry` | Agent metrics: tokens, duration, escalation rate, WARDEN health |
+| Reasoning Trails | `/reasoning/[id]` | Full trail viewer: step-by-step decisions, kernel retrievals, judge verdicts |
 
-**Goal:** Data flows from file to database to API with zero agent involvement. The purpose is to lock in correct data lifecycle, schema constraints, and API contract before any agent complexity is added.
+### 11.2 Hub Design Constraints
 
-**Scope:** Bring up `oak-postgres`, `oak-redis`, `oak-ollama`, and `oak-api` only. Implement `POST /api/problems` and a single non-agent ingestion script that reads a CSV from `/mnt/oak-data/{uuid}/`, loads it into PostgreSQL, and generates a trivial static Streamlit `app.py`. No Claude Code, no harness, no agent teams.
-
-**Tests to write:**
-- Unit tests for all five API routers and DDL constraints (foreign keys, CHECK constraints, NOT NULL).
-- Integration test: "1 CSV in → one PostgreSQL table + `app.py` out" passes in CI with no agent involvement.
-
-**Exit criteria (all must pass):**
-- `docker compose up` with `oak-postgres`, `oak-redis`, `oak-ollama`, `oak-api` succeeds; all four services report healthy.
-- `curl http://localhost:11434/v1/models` returns at least one local model.
-- `psql` shows all eight schema tables with correct column definitions.
-- `POST /api/problems` with a sample CSV creates all expected records; `GET /api/problems/{id}` returns them correctly.
-- CI integration test passes: 1 CSV in → table in postgres + valid `app.py` out.
-- No agent complexity is present in this phase — `scripts/bootstrap.sh` is the only orchestration.
-
-### Phase 1 — Hardened Harness + Single Agent (Weeks 3–4)
-
-**Goal:** The `oak-harness` container and `oak-api-proxy` are production-quality and fully test-covered *before* any agent teamwork is enabled. Introducing teams on a fragile harness is the highest-risk failure mode in the system.
-
-**Scope:** Build and test `oak-harness` and `oak-api-proxy`. Run a *single* Claude Code agent (no teams, no subagents) inside the harness performing the same CSV-to-app task as Phase 0. Stall detection remains disabled (`STALL_DETECTION_ENABLED=false`).
-
-**Tests to write:**
-- `tool-proxy.sh`: unit tests for every deny pattern (verify blocked commands exit 2; verify allowed commands exit 0 and are logged to Redis).
-- `session-state.py`: round-trip state (save → container restart → restore), TTL expiry, concurrent-session isolation.
-- `oak-api-proxy`: Ollama happy path, Ollama timeout/error handling, missing-key fallback (no crash, logs failure, returns best Ollama response).
-
-**Exit criteria (all must pass):**
-- All harness and proxy unit tests pass in CI.
-- Single agent inside harness completes CSV-to-app task end-to-end with no errors.
-- Tool proxy correctly blocks at least three canonical denied commands in tests.
-- Redis session state survives a simulated container restart (`docker stop` → `docker start`).
-- `GET /api/agents/status` shows the running agent session accurately.
-
-### Phase 2 — Agent Teams + Task List + Mailbox (Weeks 5–6)
-
-**Goal:** Multi-agent coordination is proven correct on simple canonical problem types before skill learning or UI evolution is layered on.
-
-**Scope:** Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. Wire up Orchestrator, Data Engineer, Data Scientist, and Judge Agents using `tasks` and `mailbox` tables. Keep solutions extremely simple (one or two basic Streamlit plots). No skill extraction, no UI PRs.
-
-**Tests to write:**
-- Task state machine: valid transitions only (`pending → claimed → complete`; illegal direct `pending → complete` is rejected).
-- Mailbox: message delivery, `read` flag toggle, broadcast (NULL `to_agent`) vs directed delivery.
-- Judge gating: `task-completed.sh` hook blocks closure when no PASS verdict exists; unblocks when PASS is present.
-
-**Exit criteria (all must pass):**
-- Two canonical problem types (e.g., CSV summary + time-series plot) complete end-to-end with Orchestrator + three specialists.
-- Task board in `GET /api/tasks?problem_id={id}` reflects accurate real-time status.
-- Mailbox messages are exchanged and readable in PostgreSQL with correct `read` flags.
-- A problem with a Judge FAIL verdict causes the relevant agent to be re-tasked (observable in task log).
-- Failure of one agent (simulated) is visible as a blocked task, not a silent hang.
-- Fewer than 2 unexpected failures per 10 test runs at this phase.
-
-### Phase 3 — Memory, Skill Library, and Hub (Weeks 7–8)
-
-**Goal:** OAK learns from its own work. Skill reuse is measurable. The Hub is live. UI evolution is constrained to analytics tab additions only until proven stable.
-
-**Scope:** Implement `oak-memory-mcp`, `oak-skills-mcp`, Skill Extractor, probationary promotion logic. Deploy Streamlit Hub to Streamlit Cloud on `oak/ui` branch with WebSocket stream. Implement constrained UI evolution: Software Architect may add analytics tabs to existing pages only — no entirely new pages yet.
-
-**Tests to write:**
-- Skill promotion: verify that a skill extracted from Problem 1 appears in `probationary/`, is retrieved via pgvector on Problem 2, and is promoted to `permanent/` after Problem 3.
-- pgvector: semantic search returns correct skill with top-1 accuracy on known queries.
-- WebSocket stream: all expected event types (`agent_spawned`, `task_claimed`, `judge_verdict`, `solution_ready`) are emitted and received by the Hub.
-- UI PR: Software Architect PR contains valid Python, passes `ruff` and `mypy` in CI, and does not break existing Hub navigation.
-
-**Exit criteria (all must pass):**
-- Hub is accessible at a public Streamlit Cloud URL.
-- A skill extracted from Problem 1 (ETL type) is retrievable via `GET /api/skills?query=...` and reused by the agent on Problem 2 of the same type.
-- Median time-to-app for Problem 3 (same type as 1 and 2) is measurably lower than Problem 1 via `agent_telemetry` (target: any reduction; 50% reduction is the Section 1.1 long-run target).
-- After merging a Software Architect PR, Hub redeploys within 5 minutes with the new tab visible and existing pages unbroken.
-- pgvector semantic search latency under 200ms for skill queries at the current library size.
-
-### Phase 4 — Mac Mini Port and Stall Detection (Weeks 9–10)
-
-**Goal:** Full platform portability is verified. Stall-based Claude API escalation is enabled and calibrated with observed telemetry.
-
-**Scope:** Switch to `docker-compose.mini.yml` on Mac Mini M4 Pro 64GB. Verify Metal backend, smaller model defaults, and aggressive escalation threshold. Enable `STALL_DETECTION_ENABLED=true` only after reviewing Phase 3 proxy telemetry to calibrate thresholds. Expand UI evolution to allow full new pages (not just tabs).
-
-**Exit criteria (all must pass):**
-- Full problem lifecycle (ingest → analyse → synthesise → validate → deploy) completes on Mac Mini.
-- `oak-ollama` logs confirm Metal backend is in use.
-- At least one problem triggers Claude API escalation; system falls back gracefully (no crash) when `ANTHROPIC_API_KEY_REAL` is absent.
-- Stall escalation rate is below 30% of total calls (if above, thresholds need recalibration before cloud deployment).
-- All Phase 0–3 exit criteria still pass after porting (regression test suite runs on mini).
-
-### Phase 5 — Concurrency Hardening and Cloud (Weeks 11–12)
-
-**Goal:** OAK handles multiple simultaneous problems without resource exhaustion, data leakage, or coordination race conditions.
-
-**Scope:** Deploy TRUNK + GROVE to a cloud multi-GPU node. Replace Ollama with vLLM for concurrent throughput. Add Kubernetes overlay. Test 3–5 concurrent problems with resource caps enforced.
-
-**Exit criteria (all must pass):**
-- Three concurrent problems run to completion with no data leakage between worktrees (verified by cross-problem query test).
-- Resource caps (`MAX_AGENTS_PER_PROBLEM`, `MAX_CONCURRENT_PROBLEMS`, `MAX_HARNESS_CONTAINERS`) are enforced and observable in `GET /api/telemetry`.
-- vLLM serves the 70B model with at least 2 concurrent requests without OOM.
-- Skill library aggregates correctly across concurrent problem solves (no race condition in promotion logic).
-- Fewer than 1 unexpected failure per 10 concurrent problem runs.
+- **No agent logic in Hub code.** Any computation beyond API call + render is a violation.
+- **WebSocket reconnect.** Status page must implement exponential-backoff reconnect (max 5 attempts).
+- **Sensitive data.** Problem descriptions never displayed raw in gallery — only titles, statuses, aggregated metrics.
 
 ---
 
-## 15. Observability
+## 12. Exit Criteria (v1.0 Release)
 
-Telemetry is only useful if it is tracked from the beginning. The following baseline metrics must be queryable from `agent_telemetry` and Redis at every phase.
+All of the following must be true for v1.0 release. **No phases** — everything is built in one release.
 
-### 15.1 Per-Problem Metrics
+1. **Schema:** All 9 schema tables created with correct constraints (problems, tasks, mailbox, episodes, kernels, reasoning_steps, research_cache, agent_telemetry, judge_verdicts).
 
-| Metric | Source | Why it matters |
-|---|---|---|
-| Total tokens consumed | `agent_telemetry.tokens_in + tokens_out` | Cost proxy; tracks efficiency trends |
-| Wall-clock time per task type | `tasks.completed_at - claimed_at` | Identifies bottlenecks; measures skill reuse benefit |
-| Failures per 10 problems | `agent_telemetry.success = FALSE` | System reliability signal |
-| Stall escalations per problem | `oak:telemetry:escalations` (Redis counter) | Proxy calibration signal; should be <30% |
-| Skill reuse rate | `skills.use_count` delta across problem | Primary compounding metric |
-| Judge FAIL rate | `judge_verdicts.verdict = 'fail'` | Code quality signal per agent |
+2. **TRUNK API:** All 7 routers operational with OpenAPI docs: problems, agents, tasks, kernels, telemetry, research, reasoning, mailbox.
 
-### 15.2 System-Level Metrics
+3. **acorn-harness:** Container builds and runs with tool-proxy, session state, deny-patterns.
 
-| Metric | Source | Alert threshold |
-|---|---|---|
-| Active harness containers | `docker ps --filter name=oak-agent` | > `MAX_HARNESS_CONTAINERS` |
-| Redis memory usage | `redis-cli info memory` | > 80% configured maxmemory |
-| PostgreSQL connection pool | `pg_stat_activity` | > 80% `max_connections` |
-| Ollama model load time | Proxy request logs | > 30s (model not pre-loaded) |
-| Skill library size (permanent) | `skills` table WHERE status='permanent' | Monitored for growth; no threshold |
+4. **acorn-api-relay:** Routes to Ollama correctly; escalation path works when key provided.
 
-### 15.3 Phase-Gate Metrics
+5. **Full agent team pipeline:** research → synthesise → validate → judge PASS.
 
-Each phase gate review checks these metrics to confirm health before advancing:
+6. **REASONING_TRAIL.md:** Written with all step types (decomposition, kernel_retrieval, research_strategy, synthesis_approach, uncertainty_flag, validation_outcome, judge_verdict).
 
-- **Phase 0 → 1:** API error rate < 1% on 100 test requests; schema constraint violation count = 0.
-- **Phase 1 → 2:** Harness unit test pass rate = 100%; tool-proxy block rate on denied commands = 100%.
-- **Phase 2 → 3:** Coordination failure rate < 2 per 10 problems; no task closure without Judge PASS.
-- **Phase 3 → 4:** Skill reuse demonstrated on ≥ 1 problem class; Hub WebSocket stream latency < 500ms.
-- **Phase 4 → 5:** Stall escalation rate < 30%; Mac Mini lifecycle success rate ≥ 8/10 problems.
+7. **Kernel Extractor:** Produces KERNEL.md in probationary grove after PASS.
+
+8. **Kernel promotion:** Works after 2 independent verified uses.
+
+9. **WARDEN:** Health checks, orphan cleanup, stale problem sync all operational.
+
+10. **Next.js Hub:** Submit, status, gallery, kernel library, telemetry, reasoning trails pages.
+
+11. **WebSocket:** Live streaming from agent events to Hub.
+
+12. **CI:** ruff, mypy, pytest (unit + contract) all pass.
+
+13. **Profiles:** DGX Spark fully operational; Mini and Cloud profiles build without error.
+
+14. **bootstrap.sh:** Runs end-to-end on a fresh DGX Spark.
 
 ---
 
-## 16. Failure Mode Reference
+## 13. Environment Variables (.env.example)
 
-The following table covers the most operationally significant failure modes. For each: what the system does, and what the operator should do.
+```bash
+# ACORN_MODE — dgx | mini | cloud
+ACORN_MODE=dgx
 
-| Failed component | System behaviour | Operator action |
-|---|---|---|
-| **Redis is down** | Session state restore fails silently; agents start with blank context but continue. Mailbox pub/sub is unavailable — agents cannot communicate. | `docker restart oak-redis`. Active agent sessions will lose context and stall; re-run `new-problem.sh` to restart with fresh state. |
-| **PostgreSQL is down** | `POST /api/problems` returns 503. Task list and mailbox writes fail. All agents block on task claims. Judge verdicts cannot be recorded. | `docker restart oak-postgres`. PostgreSQL state is durable (mounted volume); no data is lost. Resume in-progress problems after restart. |
-| **Ollama model not pulled** | Proxy receives a 404 or empty response from Ollama; if `STALL_DETECTION_ENABLED=true` and API key is present, escalates to Claude API. If not, proxy returns error to Claude Code and the agent stalls. | `docker exec oak-ollama ollama pull <model>`. The agent will retry on the next tool call. Bootstrap script pulls all required models — run it if models are missing. |
-| **Ollama OOM (model too large)** | Ollama returns 500. Proxy escalates if configured; otherwise agents stall. | Switch to a smaller model in `.env` (`DEFAULT_MODEL`, `CODER_MODEL`). On DGX this should not occur with 128GB; on Mac Mini 64GB, avoid simultaneous 70B loads. |
-| **oak-api-proxy unreachable** | Claude Code receives connection refused on its `ANTHROPIC_BASE_URL`. All agent tool calls fail immediately. | `docker restart oak-api-proxy`. This service is stateless — restart is safe and fast. |
-| **Claude API key absent or expired** | If `STALL_DETECTION_ENABLED=false`: no effect (proxy never uses the key). If `true`: escalation fails; proxy logs `oak:telemetry:escalation_failures`, retries locally with adjusted prompt, and continues with Ollama response. | Check `ANTHROPIC_API_KEY_REAL` in `.env`. Expired key: rotate and restart proxy. No key: set `STALL_DETECTION_ENABLED=false` until a key is available. |
-| **Judge Agent fails to respond** | `task-completed.sh` hook blocks task closure indefinitely. Problem stalls at validate stage. | Check agent telemetry for Judge agent errors. Re-invoke Judge manually: `docker run oak/harness:latest -e OAK_AGENT_ID=judge`. Alternatively, mark a manual PASS verdict in `judge_verdicts` for unblocking. |
-| **Harness container exceeds `MAX_HARNESS_CONTAINERS`** | `new-problem.sh` refuses to launch a new harness container and returns an error. New problems cannot start. | Wait for active problems to complete, or manually stop idle containers (`docker ps --filter name=oak-agent`). Raise `MAX_HARNESS_CONTAINERS` in `.env` if hardware permits. |
-| **Git worktree conflict** | `git worktree add` fails if branch already exists. `new-problem.sh` exits with error — no agent is started. | Run `git worktree list` to identify stale worktrees. Remove with `git worktree remove <path> --force` then re-run `new-problem.sh`. |
+# Relay recipe
+ANTHROPIC_BASE_URL=http://acorn-api-relay:9000
+ANTHROPIC_AUTH_TOKEN=ollama
+ANTHROPIC_API_KEY=
+ANTHROPIC_API_KEY_REAL=
+
+# Database and cache
+DATABASE_URL=postgresql://acorn:acorn@acorn-postgres:5432/acorn
+REDIS_URL=redis://acorn-redis:6379
+
+# Model routing
+DEFAULT_MODEL=qwen3-coder
+SYNTHESIS_MODEL=qwen3-coder
+RESEARCH_MODEL=qwen2.5:14b
+
+# Routing
+ROUTING_STRATEGY=passthrough
+STALL_DETECTION_ENABLED=false
+STALL_MIN_TOKENS=20
+LOCAL_CONFIDENCE_THRESHOLD=0.8
+
+# Resource caps
+MAX_AGENTS_PER_PROBLEM=10
+MAX_CONCURRENT_PROBLEMS=5
+MAX_HARNESS_CONTAINERS=20
+
+# Session and memory
+ACORN_SESSION_TTL_HOURS=24
+ACORN_IDLE_TIMEOUT_SECONDS=120
+
+# Kernel grove
+ACORN_KERNEL_PROMO_THRESHOLD=2
+KERNEL_DEPRECATION_THRESHOLD=0.4
+```
 
 ---
 
-## 17. What Makes OAK Genuinely New
-
-**Persistent skill compounding.** Most agent systems reason from scratch every time. OAK's Voyager-pattern skill library means the system is categorically more capable after 50 problems than after 5 — not because of fine-tuning, but because it has compiled executable knowledge from experience. The difference is like the difference between a junior engineer who has read the textbook and a senior engineer who has built fifty systems.
-
-**Resource-aware grove.** Agent count is not fixed, but it is purposefully bounded. A simple ETL problem might spawn three agents; a multi-modal forecasting problem with six data sources might spawn twenty. The grove grows to match the problem within configured resource caps — not because ceilings are philosophically good, but because unconstrained growth on finite hardware is not growth at all.
-
-**Self-evolving interface.** The Hub UI is not a finished product — it is a living thing that adds new pages and widgets as the agent grove encounters new problem classes and masters them. The interface reflects what OAK has become, not what it was designed to be.
-
-**Sovereign intelligence.** Every skill, every memory, every learned pattern belongs to the operator and lives on their hardware. The system's growing domain expertise is not shared with any cloud provider, not subject to external policy changes, and not reset by a platform update.
-
-**Hardware agnostic.** One codebase, one environment variable, three deployment targets. OAK grows where you plant it.
-
----
-
-*Specification synthesised from: FORGE_system_framing.md, critically review and improvise the framing.md, revamp1.md (FABRIC), revamp2.md (OAK)*
-*Remote repository: https://github.com/SharathSPhD/oak.git*
-*Generated for Claude Code initialisation on NVIDIA DGX Spark*
+*End of spec.md v1.0*

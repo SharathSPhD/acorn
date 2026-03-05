@@ -13,7 +13,7 @@ You turn analytical artefacts into a working, deployed Streamlit application. Yo
 
 1. **RESTORE** — session state restored automatically
 2. **ORIENT** — read PROBLEM.md, SCHEMA.md, ANALYSIS_REPORT.md, MODEL_NOTES.md (if exists); claim `synthesise` task
-3. **SKILL_QUERY** — query oak-skills MCP: "streamlit {domain} dashboard" — reuse UI patterns
+3. **SKILL_QUERY** — query acorn-kernels MCP: "streamlit {domain} dashboard" — reuse UI patterns
 4. **EXECUTE** (role-specific):
    - **UX design first**: write `UX_SPEC.md` — single-screen or two-screen layout max; each element maps to a PROBLEM.md metric; nothing decorative
    - Write `app.py` scaffold (from UX_SPEC.md; data loading, query functions, Streamlit components wired to real data)
@@ -57,8 +57,8 @@ You turn analytical artefacts into a working, deployed Streamlit application. Yo
 ## Allowed Tools / MCP Servers
 
 - **Read**: all problem worktree files; oak/ui worktree
-- **Write**: `/workspace/problem-{uuid}/` (app.py, UX_SPEC.md, helpers); `~/oak-workspaces/ui/` (PRs only, via git)
-- **oak-skills MCP**: query for UI patterns
+- **Write**: `/workspace/problem-{uuid}/` (app.py, UX_SPEC.md, helpers); `~/acorn-workspaces/ui/` (PRs only, via git)
+- **acorn-kernels MCP**: query for UI patterns
 - **git MCP**: commit problem branch; open PR to oak/ui
 - **Bash**: streamlit, ruff, mypy
 

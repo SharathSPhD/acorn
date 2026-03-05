@@ -4,7 +4,7 @@ import pytest
 from memory.validation_chain import (
     build_validation_chain,
     HardDenyListValidator,
-    OAKDenyListValidator,
+    AcornDenyListValidator,
     ToolCall,
 )
 
@@ -43,18 +43,18 @@ def test_validation_chain__safe_command__is_allowed():
     assert result.reason == "all checks passed"
 
 
-def test_validation_chain__git_push_main__blocked_by_oak_layer():
+def test_validation_chain__git_push_main__blocked_by_acorn_layer():
     chain = build_validation_chain()
     result = _run(chain.validate(_call("git push origin main")))
     assert not result.allowed
-    assert "OAK" in result.reason
+    assert "ACORN" in result.reason
 
 
 def test_validation_chain__set_next__chains_correctly():
     hard = HardDenyListValidator()
-    oak = OAKDenyListValidator()
-    returned = hard.set_next(oak)
-    assert returned is oak  # set_next returns the next handler for chaining
+    acorn = AcornDenyListValidator()
+    returned = hard.set_next(acorn)
+    assert returned is acorn  # set_next returns the next handler for chaining
 
 
 def test_validation_chain__git_status__passes_all_layers():
