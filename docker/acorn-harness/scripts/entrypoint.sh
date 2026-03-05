@@ -356,7 +356,7 @@ POSTVERDICT
     exit 0
 fi
 
-# ── Skill Extractor ───────────────────────────────────────────────────────
+# ── Kernel Extractor ──────────────────────────────────────────────────────
 if [ "$ROLE" = "kernel-extractor" ]; then
     log "Scanning for reusable patterns"
 
@@ -367,7 +367,7 @@ if [ "$ROLE" = "kernel-extractor" ]; then
     if [ -n "$TASK_ID" ]; then
         patch_task "$TASK_ID" "complete"
     fi
-    log "Skill extraction complete"
+    log "Kernel extraction complete"
     exit 0
 fi
 
@@ -608,7 +608,7 @@ api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
 puuid = os.environ.get('ACORN_PROBLEM_UUID', '')
 body = json.dumps({
     'problem_id': puuid,
-    'title': 'Skill extraction',
+    'title': 'Kernel extraction',
     'description': 'Extract reusable patterns from solution',
     'task_type': 'validate',
     'assigned_to': 'kernel-extractor',
@@ -625,7 +625,7 @@ if [ -n "$KERNEL_TASK_ID" ]; then
     curl -sf -X POST "$ACORN_API/api/problems/$PROBLEM_UUID/spawn-agent" \
         -H "Content-Type: application/json" \
         -d "{\"role\": \"kernel-extractor\", \"task_id\": \"$KERNEL_TASK_ID\"}" > /dev/null 2>&1 || true
-    log "Skill extractor spawned with task $KERNEL_TASK_ID"
+    log "Kernel extractor spawned with task $KERNEL_TASK_ID"
 else
     curl -sf -X POST "$ACORN_API/api/problems/$PROBLEM_UUID/spawn-agent" \
         -H "Content-Type: application/json" \
