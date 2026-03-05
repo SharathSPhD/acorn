@@ -1,6 +1,7 @@
 __pattern__ = "Repository"
 
 import asyncio
+import logging
 import os
 import shutil
 import time
@@ -24,6 +25,8 @@ from api.models import (
     ProblemStatusUpdate,
     SpawnAgentRequest,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/problems", tags=["problems"])
 
@@ -188,9 +191,13 @@ async def start_problem(
             f"acorn/problem-{problem_id}", workspace_path, "main",
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
         )
-        await asyncio.wait_for(proc.communicate(), timeout=30)
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=30)
+        if proc.returncode != 0:
+            logger.warning(
+                "git worktree add exited %d: %s", proc.returncode, stderr.decode(errors="replace"),
+            )
     except Exception:
-        pass
+        logger.exception("Failed to create git worktree for problem %s", problem_id)
 
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -199,7 +206,7 @@ async def start_problem(
         )
         await asyncio.wait_for(proc.communicate(), timeout=10)
     except Exception:
-        pass
+        logger.debug("Container %s did not exist or could not be removed", container_name)
 
     factory = get_agent_factory()
     spec = factory.create(
@@ -232,7 +239,7 @@ async def start_problem(
     )
 
 
-@router.post("/{problem_id}/spawn-agent")
+@router.post("/{problem_id}/spawn-agent", status_code=201)
 async def spawn_agent(
     problem_id: UUID,
     body: SpawnAgentRequest,

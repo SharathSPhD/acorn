@@ -70,6 +70,26 @@ async def list_tasks(
     return rows
 
 
+@router.get("/current")
+async def get_current_task(
+    agent_id: str = Query(...),
+    problem_id: UUID = Query(...),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Return the current claimed task for an agent. Used by thin hooks."""
+    result = await db.execute(
+        text("""
+            SELECT title || ': ' || COALESCE(description, 'no description') AS summary
+            FROM tasks
+            WHERE problem_id = :problem_id AND assigned_to = :agent_id AND status = 'claimed'
+            LIMIT 1
+        """),
+        {"problem_id": str(problem_id), "agent_id": agent_id},
+    )
+    row = result.mappings().one_or_none()
+    return {"task": row["summary"] if row else "unknown task"}
+
+
 @router.patch("/{task_id}/status", response_model=TaskResponse)
 async def update_task_status(
     task_id: UUID,

@@ -11,13 +11,25 @@ from api.dependencies import get_settings
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
 
-@router.post("/spawn")
+VALID_ROLES = frozenset({
+    "orchestrator", "data-engineer", "data-scientist", "ml-engineer",
+    "software-architect", "judge-agent", "kernel-extractor", "meta-agent",
+    "coder", "reviewer",
+})
+
+
+@router.post("/spawn", status_code=201)
 async def spawn_agent(
     role: str,
     problem_uuid: UUID,
     settings: AcornSettings = Depends(get_settings),
 ) -> dict[str, str]:
     """Spawn an agent for a problem via DGXAgentFactory. Returns container ID."""
+    if role not in VALID_ROLES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid role '{role}'. Must be one of: {sorted(VALID_ROLES)}",
+        )
     from api.factories.agent_factory import DGXAgentFactory, ResourceCapExceededError
     from api.services.agent_registry import AgentRegistry
 

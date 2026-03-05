@@ -50,6 +50,23 @@ async def submit_verdict(
     return JudgeVerdictResponse(**dict(row))
 
 
+@router.get("/check/{task_id}")
+async def check_verdict(
+    task_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, bool]:
+    """Check if a task has a passing judge verdict. Used by thin hooks."""
+    result = await db.execute(
+        text(
+            "SELECT COUNT(*) AS cnt FROM judge_verdicts"
+            " WHERE task_id = :task_id AND verdict = 'pass'"
+        ),
+        {"task_id": str(task_id)},
+    )
+    row = result.mappings().one()
+    return {"has_pass": int(row["cnt"]) > 0}
+
+
 @router.get("/{problem_uuid}", response_model=list[JudgeVerdictResponse])
 async def get_verdicts(
     problem_uuid: UUID,

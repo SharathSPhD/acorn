@@ -35,10 +35,18 @@ def test_spawn__within_all_limits__returns_200():
          patch("api.factories.agent_factory.DGXAgentFactory", return_value=mock_factory):
         with TestClient(app) as client:
             resp = client.post(f"/api/agents/spawn?role=coder&problem_uuid={PROB_A}")
-    assert resp.status_code == 200
+    assert resp.status_code == 201
     data = resp.json()
     assert data["agent_id"] == "new-agent-id"
     assert data["container_id"] == "container-abc"
+
+
+def test_spawn__invalid_role__returns_400():
+    from api.main import app
+    with TestClient(app) as client:
+        resp = client.post(f"/api/agents/spawn?role=evil-injected&problem_uuid={PROB_A}")
+    assert resp.status_code == 400
+    assert "Invalid role" in resp.json()["detail"]
 
 
 def test_spawn__max_harness_containers_reached__returns_503():
@@ -110,4 +118,4 @@ def test_spawn__existing_problem_at_concurrent_limit__allowed():
          patch("api.factories.agent_factory.DGXAgentFactory", return_value=mock_factory):
         with TestClient(app) as client:
             resp = client.post(f"/api/agents/spawn?role=reviewer&problem_uuid={PROB_A}")
-    assert resp.status_code == 200
+    assert resp.status_code == 201

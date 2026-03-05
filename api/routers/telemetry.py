@@ -1,8 +1,10 @@
 __pattern__ = "Observer"
 
+import json
+from typing import Any
 
 import asyncpg
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from api.config import settings
 from api.models import TelemetryEventCreate, TelemetryResponse
@@ -68,12 +70,49 @@ async def get_telemetry() -> TelemetryResponse:
         await conn.close()
 
 
+@router.post("/tool-event", status_code=201)
+async def record_tool_event(request: Request) -> dict[str, str]:
+    """Receive raw tool-use payload from the thin PostToolUse hook and store as telemetry."""
+    agent_id = request.headers.get("X-Agent-Id", "unknown")
+    problem_uuid = request.headers.get("X-Problem-UUID", "")
+    try:
+        body: dict[str, Any] = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Invalid JSON body") from exc
+
+    tool_name = body.get("tool_name", "unknown")
+    tool_input = body.get("tool_input")
+    tool_response = body.get("tool_response")
+
+    conn = await asyncpg.connect(settings.database_url)
+    try:
+        row = await conn.fetchrow(
+            """INSERT INTO agent_telemetry
+               (problem_id, agent_id, event_type, tool_name, tool_input, tool_response,
+                duration_ms, escalated)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+               RETURNING id, created_at""",
+            problem_uuid or None,
+            agent_id,
+            "tool_called",
+            tool_name,
+            json.dumps(tool_input) if isinstance(tool_input, dict) else None,
+            json.dumps(tool_response) if isinstance(tool_response, dict) else None,
+            0,
+            False,
+        )
+        return {"id": str(row["id"]), "created_at": str(row["created_at"])}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    finally:
+        await conn.close()
+
+
 @router.post("", status_code=201)
 async def record_event(event: TelemetryEventCreate) -> dict[str, str]:
     """Record a telemetry event from an agent hook (post-tool-use.sh)."""
     conn = await asyncpg.connect(settings.database_url)
     try:
-        import json
         row = await conn.fetchrow(
             """INSERT INTO agent_telemetry
                (problem_id, agent_id, event_type, tool_name, tool_input, tool_response,

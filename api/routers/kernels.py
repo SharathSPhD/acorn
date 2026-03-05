@@ -57,7 +57,7 @@ async def list_kernels(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-@router.post("")
+@router.post("", status_code=201)
 async def create_kernel(body: dict[str, Any]) -> dict[str, Any]:
     """Create a new probationary kernel."""
     name = body.get("name", "")
@@ -120,16 +120,16 @@ async def ingest_workspace_kernels(problem_id: str) -> dict[str, Any]:
     if not workspace.exists():
         raise HTTPException(status_code=404, detail=f"Workspace not found for {problem_id}")
 
-    skill_files = list(workspace.rglob("SKILL.md")) + list(workspace.rglob("skill.md"))
-    if not skill_files:
-        return {"ingested": 0, "message": "No SKILL.md files found"}
+    kernel_files = list(workspace.rglob("KERNEL.md")) + list(workspace.rglob("kernel.md"))
+    if not kernel_files:
+        return {"ingested": 0, "message": "No KERNEL.md files found"}
 
     ingested = 0
     conn = await asyncpg.connect(settings.database_url)
     try:
-        for sf in skill_files:
+        for sf in kernel_files:
             content = sf.read_text()
-            name, description, category, keywords = _parse_skill_md(content)
+            name, description, category, keywords = _parse_kernel_md(content)
             if not name:
                 continue
 
@@ -148,11 +148,11 @@ async def ingest_workspace_kernels(problem_id: str) -> dict[str, Any]:
     finally:
         await conn.close()
 
-    return {"ingested": ingested, "files_scanned": len(skill_files)}
+    return {"ingested": ingested, "files_scanned": len(kernel_files)}
 
 
-def _parse_skill_md(content: str) -> tuple[str, str, str, list[str]]:
-    """Extract name, description, category, and keywords from a SKILL.md file."""
+def _parse_kernel_md(content: str) -> tuple[str, str, str, list[str]]:
+    """Extract name, description, category, and keywords from a KERNEL.md file."""
     lines = content.strip().split("\n")
     name = ""
     description = ""
