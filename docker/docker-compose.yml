@@ -140,6 +140,11 @@ services:
       ROUTING_STRATEGY: passthrough
     depends_on:
       - acorn-redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/v1/models"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
     profiles: ["dgx"]
 
   acorn-ui:
@@ -353,6 +358,11 @@ services:
       ACORN_META_COOLDOWN: "${ACORN_META_COOLDOWN:-3600}"
     depends_on:
       - acorn-api
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
     profiles: ["dgx", "mini", "cloud"]
 
   # ──────────────────────────────────────────────────────────────────────────
