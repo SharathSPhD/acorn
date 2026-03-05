@@ -1,16 +1,19 @@
 __pattern__ = "EventDriven"
 
 import asyncio
+from typing import Any
 
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.routing import APIRouter
 
 from api.config import settings
 
+_aioredis_mod: Any
 try:
-    import redis.asyncio as aioredis  # available at runtime inside Docker
+    import redis.asyncio as _redis_async
+    _aioredis_mod = _redis_async
 except ImportError:  # pragma: no cover — redis absent only in bare test envs
-    aioredis = None  # type: ignore[assignment]
+    _aioredis_mod = None
 
 router = APIRouter()
 
@@ -22,7 +25,7 @@ async def websocket_stream(websocket: WebSocket, problem_uuid: str) -> None:
     redis_client = None
     pubsub = None
     try:
-        redis_client = aioredis.from_url(settings.redis_url, decode_responses=True)
+        redis_client = _aioredis_mod.from_url(settings.redis_url, decode_responses=True)
         pubsub = redis_client.pubsub()
         channel = f"acorn:stream:{problem_uuid}"
         await pubsub.subscribe(channel)
@@ -38,7 +41,7 @@ async def websocket_stream(websocket: WebSocket, problem_uuid: str) -> None:
     finally:
         if pubsub:
             await pubsub.unsubscribe()
-            await pubsub.aclose()  # type: ignore[no-untyped-call]
+            await pubsub.aclose()
         if redis_client:
             await redis_client.aclose()
 

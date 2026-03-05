@@ -3,14 +3,17 @@ __pattern__ = "Repository"
 
 import json
 import time
+from typing import Any
 
 from api.models import AgentStatusResponse
 
+_aioredis_mod: Any
 try:
-    import redis.asyncio as aioredis
+    import redis.asyncio as _redis_async
+    _aioredis_mod = _redis_async
     _REDIS_AVAILABLE = True
 except ImportError:
-    aioredis = None  # type: ignore[assignment]
+    _aioredis_mod = None
     _REDIS_AVAILABLE = False
 
 
@@ -21,9 +24,9 @@ class AgentRegistry:
     TTL = 300
 
     def __init__(self, redis_url: str) -> None:
-        self._redis: aioredis.Redis | None = None
-        if _REDIS_AVAILABLE and aioredis:
-            self._redis = aioredis.from_url(redis_url, decode_responses=True)
+        self._redis: Any = None
+        if _REDIS_AVAILABLE and _aioredis_mod:
+            self._redis = _aioredis_mod.from_url(redis_url, decode_responses=True)
 
     async def register(
         self, agent_id: str, role: str, problem_uuid: str = "", container_id: str = ""

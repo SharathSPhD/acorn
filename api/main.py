@@ -3,7 +3,7 @@ __pattern__ = "Observer"
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.config import settings
@@ -76,10 +76,18 @@ async def health() -> dict[str, object]:
 async def receive_event(request: Request) -> dict[str, str]:
     """Hook relay endpoint. Receives AgentEvent from post-tool-use.sh and publishes to EventBus."""
     from api.events.bus import AgentEvent as BusEvent
-    body = await request.json()
+    try:
+        body = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Invalid JSON body") from exc
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="Body must be a JSON object")
+    event_type = body.get("event_type")
+    if not event_type or not isinstance(event_type, str):
+        raise HTTPException(status_code=400, detail="Missing or invalid event_type")
     bus = get_event_bus()
     await bus.publish(BusEvent(
-        event_type=body.get("event_type", "unknown"),
+        event_type=event_type,
         agent_id=body.get("agent_id", "unknown"),
         problem_uuid=body.get("problem_uuid", "unknown"),
         timestamp_utc=body.get("timestamp_utc", 0.0),

@@ -14,7 +14,7 @@ def mock_redis():
     
     with patch.dict(sys.modules, {"redis.asyncio": mock_aioredis}):
         with patch("api.services.agent_registry._REDIS_AVAILABLE", True):
-            with patch("api.services.agent_registry.aioredis", mock_aioredis):
+            with patch("api.services.agent_registry._aioredis_mod", mock_aioredis):
                 yield mock_r
 
 

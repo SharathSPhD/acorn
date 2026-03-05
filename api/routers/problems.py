@@ -293,8 +293,10 @@ async def upload_file(
     workspace_path = Path(f"{settings.acorn_workspace_base}/problem-{problem_id}")
     workspace_path.mkdir(parents=True, exist_ok=True)
 
-    fname = file.filename or "uploaded_file"
-    dest = workspace_path / fname
+    fname = Path(file.filename or "uploaded_file").name
+    dest = (workspace_path / fname).resolve()
+    if not str(dest).startswith(str(workspace_path.resolve())):
+        raise HTTPException(status_code=400, detail="Invalid filename")
     content = await file.read()
     dest.write_bytes(content)
 

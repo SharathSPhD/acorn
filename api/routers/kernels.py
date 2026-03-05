@@ -110,8 +110,11 @@ async def promote_kernel(kernel_id: UUID) -> dict[str, str]:
 
 @router.post("/ingest-workspace/{problem_id}")
 async def ingest_workspace_kernels(problem_id: str) -> dict[str, Any]:
-    """Scan a problem workspace for SKILL.md files and ingest as probationary kernels."""
-    workspace = Path(settings.acorn_workspace_base) / problem_id
+    """Scan a problem workspace for KERNEL.md files and ingest as probationary kernels."""
+    safe_id = Path(problem_id).name
+    if safe_id != problem_id:
+        raise HTTPException(status_code=400, detail="Invalid problem_id")
+    workspace = Path(settings.acorn_workspace_base) / safe_id
     if not workspace.exists():
         workspace = Path(settings.acorn_workspace_base) / f"self-build-{problem_id[:8]}"
     if not workspace.exists():
