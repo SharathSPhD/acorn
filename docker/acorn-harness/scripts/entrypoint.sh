@@ -7,7 +7,12 @@ ACORN_API="${ACORN_API_URL:-http://acorn-api:8000}"
 PROBLEM_UUID="${ACORN_PROBLEM_UUID:-}"
 AGENT_ID="${ACORN_AGENT_ID:-agent-$(python3 -c 'import time;print(int(time.time()))')}"
 ROLE="${ACORN_ROLE:-orchestrator}"
-MODEL="${ACORN_MODEL:-qwen3-coder}"
+if [ -z "$ACORN_MODEL" ]; then
+    QUERIED_MODEL=$(curl -sf "$ACORN_API/api/agents/model-for-role?role=$ROLE" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('model','qwen3-coder'))" 2>/dev/null || echo "qwen3-coder")
+    MODEL="$QUERIED_MODEL"
+else
+    MODEL="$ACORN_MODEL"
+fi
 TASK_ID="${ACORN_TASK_ID:-}"
 POLL_INTERVAL=30
 MAX_POLL_ATTEMPTS=120
@@ -78,8 +83,75 @@ METAEOF
     exit 0
 fi
 
+# ── Spec agents (research-analyst, synthesis-agent, domain-specialist, etc.) ─
+SPEC_AGENT_ROLES="research-analyst synthesis-agent domain-specialist validator interface-agent calibration-agent"
+if echo "$SPEC_AGENT_ROLES" | grep -qw "$ROLE"; then
+    log "Starting spec agent (role=$ROLE, task=$TASK_ID)"
+
+    if [ -n "$TASK_ID" ]; then
+        patch_task "$TASK_ID" "claimed"
+    fi
+    TASK_DESC=""
+    if [ -n "$TASK_ID" ]; then
+        TASK_JSON=$(curl -sf "$ACORN_API/api/tasks?problem_id=$PROBLEM_UUID" 2>/dev/null || echo "[]")
+        TASK_DESC=$(echo "$TASK_JSON" | python3 -c "
+import sys, json
+tasks = json.load(sys.stdin)
+tid = '$TASK_ID'
+for t in (tasks if isinstance(tasks, list) else []):
+    if str(t.get('id','')) == tid:
+        print(t.get('description','') or t.get('title',''))
+        break
+else:
+    print('')
+" 2>/dev/null || echo "")
+    fi
+    [ -z "$TASK_DESC" ] && TASK_DESC="Complete the assigned task for $ROLE"
+
+    PROBLEM_DESC=""
+    if [ -f /workspace/PROBLEM.md ]; then
+        PROBLEM_DESC=$(head -50 /workspace/PROBLEM.md)
+    fi
+
+    AGENT_FILE="/workspace/.claude/agents/${ROLE}.md"
+    AGENT_DEF=""
+    if [ -f "$AGENT_FILE" ]; then
+        AGENT_DEF=$(cat "$AGENT_FILE")
+    else
+        AGENT_DEF="You are the $ROLE agent. Complete the task and write the required output artefact."
+    fi
+
+    claude --dangerously-skip-permissions --model "$MODEL" --max-turns 10 -p \
+      "## Agent Definition
+$AGENT_DEF
+
+## Task
+$TASK_DESC
+
+## Problem Context
+$PROBLEM_DESC
+
+Execute your lifecycle. Write your output artefact to /workspace. RESTORE, ORIENT, EXECUTE, REPORT, CLOSE, SAVE." \
+      > /dev/null 2>&1 || true
+
+    TASK_STATUS="complete"
+    case "$ROLE" in
+        research-analyst) [ -f /workspace/RESEARCH.md ] || TASK_STATUS="failed" ;;
+        synthesis-agent) [ -f /workspace/SYNTHESIS.md ] || [ -f /workspace/app.py ] || TASK_STATUS="failed" ;;
+        domain-specialist) [ -f /workspace/DOMAIN_ANALYSIS.md ] || TASK_STATUS="failed" ;;
+        validator) [ -f /workspace/VALIDATION_REPORT.md ] || TASK_STATUS="failed" ;;
+        *) TASK_STATUS="complete" ;;
+    esac
+
+    if [ -n "$TASK_ID" ]; then
+        patch_task "$TASK_ID" "$TASK_STATUS"
+    fi
+    log "Spec agent $ROLE finished: $TASK_STATUS"
+    exit 0
+fi
+
 # ── Specialist (data-engineer, data-scientist, ml-engineer, etc.) ────────
-SPECIALIST_ROLES="data-engineer data-scientist ml-engineer ai-engineer software-architect frontend security-expert"
+SPECIALIST_ROLES="data-engineer data-scientist ml-engineer ai-engineer software-architect frontend security-expert research-analyst synthesis-agent domain-specialist validator interface-agent calibration-agent"
 if echo "$SPECIALIST_ROLES" | grep -qw "$ROLE"; then
     log "Starting specialist task (task=$TASK_ID)"
 
@@ -652,6 +724,14 @@ else
 fi
 sleep 15
 
+log "Step 6b: Ingesting extracted kernels into grove"
+curl -sf -X POST "$ACORN_API/api/kernels/ingest-workspace/problem-$PROBLEM_UUID" \
+    -H "Content-Type: application/json" 2>/dev/null || \
+  curl -sf -X POST "$ACORN_API/api/kernels/ingest-workspace/$PROBLEM_UUID" \
+    -H "Content-Type: application/json" 2>/dev/null || true
+INGEST_RESULT=$?
+log "Kernel ingestion result: $INGEST_RESULT"
+
 log "Step 7: Marking problem complete"
 FINAL_TASKS=$(curl -sf "$ACORN_API/api/tasks?problem_id=$PROBLEM_UUID" 2>/dev/null || echo "[]")
 HAS_FAILURES=$(echo "$FINAL_TASKS" | python3 -c "
@@ -668,6 +748,23 @@ else
     patch_problem "complete"
     record_reasoning "conclusion" "Pipeline completed successfully" "0.9"
     log "Pipeline complete successfully"
+fi
+
+# Record GRS reward signals (derive verdict from judge_verdicts API)
+VERDICTS_JSON=$(curl -sf "$ACORN_API/api/judge_verdicts/$PROBLEM_UUID" 2>/dev/null || echo "[]")
+JUDGE_VERDICT=$(echo "$VERDICTS_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['verdict'] if isinstance(d,list) and len(d)>0 else '')" 2>/dev/null || echo "")
+if [ "$JUDGE_VERDICT" = "pass" ]; then
+    curl -sf -X POST "$ACORN_API/api/rewards/record" \
+        -H "Content-Type: application/json" \
+        -d "{\"signal\": \"JUDGE_PASS\", \"agent_id\": \"$AGENT_ID\", \"role\": \"$ROLE\", \"problem_id\": \"$PROBLEM_UUID\", \"rationale\": \"Judge issued PASS verdict\"}" 2>/dev/null || true
+    curl -sf -X POST "$ACORN_API/api/rewards/record" \
+        -H "Content-Type: application/json" \
+        -d "{\"signal\": \"SOLUTION_COMPLETE\", \"agent_id\": \"orchestrator\", \"role\": \"orchestrator\", \"problem_id\": \"$PROBLEM_UUID\", \"rationale\": \"Problem solved successfully\"}" 2>/dev/null || true
+fi
+if [ "$JUDGE_VERDICT" = "fail" ]; then
+    curl -sf -X POST "$ACORN_API/api/rewards/record" \
+        -H "Content-Type: application/json" \
+        -d "{\"signal\": \"JUDGE_FAIL\", \"agent_id\": \"$AGENT_ID\", \"role\": \"$ROLE\", \"problem_id\": \"$PROBLEM_UUID\", \"points\": -5, \"rationale\": \"Judge issued FAIL verdict\"}" 2>/dev/null || true
 fi
 
 log "Step 8: Assembling REASONING_TRAIL.md"

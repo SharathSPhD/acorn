@@ -114,11 +114,18 @@ async def ingest_workspace_kernels(problem_id: str) -> dict[str, Any]:
     safe_id = Path(problem_id).name
     if safe_id != problem_id:
         raise HTTPException(status_code=400, detail="Invalid problem_id")
-    workspace = Path(settings.acorn_workspace_base) / safe_id
-    if not workspace.exists():
-        workspace = Path(settings.acorn_workspace_base) / f"self-build-{problem_id[:8]}"
-    if not workspace.exists():
-        raise HTTPException(status_code=404, detail=f"Workspace not found for {problem_id}")
+    base = Path(settings.acorn_workspace_base)
+    candidates = [
+        base / safe_id,
+        base / f"problem-{safe_id}",
+        base / f"self-build-{safe_id[:8]}",
+    ]
+    workspace = next((p for p in candidates if p.exists()), None)
+    if workspace is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Workspace not found for {problem_id} (tried: {[str(c) for c in candidates]})",
+        )
 
     kernel_files = list(workspace.rglob("KERNEL.md")) + list(workspace.rglob("kernel.md"))
     if not kernel_files:

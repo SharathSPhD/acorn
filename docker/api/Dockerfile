@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY pyproject.toml ./
 COPY api/ ./api/
 COPY memory/ ./memory/
+COPY manifest_domains.json ./manifest_domains.json
 RUN pip install --no-cache-dir .
 
 EXPOSE 8000

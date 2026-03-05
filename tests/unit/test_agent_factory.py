@@ -120,10 +120,10 @@ def test_config__model_for_role__coder_roles():
 def test_config__model_for_role__analysis_roles():
     s = AcornSettings()
     assert s.model_for_role("data-scientist") == s.analysis_model
-    assert s.model_for_role("skill-extractor") == s.analysis_model
+    assert s.model_for_role("kernel-extractor") == s.analysis_model
 
 
 def test_config__model_for_role__reasoning_roles():
     s = AcornSettings()
-    assert s.model_for_role("orchestrator") == s.reasoning_model
-    assert s.model_for_role("judge-agent") == s.reasoning_model
+    assert s.model_for_role("meta-agent") == s.reasoning_model
+    assert s.model_for_role("software-architect") == s.reasoning_model

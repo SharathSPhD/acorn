@@ -3,7 +3,7 @@ __pattern__ = "Factory"
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.config import AcornSettings
 from api.dependencies import get_settings
@@ -12,9 +12,13 @@ router = APIRouter(prefix="/api/agents", tags=["agents"])
 
 
 VALID_ROLES = frozenset({
-    "orchestrator", "data-engineer", "data-scientist", "ml-engineer",
-    "software-architect", "judge-agent", "kernel-extractor", "meta-agent",
-    "coder", "reviewer",
+    # Spec agents (9)
+    "orchestrator", "research-analyst", "synthesis-agent", "domain-specialist",
+    "validator", "judge-agent", "kernel-extractor", "interface-agent",
+    "calibration-agent",
+    # OAK-era specialist roles (kept for analytical problems)
+    "data-engineer", "data-scientist", "ml-engineer",
+    "software-architect", "meta-agent", "coder", "reviewer",
 })
 
 
@@ -86,6 +90,15 @@ async def get_agents_status(
     registry = AgentRegistry(str(settings.redis_url))
     agents = await registry.get_all()
     return [a.model_dump() for a in agents]
+
+
+@router.get("/model-for-role")
+async def get_model_for_role(
+    role: str = Query(...),
+    settings: AcornSettings = Depends(get_settings),
+) -> dict[str, str]:
+    """Return the appropriate model for a given agent role."""
+    return {"role": role, "model": settings.model_for_role(role)}
 
 
 @router.get("/models")

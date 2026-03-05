@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "domains": {
+    "sales": { "target_kernels": 3, "core_concepts": ["pipeline_conversion", "funnel_analysis", "win_loss", "opportunity_forecasting", "territory_optimization"] },
+    "pricing": { "target_kernels": 3, "core_concepts": ["price_elasticity", "value_pricing", "competitive_benchmarking", "discount_optimization", "margin_analysis"] },
+    "marketing": { "target_kernels": 3, "core_concepts": ["campaign_attribution", "roi_by_channel", "segmentation", "reach_frequency", "conversion_funnel"] },
+    "supply_chain": { "target_kernels": 3, "core_concepts": ["demand_forecasting", "inventory_optimization", "supplier_scoring", "lead_time", "logistics_cost"] },
+    "customer": { "target_kernels": 3, "core_concepts": ["churn_prediction", "ltv_modelling", "nps_analysis", "retention_cohort", "segmentation"] },
+    "finance": { "target_kernels": 3, "core_concepts": ["pnl_variance", "cash_flow", "budgeting", "capital_allocation", "risk_metrics"] },
+    "operations": { "target_kernels": 3, "core_concepts": ["throughput", "capacity_utilization", "sla_monitoring", "bottleneck_analysis", "process_efficiency"] },
+    "human_capital": { "target_kernels": 3, "core_concepts": ["headcount_planning", "turnover_analysis", "performance_calibration", "compensation_benchmarking", "training_roi"] },
+    "product": { "target_kernels": 3, "core_concepts": ["usage_analytics", "feature_adoption", "ab_testing", "roadmap_prioritization", "tech_debt"] },
+    "research_synthesis": { "target_kernels": 2, "core_concepts": ["literature_review", "evidence_mapping", "meta_analysis"] },
+    "business_intelligence": { "target_kernels": 2, "core_concepts": ["cross_domain_insights", "executive_briefings", "strategic_recommendations"] },
+    "document_analysis": { "target_kernels": 2, "core_concepts": ["contract_review", "regulatory_compliance", "policy_comparison"] },
+    "data_engineering": { "target_kernels": 2, "core_concepts": ["pipeline_design", "schema_modelling", "etl_workflow"] },
+    "technical_documentation": { "target_kernels": 2, "core_concepts": ["architecture_decisions", "api_docs", "user_guides"] }
+  },
+  "agent_catalogue": {
+    "orchestrator": { "model_override_env": "ORCHESTRATOR_MODEL", "required": true },
+    "research-analyst": { "model_override_env": "RESEARCH_MODEL", "required": true },
+    "synthesis-agent": { "model_override_env": "SYNTHESIS_MODEL", "required": true },
+    "domain-specialist": { "model_override_env": null, "required": true },
+    "validator": { "model_override_env": null, "required": true },
+    "judge-agent": { "model_override_env": "JUDGE_MODEL", "required": true },
+    "kernel-extractor": { "model_override_env": null, "required": true },
+    "interface-agent": { "model_override_env": null, "required": false },
+    "calibration-agent": { "model_override_env": null, "required": false }
+  },
+  "kernel_thresholds": {
+    "promotion_min_problems": 2,
+    "deprecation_pass_rate": 0.4
+  },
+  "model_routing": {
+    "orchestrator": "qwen3-coder",
+    "research-analyst": "deepseek-r1:14b",
+    "synthesis-agent": "qwen3-coder",
+    "domain-specialist": "deepseek-r1:14b",
+    "validator": "deepseek-r1:14b",
+    "judge-agent": "qwen3-coder",
+    "kernel-extractor": "deepseek-r1:14b",
+    "interface-agent": "qwen3-coder",
+    "calibration-agent": "qwen3-coder"
+  },
+  "system_goals": {
+    "G-SYS-1": { "name": "Grow kernel grove", "target": ">=3 permanent kernels per active domain", "measurement": "kernels WHERE status='permanent' GROUP BY category" },
+    "G-SYS-2": { "name": "Improve judge pass rate", "target": "> 0.70", "measurement": "COUNT(verdict='pass') / COUNT(*) over rolling 7d" },
+    "G-SYS-3": { "name": "Reduce mean time to solution", "target": "Decrease 10% per 20 problems", "measurement": "median(completed_at - created_at)" },
+    "G-SYS-4": { "name": "Deepen reasoning trails", "target": ">=5 reasoning steps per task", "measurement": "AVG(reasoning_steps) per task" },
+    "G-SYS-5": { "name": "Reuse before reinventing", "target": "> 0.60", "measurement": "problems with >=1 kernel retrieved / total" }
+  }
+}

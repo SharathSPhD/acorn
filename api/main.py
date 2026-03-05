@@ -9,13 +9,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.config import settings
 from api.dependencies import get_event_bus
 from api.routers import agents, builder, judge, kernels, meta, problems, tasks, telemetry
+from api.routers.context import router as context_router
+from api.routers.cortex import router as cortex_router
+from api.routers.goals import router as goals_router
 from api.routers.mailbox import router as mailbox_router
+from api.routers.manifest import router as manifest_router
+from api.routers.rewards import router as rewards_router
+from api.routers.tools import router as tools_router
 from api.ws import stream
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+    import asyncio
     get_event_bus()  # Register EventBus subscribers on startup
+    if settings.cortex_enabled:
+        from api.services.cortex import get_cortex
+        cortex = get_cortex()
+        cortex._task = asyncio.create_task(cortex.run())
     yield
 
 
@@ -42,7 +53,13 @@ app.include_router(telemetry.router)
 app.include_router(judge.router)
 app.include_router(meta.router)
 app.include_router(builder.router)
+app.include_router(context_router)
+app.include_router(cortex_router)
 app.include_router(mailbox_router)
+app.include_router(manifest_router)
+app.include_router(rewards_router)
+app.include_router(tools_router)
+app.include_router(goals_router)
 app.include_router(stream.router)
 
 

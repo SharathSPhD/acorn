@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, MetricCard } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
@@ -19,10 +19,25 @@ export default function KernelsPage() {
     queryFn: () => api.kernels.list({ query: query || undefined, category, status: statusFilter }),
   });
 
+  const manifestDeltas = useQuery({
+    queryKey: ["manifest-deltas"],
+    queryFn: api.manifest.deltas,
+    refetchInterval: 30_000,
+  });
+
   const promoteMutation = useMutation({
     mutationFn: api.kernels.promote,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["kernels"] }),
   });
+
+  const allKernels = kernels.data ?? [];
+  const permanentCount = allKernels.filter((k) => k.status === "permanent").length;
+  const probationaryCount = allKernels.filter((k) => k.status === "probationary").length;
+  const totalUses = allKernels.reduce((sum, k) => sum + k.use_count, 0);
+  const categories = [...new Set(allKernels.map((k) => k.category))];
+  const missingKernelDeltas = (manifestDeltas.data ?? []).filter(
+    (d) => d.type === "missing_kernel"
+  );
 
   return (
     <div>
@@ -33,6 +48,50 @@ export default function KernelsPage() {
           and get promoted to permanent after proving useful across multiple problems.
         </p>
       </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <MetricCard
+          label="Total Kernels"
+          value={allKernels.length}
+          subtext={`${categories.length} categories`}
+          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>}
+        />
+        <MetricCard
+          label="Permanent"
+          value={permanentCount}
+          subtext="Proven patterns"
+          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>}
+        />
+        <MetricCard
+          label="Probationary"
+          value={probationaryCount}
+          subtext="Pending promotion"
+          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+        />
+        <MetricCard
+          label="Total Uses"
+          value={totalUses}
+          subtext="Cross-problem reuse"
+          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>}
+        />
+      </div>
+
+      {/* Manifest gaps */}
+      {missingKernelDeltas.length > 0 && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-800 mb-1">
+            Manifest Gap: {missingKernelDeltas.length} kernel{missingKernelDeltas.length > 1 ? "s" : ""} needed
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {missingKernelDeltas.map((d, i) => (
+              <span key={i} className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
+                {(d.domain as string) ?? "unknown"}: {(d.kernel as string) ?? "missing"}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="mb-6 flex flex-wrap gap-3">
@@ -70,10 +129,15 @@ export default function KernelsPage() {
       {kernels.isLoading && <p className="text-sm text-slate-500">Loading kernels...</p>}
 
       {kernels.data && kernels.data.length === 0 && (
-        <div className="empty-state">
-          <svg className="h-12 w-12 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+        <div className="empty-state rounded-xl border-2 border-dashed border-slate-200 py-12 text-center">
+          <svg className="mx-auto h-12 w-12 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
           <p className="text-sm font-medium text-slate-600">No kernels found</p>
-          <p className="text-xs text-slate-400 mt-1">Kernels are extracted automatically after problems are solved.</p>
+          <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+            Kernels are extracted automatically when problems are solved and pass the Judge gate.
+            Submit and solve problems to populate the Kernel Grove.
+          </p>
         </div>
       )}
 

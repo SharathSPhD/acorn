@@ -36,8 +36,8 @@ class AcornSettings(BaseSettings):
     anthropic_api_key_real: str = ""          # Used by proxy for escalation
     default_model: str          = "llama3.3:70b"
     coder_model: str            = "qwen3-coder"
-    analysis_model: str         = "qwen3-coder"
-    reasoning_model: str        = "qwen3-coder"
+    analysis_model: str         = "deepseek-r1:14b"
+    reasoning_model: str        = "deepseek-r1:14b"
 
     # -- Routing strategy ---------------------------------------------------------
     routing_strategy: RoutingStrategy = RoutingStrategy.PASSTHROUGH
@@ -81,6 +81,13 @@ class AcornSettings(BaseSettings):
     telemetry_enabled: bool           = True
     stall_escalation_alert_threshold: float = 0.3   # Alert if > 30% of calls escalate
 
+    # -- CORTEX+ (Layer 5 cognitive kernel, GWT) ------------------------------------
+    cortex_enabled: bool               = False
+    cortex_tick_interval: int          = 120
+
+    # -- API (for CORTEX+ self-calls) ----------------------------------------------
+    port: int                         = 8000
+
     # -- Builder (disabled; WARDEN replaces builder, infra-only, no LLM) ----------
     builder_enabled: bool              = False
     # builder_sprint_interval: int       = 3600
@@ -105,14 +112,34 @@ class AcornSettings(BaseSettings):
     concurrent_problems_enabled: bool = False
 
     def model_for_role(self, role: str) -> str:
-        """Return the Ollama model name appropriate for the given agent role."""
-        analysis_roles = {"data-scientist", "kernel-extractor"}
-        reasoning_roles = {"orchestrator", "judge-agent", "meta-agent", "software-architect"}
-        if role in analysis_roles:
-            return self.analysis_model
-        if role in reasoning_roles:
-            return self.reasoning_model
-        return self.coder_model  # data-engineer, ml-engineer, default
+        """Return the model for a given agent role, with env override support."""
+        import os
+        role_overrides = {
+            "orchestrator": "ORCHESTRATOR_MODEL",
+            "research-analyst": "RESEARCH_MODEL",
+            "synthesis-agent": "SYNTHESIS_MODEL",
+            "judge-agent": "JUDGE_MODEL",
+        }
+        env_key = role_overrides.get(role)
+        if env_key:
+            override = os.environ.get(env_key)
+            if override:
+                return override
+        role_models = {
+            "orchestrator": self.coder_model,
+            "research-analyst": self.analysis_model,
+            "synthesis-agent": self.coder_model,
+            "domain-specialist": self.analysis_model,
+            "validator": self.analysis_model,
+            "judge-agent": self.coder_model,
+            "kernel-extractor": self.analysis_model,
+            "interface-agent": self.coder_model,
+            "calibration-agent": self.coder_model,
+            "data-scientist": self.analysis_model,
+            "meta-agent": self.reasoning_model,
+            "software-architect": self.reasoning_model,
+        }
+        return role_models.get(role, self.coder_model)
 
     @model_validator(mode="after")
     def validate_escalation_config(self) -> "AcornSettings":

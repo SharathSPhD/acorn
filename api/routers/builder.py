@@ -41,12 +41,18 @@ CB_THRESHOLD = 4
 async def builder_status(
     settings: AcornSettings = Depends(get_settings),
 ) -> dict[str, Any]:
-    """Return current builder state."""
+    """Return current builder state.
+
+    Note: CORTEX+ has replaced the builder. Use /api/cortex/status for the
+    cognitive kernel state.
+    """
     return {
         **_builder_state,
         "builder_enabled": settings.builder_enabled,
         "thoughts": _thoughts[-10:] if _thoughts else [],
         "last_sprint_result": _sprint_history[-1] if _sprint_history else None,
+        "cortex_note": "CORTEX+ has replaced the builder. Use /api/cortex/status.",
+        "cortex_redirect": "/api/cortex/status",
     }
 
 
@@ -76,13 +82,18 @@ async def builder_history(
         "stories_since_release": len(_sprint_history),
         "domain_baselines": domain_baselines,
         "recent_sprints": _sprint_history[-20:],
+        "cortex_redirect": "/api/cortex/broadcast-log",
     }
 
 
 @router.get("/thoughts")
 async def builder_thoughts() -> dict[str, Any]:
     """Return recent builder thoughts/audit output."""
-    return {"thoughts": _thoughts[-50:], "total": len(_thoughts)}
+    return {
+        "thoughts": _thoughts[-50:],
+        "total": len(_thoughts),
+        "cortex_redirect": "/api/cortex/broadcast-log",
+    }
 
 
 @router.get("/cortex-state")
@@ -95,6 +106,7 @@ async def cortex_state(
         "builder_enabled": settings.builder_enabled,
         "thoughts": _thoughts[-10:] if _thoughts else [],
         "last_sprint_result": _sprint_history[-1] if _sprint_history else None,
+        "cortex_redirect": "/api/cortex/status",
     }
 
 
@@ -269,7 +281,11 @@ async def start_sprint(
         _builder_state["status"] = "idle"
         _sprint_history.append(sprint_record)
 
-    return {"status": "sprint_complete", "sprint": sprint_record}
+    return {
+        "status": "sprint_complete",
+        "sprint": sprint_record,
+        "cortex_redirect": "/api/cortex/start",
+    }
 
 
 @router.post("/pause")
@@ -277,7 +293,7 @@ async def pause_builder() -> dict[str, str]:
     """Pause the builder (prevents new sprints)."""
     _builder_state["status"] = "paused"
     _thoughts.append("Builder paused by operator")
-    return {"status": "paused"}
+    return {"status": "paused", "cortex_redirect": "/api/cortex/stop"}
 
 
 @router.post("/resume")
@@ -286,7 +302,7 @@ async def resume_builder() -> dict[str, str]:
     _builder_state["status"] = "idle"
     _builder_state["circuit_breaker"] = {"state": "closed", "consecutive_failures": 0}
     _thoughts.append("Builder resumed, circuit breaker reset")
-    return {"status": "idle"}
+    return {"status": "idle", "cortex_redirect": "/api/cortex/start"}
 
 
 @router.post("/stop")
@@ -317,4 +333,8 @@ async def stop_builder() -> dict[str, Any]:
     except Exception:
         pass
 
-    return {"status": "stopped", "harnesses_stopped": stopped}
+    return {
+        "status": "stopped",
+        "harnesses_stopped": stopped,
+        "cortex_redirect": "/api/cortex/stop",
+    }

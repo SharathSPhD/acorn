@@ -10,21 +10,24 @@ export default function TelemetryPage() {
   const health = useQuery({ queryKey: ["health"], queryFn: api.health, refetchInterval: 15_000 });
   const telemetry = useQuery({ queryKey: ["telemetry"], queryFn: api.telemetry, refetchInterval: 10_000 });
   const models = useQuery({ queryKey: ["models"], queryFn: api.agents.models });
+  const healthMetrics = useQuery({ queryKey: ["health-metrics"], queryFn: api.meta.healthMetrics, refetchInterval: 30_000 });
+  const manifestStatus = useQuery({ queryKey: ["manifest-status"], queryFn: api.manifest.status, refetchInterval: 30_000 });
 
   const t = telemetry.data;
   const h = health.data;
+  const hm = healthMetrics.data;
 
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Telemetry Dashboard</h1>
+        <h1 className="page-title">Telemetry & Observability</h1>
         <p className="page-subtitle">
-          Real-time agent performance metrics, model routing, and system configuration.
+          Agent performance metrics, model routing, system health, and manifest alignment.
         </p>
       </div>
 
       {/* Key metrics */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 mb-8">
         <MetricCard
           label="Total Events"
           value={t?.total_events ?? "--"}
@@ -37,9 +40,14 @@ export default function TelemetryPage() {
           icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" /></svg>}
         />
         <MetricCard
-          label="Active Problems"
-          value={t?.active_problems ?? "--"}
-          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          label="Judge Pass Rate (7d)"
+          value={hm ? `${(hm.judge_pass_rate_7d * 100).toFixed(0)}%` : "--"}
+          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+        />
+        <MetricCard
+          label="Kernel Promotion (7d)"
+          value={hm ? `${(hm.kernel_promotion_rate_7d * 100).toFixed(0)}%` : "--"}
+          icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>}
         />
         <MetricCard
           label="System Mode"
@@ -49,7 +57,7 @@ export default function TelemetryPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
         {/* Events by type */}
         <Card>
           <CardHeader>
@@ -80,7 +88,10 @@ export default function TelemetryPage() {
                   })}
               </div>
             ) : (
-              <p className="text-sm text-slate-500 py-4">No events recorded yet.</p>
+              <div className="py-6 text-center">
+                <p className="text-sm text-slate-500">No events recorded yet.</p>
+                <p className="text-xs text-slate-400 mt-1">Events appear as agents solve problems and interact with the system.</p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -122,10 +133,52 @@ export default function TelemetryPage() {
           </CardContent>
         </Card>
 
+        {/* Manifest alignment */}
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold text-slate-900">Manifest Alignment</h2>
+          </CardHeader>
+          <CardContent>
+            {manifestStatus.data ? (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Desired State (Domains)</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(manifestStatus.data.desired as { domains?: Array<{ name: string }> })?.domains?.map((d: { name: string }) => (
+                      <span key={d.name} className="rounded bg-acorn-50 border border-acorn-200 px-2 py-0.5 text-xs text-acorn-700">
+                        {d.name}
+                      </span>
+                    )) ?? (
+                      <p className="text-xs text-slate-400">No domain targets defined.</p>
+                    )}
+                  </div>
+                </div>
+                <div className="border-t border-slate-100 pt-3">
+                  <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Actual Capabilities</p>
+                  <div className="space-y-1.5">
+                    {Object.entries(manifestStatus.data.actual).map(([key, val]) => (
+                      <div key={key} className="flex items-center justify-between">
+                        <span className="text-xs text-slate-600 capitalize">{key.replace(/_/g, " ")}</span>
+                        <span className="text-xs font-mono text-slate-700">
+                          {Array.isArray(val) ? val.length : String(val)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="py-6 text-center">
+                <p className="text-sm text-slate-500">Loading manifest data...</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Feature flags */}
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold text-slate-900">Feature Flags</h2>
+            <h2 className="text-sm font-semibold text-slate-900">System Configuration</h2>
           </CardHeader>
           <CardContent>
             {h?.feature_flags ? (
@@ -140,41 +193,64 @@ export default function TelemetryPage() {
                     </Badge>
                   </div>
                 ))}
+                {h && (
+                  <div className="border-t border-slate-100 pt-3 mt-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-600">Max Agents/Problem</span>
+                        <span className="text-sm font-medium text-slate-800">{h.max_agents_per_problem}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-600">Max Concurrent Problems</span>
+                        <span className="text-sm font-medium text-slate-800">{h.max_concurrent_problems}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-600">API Key Present</span>
+                        <Badge variant={h.api_key_present ? "success" : "secondary"}>
+                          {h.api_key_present ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-sm text-slate-500">Loading configuration...</p>
             )}
           </CardContent>
         </Card>
-
-        {/* Recent events */}
-        <Card>
-          <CardHeader>
-            <h2 className="text-sm font-semibold text-slate-900">Recent Events</h2>
-          </CardHeader>
-          <CardContent>
-            {t?.recent_events && t.recent_events.length > 0 ? (
-              <div className="space-y-2 max-h-80 overflow-y-auto">
-                {t.recent_events.map((ev, i) => (
-                  <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-slate-50">
-                    <div className="h-1.5 w-1.5 rounded-full bg-acorn-400 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-slate-700 truncate">
-                        {ev.event_type as string}
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        {ev.agent_id as string} &middot; {formatDate(ev.created_at as string)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-500 py-4">No recent events.</p>
-            )}
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Recent events */}
+      <Card>
+        <CardHeader>
+          <h2 className="text-sm font-semibold text-slate-900">Recent Events</h2>
+        </CardHeader>
+        <CardContent>
+          {t?.recent_events && t.recent_events.length > 0 ? (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {t.recent_events.map((ev, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-slate-50">
+                  <div className="h-1.5 w-1.5 rounded-full bg-acorn-400 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-slate-700 truncate">
+                      {ev.event_type as string}
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      {ev.agent_id as string} &middot; {formatDate(ev.created_at as string)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-6 text-center">
+              <p className="text-sm text-slate-500">No recent events.</p>
+              <p className="text-xs text-slate-400 mt-1">Events appear as agents run problems and interact with the system.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

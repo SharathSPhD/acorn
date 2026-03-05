@@ -140,7 +140,7 @@ export interface BuilderStatus {
     sprint?: number;
     passed: number;
     failed: number;
-    skills: number;
+    kernels: number;
     committed: boolean;
     breaker?: string;
   } | null;
@@ -148,6 +148,7 @@ export interface BuilderStatus {
 
 export interface BuilderHistory {
   sprint_count: number;
+  total_kernels: number;
   total_skills: number;
   total_commits: number;
   release_count: number;
@@ -159,6 +160,7 @@ export interface BuilderHistory {
     finished_at?: string;
     problems_submitted: number;
     problems_passed: number;
+    kernels_ingested: number;
     skills_ingested: number;
     changes_committed: boolean;
     circuit_breaker_state: string;
@@ -275,6 +277,105 @@ export const api = {
 
   judgeVerdicts: (problemId: string) =>
     apiFetch<JudgeVerdict[]>(`/api/judge_verdicts/${problemId}`),
+
+  rewards: {
+    events: (limit = 50) =>
+      apiFetch<
+        Array<{
+          id: string;
+          problem_id: string | null;
+          agent_id: string;
+          role: string;
+          signal: string;
+          points: number;
+          rationale: string | null;
+          created_at: string;
+        }>
+      >(`/api/rewards/events?limit=${limit}`),
+    roleScores: () =>
+      apiFetch<
+        Array<{
+          role: string;
+          cumulative_points: number;
+          rolling_30d_points: number;
+          problems_contributed: number;
+          last_updated: string;
+        }>
+      >("/api/rewards/role-scores"),
+    roleContext: (role: string) =>
+      apiFetch<{
+        role: string;
+        recent_wins: Array<{
+          signal: string;
+          points: number;
+          rationale: string | null;
+          at: string;
+        }>;
+        recent_misses: Array<{
+          signal: string;
+          points: number;
+          rationale: string | null;
+          at: string;
+        }>;
+        score: {
+          cumulative: number;
+          rolling_30d: number;
+          problems: number;
+        };
+      }>(`/api/rewards/role-context/${role}`),
+  },
+
+  cortex: {
+    status: () =>
+      apiFetch<{
+        running: boolean;
+        current_broadcast: {
+          module: string;
+          salience: number;
+          action_type: string;
+          payload: Record<string, unknown>;
+        } | null;
+        tick_interval: number;
+        broadcast_log_size: number;
+      }>("/api/cortex/status"),
+    modules: () =>
+      apiFetch<Array<{ module: string; salience: number }>>("/api/cortex/modules"),
+    broadcastLog: (limit = 50) =>
+      apiFetch<
+        Array<{
+          module: string;
+          salience: number;
+          action_type: string;
+          payload: Record<string, unknown>;
+          timestamp: number;
+          all_saliences: Record<string, number>;
+        }>
+      >(`/api/cortex/broadcast-log?limit=${limit}`),
+    start: () =>
+      apiFetch<{ status: string }>("/api/cortex/start", { method: "POST" }),
+    stop: () =>
+      apiFetch<{ status: string }>("/api/cortex/stop", { method: "POST" }),
+  },
+
+  manifest: {
+    status: () =>
+      apiFetch<{
+        desired: Record<string, unknown>;
+        actual: Record<string, unknown>;
+      }>("/api/manifest/status"),
+    deltas: () =>
+      apiFetch<Array<{ type: string; [key: string]: unknown }>>("/api/manifest/deltas"),
+  },
+
+  goals: {
+    system: () =>
+      apiFetch<{
+        goals: Record<
+          string,
+          { name: string; target: string; current: Record<string, unknown> }
+        >;
+      }>("/api/meta/system-goals"),
+  },
 };
 
 export function wsUrl(problemId: string): string {

@@ -144,6 +144,19 @@ CREATE TABLE IF NOT EXISTS research_cache (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_research_cache_hash ON research_cache(query_hash);
 
+-- MemOS Tier 3: per-result research cache for ORIENT context
+CREATE TABLE IF NOT EXISTS research_cache_entries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    query TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT 'web',
+    url TEXT,
+    title TEXT,
+    snippet TEXT,
+    content TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_research_cache_entries_created ON research_cache_entries(created_at DESC);
+
 CREATE TABLE IF NOT EXISTS domain_knowledge (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     domain TEXT NOT NULL,
@@ -157,3 +170,37 @@ CREATE TABLE IF NOT EXISTS domain_knowledge (
 );
 CREATE INDEX ON domain_knowledge USING hnsw (embedding vector_cosine_ops);
 CREATE INDEX ON domain_knowledge (domain, created_at DESC);
+
+-- Goal-Reward System (GRS)
+CREATE TABLE IF NOT EXISTS reward_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    problem_id UUID REFERENCES problems(id),
+    task_id UUID,
+    agent_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    signal TEXT NOT NULL,
+    points INTEGER NOT NULL,
+    rationale TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_reward_events_role ON reward_events (role, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_reward_events_agent ON reward_events (agent_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_reward_events_problem ON reward_events (problem_id);
+
+CREATE TABLE IF NOT EXISTS role_scores (
+    role TEXT PRIMARY KEY,
+    cumulative_points BIGINT DEFAULT 0,
+    rolling_30d_points INTEGER DEFAULT 0,
+    problems_contributed INTEGER DEFAULT 0,
+    last_updated TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS constitutional_violations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rule_id TEXT NOT NULL,
+    problem_id UUID REFERENCES problems(id),
+    agent_id TEXT,
+    detail TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_constitutional_violations_problem ON constitutional_violations (problem_id);

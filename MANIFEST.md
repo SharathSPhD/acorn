@@ -174,7 +174,7 @@ These principles may not be amended without explicit operator decision and manif
 | ID | Principle | Description |
 |----|-----------|-------------|
 | **P1** | Local Sovereignty | All problem data, agent memory, kernels, and reasoning traces remain on operator-owned hardware. Cloud escalation is optional and stateless. |
-| **P2** | Bounded Autonomy | WARDEN + PR-based evolution. No autonomous self-build. No cortex. No builder. |
+| **P2** | Bounded Autonomy | CORTEX+ cognitive kernel drives self-directed improvement within constitutional gates (GRS Layer 4). Evolution is gated by manifest reconciliation — the system can only pursue objectives that close gaps between desired state (manifest_domains.json) and actual capability. Operator halt via `POST /api/cortex/stop` or Hub UI at any time. |
 | **P3** | Verifiable Truth | Kernel grove is ground truth. Every kernel is testable. Every output is auditable via REASONING_TRAIL.md. |
 | **P4** | Graceful Degradation | When local models stall or fail, the system degrades gracefully. No silent failures. Escalation is logged. |
 | **P5** | Transparent Change | Reasoning trails + git history. Every significant decision is traceable. |

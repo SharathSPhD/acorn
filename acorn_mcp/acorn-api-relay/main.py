@@ -427,6 +427,18 @@ async def messages(request: Request) -> Response:
     """
     _log_call()
     model_override = request.headers.get("x-acorn-model", "")
+    if not model_override:
+        role_header = request.headers.get("x-acorn-role", "")
+        if role_header:
+            role_model_map = {
+                "research-analyst": "deepseek-r1:14b",
+                "domain-specialist": "deepseek-r1:14b",
+                "validator": "deepseek-r1:14b",
+                "kernel-extractor": "deepseek-r1:14b",
+                "data-scientist": "deepseek-r1:14b",
+            }
+            if role_header in role_model_map:
+                model_override = role_model_map[role_header]
     body = await request.body()
     data = json.loads(body) if body else {}
     original_model = data.get("model", "claude-sonnet-4-6")
