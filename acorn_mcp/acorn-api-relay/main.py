@@ -432,16 +432,6 @@ async def messages(request: Request) -> Response:
     original_model = data.get("model", "claude-sonnet-4-6")
     is_stream = data.get("stream", False)
 
-    # DEBUG: log tools and last message to stderr
-    import sys as _sys
-    tools_names = [t.get("name") for t in data.get("tools", [])]
-    last_msg = (data.get("messages") or [{}])[-1]
-    last_role = last_msg.get("role", "?")
-    last_content = last_msg.get("content", "")
-    if isinstance(last_content, list):
-        last_content = str([b.get("type") for b in last_content])
-    print(f"[proxy-debug] stream={is_stream} tools={tools_names} last_role={last_role} content_preview={str(last_content)[:80]}", file=_sys.stderr, flush=True)
-
     oai_body = _anthropic_to_openai_request(data, model_override=model_override)
     ollama_url = f"{OLLAMA_BASE_URL}/v1/chat/completions"
 
