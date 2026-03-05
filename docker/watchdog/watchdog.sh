@@ -24,8 +24,12 @@ ts() { date +%Y-%m-%dT%H:%M:%S; }
 
 write_heartbeat() {
   local status="$1"
-  local extra="${2:-{}}"
-  echo "{\"ts\":\"$(ts)\",\"status\":\"${status}\",\"builder\":\"${BUILDER_CONTAINER}\"${extra:+,$extra}}" > "${HEARTBEAT_FILE}" 2>/dev/null || true
+  local extra="${2:-}"
+  if [[ -n "$extra" ]]; then
+    echo "{\"ts\":\"$(ts)\",\"status\":\"${status}\",\"builder\":\"${BUILDER_CONTAINER}\",${extra}}" > "${HEARTBEAT_FILE}" 2>/dev/null || true
+  else
+    echo "{\"ts\":\"$(ts)\",\"status\":\"${status}\",\"builder\":\"${BUILDER_CONTAINER}\"}" > "${HEARTBEAT_FILE}" 2>/dev/null || true
+  fi
 }
 
 builder_running() {
