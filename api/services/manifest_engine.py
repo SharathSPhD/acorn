@@ -4,6 +4,7 @@ __pattern__ = "Strategy"
 import json
 import logging
 from pathlib import Path
+from typing import Any
 
 import asyncpg
 import httpx
@@ -18,16 +19,17 @@ class ManifestEngine:
 
     def __init__(self, manifest_path: str) -> None:
         self._manifest_path = Path(manifest_path)
-        self._manifest: dict | None = None
+        self._manifest: dict[str, Any] | None = None
 
-    def _load_manifest(self) -> dict:
+    def _load_manifest(self) -> dict[str, Any]:
         """Load and cache manifest_domains.json."""
         if self._manifest is None:
             raw = self._manifest_path.read_text()
             self._manifest = json.loads(raw)
+        assert self._manifest is not None
         return self._manifest
 
-    async def perceive(self) -> dict:
+    async def perceive(self) -> dict[str, Any]:
         """Read desired state from file and query actual state from DB, Ollama, and filesystem."""
         desired = self._load_manifest()
 
@@ -83,9 +85,9 @@ class ManifestEngine:
         }
         return {"desired": desired, "actual": actual}
 
-    async def diff(self, desired: dict, actual: dict) -> list[dict]:
+    async def diff(self, desired: dict[str, Any], actual: dict[str, Any]) -> list[dict[str, Any]]:
         """Compute deltas between desired and actual state."""
-        deltas: list[dict] = []
+        deltas: list[dict[str, Any]] = []
 
         # Missing kernels per domain
         domains = desired.get("domains", {})
@@ -126,7 +128,7 @@ class ManifestEngine:
 
         return deltas
 
-    async def reconcile(self) -> list[dict]:
+    async def reconcile(self) -> list[dict[str, Any]]:
         """Orchestrate perceive -> diff and return deltas."""
         perceived = await self.perceive()
         desired = perceived["desired"]

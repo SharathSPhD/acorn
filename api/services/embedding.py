@@ -35,7 +35,7 @@ class EmbeddingService:
             )
             resp.raise_for_status()
             data: dict[str, Any] = resp.json()
-            embedding = data.get("embedding", [])
+            embedding: list[float] = data.get("embedding", [])
             if len(embedding) != self._dimension:
                 logger.warning(
                     "Expected %d-dim embedding, got %d",

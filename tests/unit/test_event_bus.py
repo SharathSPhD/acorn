@@ -124,7 +124,7 @@ async def test_websocket_subscriber__publishes_to_redis():
         await sub.on_event(event)
 
     mock_redis.publish.assert_called_once()
-    mock_redis.aclose.assert_called_once()
+    mock_redis.close.assert_called_once()
 
 
 @pytest.mark.asyncio

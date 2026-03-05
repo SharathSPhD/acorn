@@ -3,12 +3,16 @@ __pattern__ = "Repository"
 
 import json
 import time
+from typing import Any
 
+_aioredis_mod: Any = None
+_REDIS_AVAILABLE = False
 try:
-    import redis.asyncio as aioredis
+    import redis.asyncio as _aioredis_import
+    _aioredis_mod = _aioredis_import
     _REDIS_AVAILABLE = True
 except ImportError:
-    _REDIS_AVAILABLE = False
+    pass
 
 
 class MailboxService:
@@ -17,9 +21,9 @@ class MailboxService:
     CHANNEL_PREFIX = "acorn:mailbox:"
 
     def __init__(self, redis_url: str) -> None:
-        self._redis: aioredis.Redis | None = None
+        self._redis: Any = None
         if _REDIS_AVAILABLE:
-            self._redis = aioredis.from_url(redis_url, decode_responses=True)
+            self._redis = _aioredis_mod.from_url(redis_url, decode_responses=True)
 
     async def publish(self, to_agent: str, message_id: str, body: str) -> None:
         """Publish message notification to agent's Redis channel."""

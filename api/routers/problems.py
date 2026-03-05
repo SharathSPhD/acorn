@@ -465,7 +465,7 @@ async def add_reasoning_step(
             "aid": agent_id,
             "stype": step_type,
             "summary": summary,
-            "conf": float(confidence) if confidence is not None else None,
+            "conf": float(str(confidence)) if confidence is not None else None,
             "sources": _json.dumps(sources if isinstance(sources, list) else []),
         },
     )

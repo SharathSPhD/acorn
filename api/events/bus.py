@@ -88,7 +88,7 @@ class WebSocketSubscriber(EventSubscriber):
                 })
                 await r.publish(channel, payload)
             finally:
-                await r.aclose()
+                await r.close()
         except Exception:
             pass
 

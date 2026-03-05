@@ -2,6 +2,7 @@
 __pattern__ = "Repository"
 
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter
 
@@ -27,14 +28,14 @@ _MANIFEST_PATH = _resolve_manifest_path()
 
 
 @router.get("/status")
-async def manifest_status() -> dict:
+async def manifest_status() -> dict[str, Any]:
     """Return desired vs actual state from manifest engine."""
     engine = ManifestEngine(str(_MANIFEST_PATH))
     return await engine.perceive()
 
 
 @router.get("/deltas")
-async def manifest_deltas() -> list[dict]:
+async def manifest_deltas() -> list[dict[str, Any]]:
     """Return current gaps between desired and actual state."""
     engine = ManifestEngine(str(_MANIFEST_PATH))
     return await engine.reconcile()
