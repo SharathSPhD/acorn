@@ -25,7 +25,7 @@ x-acorn-harness: &acorn-harness-defaults
     DATABASE_URL: postgresql://acorn:acorn@acorn-postgres:5432/acorn
   volumes:
     - acorn-data:/mnt/acorn-data:ro
-    - acorn-kernels:/mnt/acorn-kernels:ro
+    - ../kernels:/workspace/kernels
     - ../scripts/deny-patterns.txt:/workspace/scripts/deny-patterns.txt:ro
     - ../.claude:/workspace/.claude:ro
   depends_on:
@@ -398,5 +398,4 @@ volumes:
   postgres-data:
   redis-data:
   acorn-data:
-  acorn-kernels:
   ollama-models:

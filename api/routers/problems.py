@@ -400,6 +400,80 @@ async def update_problem_status(
     return ProblemResponse(**dict(row))
 
 
+@router.get("/{problem_id}/reasoning-trail")
+async def get_reasoning_trail(
+    problem_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, object]:
+    """Return all reasoning steps for a problem, ordered chronologically."""
+    result = await db.execute(
+        text("SELECT id FROM problems WHERE id = :id"),
+        {"id": str(problem_id)},
+    )
+    if result.mappings().one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Problem not found")
+    steps = await db.execute(
+        text("""
+            SELECT id, agent_id, step_type, summary, confidence, sources, created_at
+            FROM reasoning_steps
+            WHERE problem_id = :pid
+            ORDER BY created_at
+        """),
+        {"pid": str(problem_id)},
+    )
+    rows = [dict(r) for r in steps.mappings().all()]
+    for r in rows:
+        r["id"] = str(r["id"])
+        r["created_at"] = str(r["created_at"])
+    return {"problem_id": str(problem_id), "steps": rows, "count": len(rows)}
+
+
+@router.post("/{problem_id}/reasoning-steps", status_code=201)
+async def add_reasoning_step(
+    problem_id: UUID,
+    body: dict[str, object],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Record a reasoning step from an agent. Used by harness entrypoint."""
+    result = await db.execute(
+        text("SELECT id FROM problems WHERE id = :id"),
+        {"id": str(problem_id)},
+    )
+    if result.mappings().one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    import json as _json
+
+    agent_id = str(body.get("agent_id", "unknown"))
+    step_type = str(body.get("step_type", "generic"))
+    summary = str(body.get("summary", ""))
+    confidence = body.get("confidence")
+    sources = body.get("sources", [])
+
+    if not summary:
+        raise HTTPException(status_code=400, detail="summary is required")
+
+    row = await db.execute(
+        text("""
+            INSERT INTO reasoning_steps
+            (problem_id, agent_id, step_type, summary, confidence, sources)
+            VALUES (:pid, :aid, :stype, :summary, :conf, :sources::jsonb)
+            RETURNING id, created_at
+        """),
+        {
+            "pid": str(problem_id),
+            "aid": agent_id,
+            "stype": step_type,
+            "summary": summary,
+            "conf": float(confidence) if confidence is not None else None,
+            "sources": _json.dumps(sources if isinstance(sources, list) else []),
+        },
+    )
+    await db.commit()
+    inserted = row.mappings().one()
+    return {"id": str(inserted["id"]), "created_at": str(inserted["created_at"])}
+
+
 @router.delete("/{problem_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_problem(
     problem_id: UUID,

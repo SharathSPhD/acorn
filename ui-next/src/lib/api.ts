@@ -98,6 +98,31 @@ export interface WorkspaceFile {
   size: number;
 }
 
+export interface ReasoningStep {
+  id: string;
+  agent_id: string;
+  step_type: string;
+  summary: string;
+  confidence: number | null;
+  sources: unknown[];
+  created_at: string;
+}
+
+export interface ReasoningTrail {
+  problem_id: string;
+  steps: ReasoningStep[];
+  count: number;
+}
+
+export interface HealthMetrics {
+  kernel_grove_coverage: { domains_with_3plus_permanent: number };
+  judge_pass_rate_7d: number;
+  kernel_promotion_rate_7d: number;
+  median_time_to_solution_minutes: number | null;
+  reasoning_trail_completeness: number;
+  ws_streaming_coverage: number;
+}
+
 export interface BuilderStatus {
   status: string;
   builder_enabled: boolean;
@@ -200,6 +225,8 @@ export const api = {
       ),
     fileUrl: (id: string, filename: string) =>
       `${API_BASE}/api/problems/${id}/files/${encodeURIComponent(filename)}`,
+    reasoningTrail: (id: string) =>
+      apiFetch<ReasoningTrail>(`/api/problems/${id}/reasoning-trail`),
   },
 
   tasks: {
@@ -241,6 +268,10 @@ export const api = {
   },
 
   telemetry: () => apiFetch<TelemetryData>("/api/telemetry"),
+
+  meta: {
+    healthMetrics: () => apiFetch<HealthMetrics>("/api/meta/health-metrics"),
+  },
 
   judgeVerdicts: (problemId: string) =>
     apiFetch<JudgeVerdict[]>(`/api/judge_verdicts/${problemId}`),

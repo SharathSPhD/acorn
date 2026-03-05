@@ -55,6 +55,7 @@ class AcornSettings(BaseSettings):
     max_harness_containers: int   = 20
 
     # -- Embeddings ---------------------------------------------------------------
+    ollama_base_url: str = "http://acorn-ollama:11434"
     embed_model: str = "nomic-embed-text"
     embed_dim: int = 768
 
@@ -99,8 +100,7 @@ class AcornSettings(BaseSettings):
     # -- Feature flags ------------------------------------------------------------
     kernel_extraction_enabled: bool   = True
     judge_required: bool              = True
-    # Set META_AGENT_ENABLED=true in .env to enable prompt evolution proposals
-    meta_agent_enabled: bool          = False
+    meta_agent_enabled: bool          = True
     ui_evolution_enabled: bool        = False
     concurrent_problems_enabled: bool = False
 

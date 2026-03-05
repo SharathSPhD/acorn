@@ -28,6 +28,18 @@ patch_problem() {
         -d "{\"status\": \"$st\"}" > /dev/null 2>&1 || true
 }
 
+record_reasoning() {
+    local step_type="$1" summary="$2" confidence="${3:-}"
+    local body="{\"agent_id\": \"$ROLE\", \"step_type\": \"$step_type\", \"summary\": \"$summary\""
+    if [ -n "$confidence" ]; then
+        body="$body, \"confidence\": $confidence"
+    fi
+    body="$body}"
+    curl -sf -X POST "$ACORN_API/api/problems/$PROBLEM_UUID/reasoning-steps" \
+        -H "Content-Type: application/json" \
+        -d "$body" > /dev/null 2>&1 || true
+}
+
 if [ -z "$PROBLEM_UUID" ]; then
     log "ERROR: ACORN_PROBLEM_UUID not set" >&2
     exit 1
@@ -379,6 +391,7 @@ DESCRIPTION=$(echo "$PROBLEM_JSON" | python3 -c "import sys,json; print(json.loa
 
 log "Step 0: Setting status to assembling"
 patch_problem "assembling"
+record_reasoning "init" "Orchestrator started for problem: $TITLE"
 
 log "Step 1: Writing PROBLEM.md"
 cat > PROBLEM.md <<HEREDOC
@@ -480,6 +493,8 @@ except Exception as e:
 PYEOF
 )
 log "Decomposition result: $(echo "$DECOMPOSITION" | head -c 200)"
+TASK_COUNT=$(echo "$DECOMPOSITION" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d) if isinstance(d,list) else 0)" 2>/dev/null || echo "0")
+record_reasoning "decomposition" "Decomposed problem into $TASK_COUNT tasks via LLM" "0.8"
 
 TASK_IDS=$(echo "$DECOMPOSITION" | python3 -c "
 import sys, json, os
@@ -518,6 +533,7 @@ except Exception:
 
 patch_problem "active"
 
+record_reasoning "task_creation" "Created tasks and registered them with the API"
 log "Step 3: Spawning specialist agents"
 SPAWNED=$(echo "$TASK_IDS" | python3 -c "
 import sys, json, os, urllib.request
@@ -542,6 +558,7 @@ for item in items:
 " 2>/dev/null || echo "No agents spawned")
 log "$SPAWNED"
 
+record_reasoning "agent_spawn" "Spawned specialist agents for all decomposed tasks"
 log "Step 4: Polling task completion"
 ATTEMPT=0
 while [ $ATTEMPT -lt $MAX_POLL_ATTEMPTS ]; do
@@ -569,6 +586,7 @@ if total == 0 or done >= total:
     sleep $POLL_INTERVAL
 done
 
+record_reasoning "poll_complete" "All specialist tasks finished, proceeding to judge evaluation"
 log "Step 5: Running judge (with task tracking)"
 JUDGE_TASK_ID=$(python3 -c "
 import json, urllib.request, os
@@ -601,6 +619,7 @@ else
 fi
 sleep 30
 
+record_reasoning "judge" "Judge evaluation spawned for quality assessment"
 log "Step 6: Running kernel extractor (with task tracking)"
 KERNEL_TASK_ID=$(python3 -c "
 import json, urllib.request, os
@@ -643,10 +662,46 @@ print('yes' if any(t.get('status')=='failed' for t in (tasks if isinstance(tasks
 
 if [ "$HAS_FAILURES" = "yes" ]; then
     patch_problem "failed"
+    record_reasoning "conclusion" "Pipeline completed with failures" "0.3"
     log "Pipeline complete with failures"
 else
     patch_problem "complete"
+    record_reasoning "conclusion" "Pipeline completed successfully" "0.9"
     log "Pipeline complete successfully"
 fi
+
+log "Step 8: Assembling REASONING_TRAIL.md"
+python3 <<'TRAIL_PY'
+import json, urllib.request, os
+
+api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
+puuid = os.environ.get('ACORN_PROBLEM_UUID', '')
+try:
+    req = urllib.request.Request(f'{api}/api/problems/{puuid}/reasoning-trail')
+    resp = urllib.request.urlopen(req, timeout=10)
+    data = json.load(resp)
+    steps = data.get('steps', [])
+    lines = ['# REASONING TRAIL\n']
+    lines.append(f'**Problem:** {puuid}\n')
+    lines.append(f'**Total steps:** {len(steps)}\n')
+    lines.append('---\n')
+    for i, s in enumerate(steps, 1):
+        lines.append(f'## Step {i}: {s.get("step_type", "unknown")}')
+        lines.append(f'**Agent:** {s.get("agent_id", "?")}')
+        if s.get('confidence') is not None:
+            lines.append(f'**Confidence:** {s["confidence"]}')
+        lines.append(f'\n{s.get("summary", "")}\n')
+        if s.get('sources'):
+            lines.append(f'**Sources:** {json.dumps(s["sources"])}\n')
+        lines.append(f'*{s.get("created_at", "")}*\n')
+        lines.append('---\n')
+    with open('/workspace/REASONING_TRAIL.md', 'w') as f:
+        f.write('\n'.join(lines))
+    print(f'REASONING_TRAIL.md written ({len(steps)} steps)')
+except Exception as e:
+    print(f'Failed to assemble reasoning trail: {e}')
+    with open('/workspace/REASONING_TRAIL.md', 'w') as f:
+        f.write(f'# REASONING TRAIL\n\nFailed to assemble: {e}\n')
+TRAIL_PY
 
 ls -la /workspace/
