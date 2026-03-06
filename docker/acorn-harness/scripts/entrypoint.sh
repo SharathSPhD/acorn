@@ -581,6 +581,19 @@ Do this step by step:
 IMPORTANT: Always write /workspace/SOLUTION.md with your findings. Keep going until it exists."
     fi
 
+    # Inject model routing hints into the prompt
+    JUDGE_MODEL=$(curl -sf "$ACORN_API/api/agents/model-for-role?role=judge-agent" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('model','qwen3-coder'))" 2>/dev/null || echo "deepseek-r1:14b")
+    ANALYST_MODEL=$(curl -sf "$ACORN_API/api/agents/model-for-role?role=data-scientist" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('model','deepseek-r1:14b'))" 2>/dev/null || echo "deepseek-r1:14b")
+
+    MODEL_ROUTING="
+## Model Routing (use these Ollama models for sub-tasks)
+- Complex reasoning / quality evaluation: $JUDGE_MODEL
+- Data analysis / domain expertise: $ANALYST_MODEL
+- Code generation / implementation: $MODEL
+All models available at: $ANTHROPIC_BASE_URL"
+
+    TEAM_PROMPT="${TEAM_PROMPT}${MODEL_ROUTING}"
+
     claude --dangerously-skip-permissions \
         --model "$MODEL" \
         --max-turns 50 \

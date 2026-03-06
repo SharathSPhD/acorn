@@ -428,6 +428,15 @@ class CortexPlus:
                             )
                     except Exception:
                         pass
+                # Also ensure reasoning model is available for judge role
+                try:
+                    async with httpx.AsyncClient(timeout=5) as client:
+                        await client.post(
+                            f"http://localhost:{settings.port}/api/models/pull",
+                            json={"name": settings.reasoning_model},
+                        )
+                except Exception:
+                    pass
             elif winner.action_type in ("diagnose", "monitor", "idle", "wait"):
                 pass
         except Exception:

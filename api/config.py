@@ -136,7 +136,7 @@ class AcornSettings(BaseSettings):
             "synthesis-agent": self.coder_model,
             "domain-specialist": self.analysis_model,
             "validator": self.analysis_model,
-            "judge-agent": self.coder_model,
+            "judge-agent": self.reasoning_model,
             "kernel-extractor": self.analysis_model,
             "interface-agent": self.coder_model,
             "calibration-agent": self.coder_model,
