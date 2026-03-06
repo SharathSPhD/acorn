@@ -319,7 +319,7 @@ fi
 if [ "$ROLE" = "judge" ] || [ "$ROLE" = "judge-agent" ]; then
     log "Starting quality evaluation"
 
-    WORKSPACE_FILES=$(find /workspace -maxdepth 2 -type f ! -path '*/.git/*' -name '*.md' -o -name '*.py' -o -name '*.csv' | head -20)
+    WORKSPACE_FILES=$(find /workspace -maxdepth 2 -type f ! -path '*/.git/*' \( -name '*.md' -o -name '*.py' -o -name '*.csv' -o -name '*.json' -o -name '*.txt' \) | grep -v '__pycache__' | head -25)
     CONTEXT=""
     for f in $WORKSPACE_FILES; do
         CONTEXT="${CONTEXT}
@@ -771,7 +771,7 @@ try:
 except Exception: print('')
 " 2>/dev/null || echo "")
 
-WORKSPACE_FILES=$(find /workspace -maxdepth 2 -type f ! -path '*/.git/*' \( -name '*.md' -o -name '*.py' -o -name '*.csv' \) | head -20)
+WORKSPACE_FILES=$(find /workspace -maxdepth 2 -type f ! -path '*/.git/*' \( -name '*.md' -o -name '*.py' -o -name '*.csv' -o -name '*.json' -o -name '*.txt' \) | grep -v '__pycache__' | head -25)
 JUDGE_CONTEXT=""
 for f in $WORKSPACE_FILES; do
     JUDGE_CONTEXT="${JUDGE_CONTEXT}
