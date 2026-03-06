@@ -100,7 +100,9 @@ class PlanningModule(CortexModule):
             )
 
         top_delta = deltas[0]
-        salience = min(1.0, 0.4 + len(deltas) * 0.05)
+        # Scale salience strongly with gap count so planning wins when work exists.
+        # 5 gaps → 0.85, 7 gaps → 0.99, 8+ → 1.0
+        salience = min(1.0, 0.5 + len(deltas) * 0.07)
         return ModuleOutput(
             module=self.name, salience=salience,
             action_type="generate_objective",
