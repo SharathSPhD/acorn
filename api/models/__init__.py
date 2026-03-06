@@ -217,3 +217,21 @@ class JudgeVerdictResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ── Episodes ──────────────────────────────────────────────────────────────
+
+class EpisodeCreate(BaseModel):
+    problem_id: str
+    summary: str | None = None
+    outcome: str | None = None  # pass | fail
+    kernel_ids: list[str] | None = None
+
+
+class EpisodeResponse(BaseModel):
+    id: str
+    problem_id: str
+    agent_id: str
+    event_type: str
+    importance: float
+    created_at: str

@@ -993,9 +993,31 @@ POSTVERDICT
 fi
 
 log "Step 6: Running kernel extractor"
-claude --dangerously-skip-permissions --model "$MODEL" --max-turns 10 -p \
-  "Analyze all Python and Markdown files in /workspace. Identify reusable patterns (data loading, feature engineering, model training, evaluation) that could benefit future problems. Write a KERNEL.md file for each pattern found. Each KERNEL.md should have: name, description, when_to_use, code_template." \
+# Only run extractor on PASS verdicts — don't extract from failed solutions
+if [ "$JUDGE_LOCAL_VERDICT" = "pass" ]; then
+claude --dangerously-skip-permissions --model "$MODEL" --max-turns 12 -p \
+  "You are the ACORN Kernel Extractor. Scan /workspace for reusable analytical patterns worth preserving.
+
+Step 1: ls /workspace/ — see available files
+Step 2: Read solution.py and SOLUTION.md to understand what was built
+
+For each distinct reusable pattern (max 3 kernels), create /workspace/KERNEL_{slug}.md:
+
+# {slug-name}
+{One sentence: what this pattern does and when it is useful}
+Category: {one of: sales|pricing|marketing|supply_chain|customer|finance|operations|human_capital|product|etl|infra|general}
+Keywords: {5-8 comma-separated domain keywords}
+
+RULES:
+- Line 1: # name (lowercase slug, hyphens, no spaces, no special chars)
+- Line 2: plain description sentence (NOT a heading)
+- Line 3: Category: exactly one valid value
+- Line 4: Keywords: comma-separated
+- Extract GENERIC reusable logic only (not problem-specific hardcoded values)
+- Skip if no reusable pattern exists (do not create generic fillers)
+- KERNEL files must be at /workspace/KERNEL_*.md (not subdirectories)" \
   > /dev/null 2>&1 || true
+fi
 
 log "Step 6b: Ingesting extracted kernels into grove"
 curl -sf -X POST "$ACORN_API/api/kernels/ingest-workspace/problem-$PROBLEM_UUID" \
@@ -1067,10 +1089,43 @@ try:
 except Exception as e: print(f'Recovery failed: {e}')
 " 2>/dev/null || true
     fi
+
+    # Record episode for failed problem
+    python3 -c "
+import json, urllib.request, os
+api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
+puuid = os.environ.get('ACORN_PROBLEM_UUID', '')
+title = os.environ.get('ACORN_PROBLEM_TITLE', 'Unknown')
+desc = os.environ.get('ACORN_PROBLEM_DESC', '')
+judge_notes = '$FAIL_NOTES'
+summary = f'**Problem:** {title}\n\n**Description:** {desc[:200]}\n\n**Judge notes:** {judge_notes}\n\n**Outcome:** FAILED'
+body = json.dumps({'problem_id': puuid, 'summary': summary, 'outcome': 'fail'}).encode()
+try:
+    urllib.request.urlopen(urllib.request.Request(f'{api}/api/episodes',
+        data=body, headers={'Content-Type': 'application/json'}, method='POST'), timeout=10)
+    print('Episode recorded for failed problem')
+except Exception as e: print(f'Episode recording failed: {e}')
+" 2>/dev/null || true
 else
     patch_problem "complete"
     record_reasoning "conclusion" "Pipeline completed successfully (judge=$JUDGE_LOCAL_VERDICT, outputs=$OUTPUT_COUNT)" "0.9"
     log "Pipeline complete successfully"
+
+    # Record episode for successful problem
+    python3 -c "
+import json, urllib.request, os
+api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
+puuid = os.environ.get('ACORN_PROBLEM_UUID', '')
+title = os.environ.get('ACORN_PROBLEM_TITLE', 'Unknown')
+desc = os.environ.get('ACORN_PROBLEM_DESC', '')
+summary = f'**Problem:** {title}\n\n**Description:** {desc[:200]}\n\n**Outcome:** PASSED'
+body = json.dumps({'problem_id': puuid, 'summary': summary, 'outcome': 'pass'}).encode()
+try:
+    urllib.request.urlopen(urllib.request.Request(f'{api}/api/episodes',
+        data=body, headers={'Content-Type': 'application/json'}, method='POST'), timeout=10)
+    print('Episode recorded for successful problem')
+except Exception as e: print(f'Episode recording failed: {e}')
+" 2>/dev/null || true
 fi
 
 # GRS reward signals

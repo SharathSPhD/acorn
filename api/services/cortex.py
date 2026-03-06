@@ -228,6 +228,8 @@ class CortexPlus:
         )
         self.current_broadcast: ModuleOutput | None = None
         self._task: asyncio.Task[None] | None = None
+        self._consecutive_critic_wins = 0
+        self._cooldown_until: float = 0.0
 
     async def _gather_db_state(self, state: dict[str, Any]) -> None:
         """Populate state from database."""
@@ -374,10 +376,31 @@ class CortexPlus:
         import random as _random
         adjusted = []
         for o in outputs:
-            decay = (0.85 ** consecutive) if o.module == last_winner else 1.0
+            # Circuit breaker: if critic wins >3 consecutive times AND fail_rate > 0.8,
+            # force planning to 0.5 to encourage solving simpler problems first.
+            if (o.module == "critic" and
+                self._consecutive_critic_wins > 3 and
+                state.get("recent_fail_rate", 0.0) > 0.8):
+                logger.warning(
+                    "CORTEX+ circuit breaker: critic cooldown triggered "
+                    "(fail_rate=%.2f, consecutive_wins=%d)",
+                    state.get("recent_fail_rate", 0.0),
+                    self._consecutive_critic_wins,
+                )
+                # Suppress planning so system focuses on simpler problems
+                decay = (0.85 ** consecutive) if o.module == last_winner else 1.0
+            else:
+                decay = (0.85 ** consecutive) if o.module == last_winner else 1.0
             adjusted.append((o.salience * decay, _random.random(), o))
         adjusted.sort(key=lambda t: (t[0], t[1]), reverse=True)
         winner = adjusted[0][2]
+
+        # Track consecutive critic wins for circuit breaker
+        if winner.module == "critic":
+            self._consecutive_critic_wins += 1
+        else:
+            self._consecutive_critic_wins = 0
+
         self._consecutive_wins = (consecutive + 1) if winner.module == last_winner else 1
         self.current_broadcast = winner
         entry = {
@@ -387,14 +410,16 @@ class CortexPlus:
             "payload": winner.payload,
             "timestamp": winner.timestamp,
             "all_saliences": {o.module: o.salience for o in outputs},
+            "consecutive_critic_wins": self._consecutive_critic_wins,
         }
         self.broadcast_log.append(entry)
         if len(self.broadcast_log) > 500:
             self.broadcast_log = self.broadcast_log[-250:]
 
         logger.info(
-            "CORTEX+ broadcast: %s (salience=%.2f, action=%s)",
+            "CORTEX+ broadcast: %s (salience=%.2f, action=%s, consecutive_critic_wins=%d)",
             winner.module, winner.salience, winner.action_type,
+            self._consecutive_critic_wins,
         )
 
         await self.execute_action(winner, state)

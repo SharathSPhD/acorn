@@ -49,6 +49,78 @@ check_harness_health() {
     fi
 }
 
+check_stalled_harnesses() {
+    # Detect harnesses stuck in the same step for >15 minutes.
+    # Method: check if any problem has been in status=active for >20 minutes.
+    local stalled_problems
+    stalled_problems=$(curl -sf "$ACORN_API/api/problems" 2>/dev/null || echo "[]")
+
+    local stalled_count=0
+    echo "$stalled_problems" | python3 -c "
+import sys, json
+from datetime import datetime, timezone, timedelta
+
+problems = json.load(sys.stdin) if sys.stdin.isatty() else []
+try:
+    problems = json.loads(sys.stdin.read())
+except:
+    problems = []
+
+if not isinstance(problems, list):
+    problems = []
+
+now = datetime.now(timezone.utc)
+threshold = now - timedelta(minutes=20)
+
+for p in problems:
+    if p.get('status') == 'active':
+        try:
+            updated_at = datetime.fromisoformat(p.get('updated_at', '').replace('Z', '+00:00'))
+            if updated_at < threshold:
+                problem_id = p.get('id', 'unknown')
+                print(f'STALLED: {problem_id} (active for {(now - updated_at).total_seconds() / 60:.0f} min)')
+        except Exception:
+            pass
+" 2>/dev/null || true
+
+    # Force-fail stalled problems
+    echo "$stalled_problems" | python3 -c "
+import sys, json, os, urllib.request
+from datetime import datetime, timezone, timedelta
+
+api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
+try:
+    problems = json.loads(sys.stdin.read())
+except:
+    problems = []
+
+if not isinstance(problems, list):
+    problems = []
+
+now = datetime.now(timezone.utc)
+threshold = now - timedelta(minutes=20)
+
+for p in problems:
+    if p.get('status') == 'active':
+        try:
+            updated_at = datetime.fromisoformat(p.get('updated_at', '').replace('Z', '+00:00'))
+            if updated_at < threshold:
+                problem_id = p.get('id')
+                body = json.dumps({'status': 'failed'}).encode()
+                try:
+                    urllib.request.urlopen(urllib.request.Request(
+                        f'{api}/api/problems/{problem_id}',
+                        data=body,
+                        headers={'Content-Type': 'application/json'},
+                        method='PATCH'), timeout=10)
+                    print(f'Force-failed stalled problem: {problem_id}')
+                except Exception as e:
+                    print(f'Failed to force-fail {problem_id}: {e}')
+        except Exception:
+            pass
+" 2>/dev/null || true
+}
+
 check_service_health() {
     local services=("acorn-postgres" "acorn-redis" "acorn-api-relay")
     for svc in "${services[@]}"; do
@@ -108,15 +180,15 @@ check_episode_consolidation() {
     # Trigger episodic memory consolidation when episodes exceed threshold.
     # This extracts recurring patterns and writes KERNEL.md candidates to probationary grove.
     local episode_count
-    episode_count=$(curl -sf "$ACORN_API/api/telemetry/episode-count" 2>/dev/null | \
+    episode_count=$(curl -sf "$ACORN_API/api/episodes/count" 2>/dev/null | \
         jq '.count // 0' 2>/dev/null || echo "0")
     if [ "$episode_count" -ge "$EPISODE_CONSOLIDATION_THRESHOLD" ]; then
         local flag="/tmp/acorn_consolidation_${episode_count}"
         if [ ! -f "$flag" ]; then
             log "Triggering episodic consolidation: $episode_count episodes."
-            curl -sf -X POST "$ACORN_API/api/memory/consolidate" \
+            curl -sf -X POST "$ACORN_API/api/episodes/consolidate" \
                 -H "Content-Type: application/json" \
-                -d '{"domain":"all","source":"warden"}' > /dev/null 2>&1 || true
+                -d '{"domain":"all"}' > /dev/null 2>&1 || true
             touch "$flag"
         fi
     fi
@@ -188,6 +260,7 @@ while true; do
     log "Cycle $cycle: checking health..."
 
     check_harness_health
+    check_stalled_harnesses
     check_service_health
     check_cortex_health
     auto_start_pending_problems
