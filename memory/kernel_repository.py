@@ -17,6 +17,16 @@ class PostgreSQLKernelRepository(KernelRepository):
     async def find_by_keywords(
         self, query: str, category: str | None = None, top_k: int = 5
     ) -> list[Kernel]:
+        """Match kernels whose trigger_keywords or name overlap any word in the query.
+
+        Splits the query into individual words so that a full problem title like
+        "CORTEX+ objective: pricing kernels" still matches kernels with trigger
+        keywords like ["pricing", "price_elasticity"].
+        """
+        words = [w.lower() for w in query.replace(":", " ").replace("+", " ").split() if len(w) >= 3]
+        if not words:
+            words = [query.lower()]
+        patterns = [f"%{w}%" for w in words]
         conn = await asyncpg.connect(self._conn_str)
         try:
             if category:
@@ -24,17 +34,25 @@ class PostgreSQLKernelRepository(KernelRepository):
                     """SELECT * FROM kernels
                        WHERE status != 'deprecated'
                          AND category = $1
-                         AND ($2 = ANY(trigger_keywords) OR name ILIKE $3)
-                       LIMIT $4""",
-                    category, query, f"%{query}%", top_k
+                         AND (
+                           EXISTS(SELECT 1 FROM unnest(trigger_keywords) kw
+                                  WHERE kw ILIKE ANY($2::text[]))
+                           OR name ILIKE ANY($2::text[])
+                         )
+                       LIMIT $3""",
+                    category, patterns, top_k
                 )
             else:
                 rows = await conn.fetch(
                     """SELECT * FROM kernels
                        WHERE status != 'deprecated'
-                         AND ($1 = ANY(trigger_keywords) OR name ILIKE $2)
-                       LIMIT $3""",
-                    query, f"%{query}%", top_k
+                         AND (
+                           EXISTS(SELECT 1 FROM unnest(trigger_keywords) kw
+                                  WHERE kw ILIKE ANY($1::text[]))
+                           OR name ILIKE ANY($1::text[])
+                         )
+                       LIMIT $2""",
+                    patterns, top_k
                 )
             return [_row_to_kernel(r) for r in rows]
         finally:
