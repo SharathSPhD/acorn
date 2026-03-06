@@ -522,12 +522,16 @@ class CortexPlus:
                 domain = delta.get("domain", "general")
                 gap = delta.get("gap", 1)
                 concepts = delta.get("core_concepts", [domain])
+                # Limit to 2 concepts per problem — agents reliably implement 2 but
+                # fail when asked for 4. Spawn multiple focused problems instead.
+                focus_concepts = concepts[:2]
                 problem_desc = (
-                    f"Build {gap} reusable kernel(s) for the '{domain}' domain. "
-                    f"Key concepts to cover: {', '.join(concepts[:4])}. "
-                    f"For each concept: write a parameterized Python function to /workspace/{{concept}}.py, "
-                    f"test it with sample data, and write /workspace/SOLUTION.md listing each kernel's "
-                    f"inputs, outputs, and a concrete usage example with actual output values."
+                    f"Build 1 reusable kernel for the '{domain}' domain focusing on: "
+                    f"{' and '.join(focus_concepts)}. "
+                    f"Write a single Python file /workspace/{focus_concepts[0].replace(' ','_')}.py "
+                    f"with a well-documented function that takes parameters and returns results. "
+                    f"Test it with sample data from /data/datasets/ if relevant. "
+                    f"Write /workspace/SOLUTION.md with: function signature, example call, and ACTUAL output values."
                 )
                 try:
                     # Idempotency: one kernel problem per domain per hour
