@@ -420,6 +420,79 @@ Problems 208f5c96, c8d4f55b, and 2fded6f1 are marked "complete" in the API despi
 - Containers: 2 running (acorn-harness-0ad113d0 Up <1s, acorn-harness-ac5207b5 Up 1s)
 - Notes: 3 new CORTEX+ problems created (ac5207b5, 0ad113d0, 550e7404) — all pending. Containers just starting for 2 of 3.
 
+### Cycle 2 — 2026-03-06T06:45 UTC
+- Complete: 5 | Active: 3 | Pending: 0 | Failed: 13
+- New completions this cycle: none
+- CORTEX+ module: perception | salience: 1.0 | log_size: 283
+- Containers: not checked this cycle
+- Notes: All 3 pending problems (ac5207b5, 0ad113d0, 550e7404) now active. Queue drained.
+
+### Cycle 3 — 2026-03-06T06:46 UTC
+- Complete: 5 | Active: 3 | Pending: 0 | Failed: 13
+- New completions this cycle: none
+- CORTEX+ module: perception | salience: 1.0 | log_size: 284 (+1 tick)
+- Containers: 3 running (550e7404, 0ad113d0, ac5207b5 — all Up ~1min)
+- Notes: All 3 harness containers healthy. CORTEX+ ticked once. No status changes.
+
+### Cycle 4 — 2026-03-06T06:47 UTC
+- Complete: 5 | Active: 3 | Pending: 0 | Failed: 13
+- New completions this cycle: none
+- CORTEX+ module: perception | salience: 1.0 | log_size: 284
+- Containers: not checked this cycle
+- Notes: Steady state. 3 problems processing. No changes from cycle 3.
+
+### Cycle 5 — 2026-03-06T07:01 UTC
+- Complete: 5 | Active: 0 | Pending: 0 | Failed: 16
+- New completions this cycle: none
+- New failures this cycle: 3 (ac5207b5, 0ad113d0, 550e7404 — all moved from active to failed)
+- CORTEX+ module: perception | salience: 1.0 | log_size: 285 | recent_failures: 16
+- Containers: 0 running (all 3 harness containers exited)
+- Notes: ALL 3 new problems FAILED. Containers finished but judge rejected outputs. Failed count rose from 13 to 16. System idle — no active or pending work.
+
+### Cycle 6 — 2026-03-06T07:02 UTC
+- Complete: 5 | Active: 0 | Pending: 0 | Failed: 16
+- New completions this cycle: none
+- CORTEX+ module: perception | salience: 1.0 | log_size: 285 | recent_failures: 16
+- Containers: not checked this cycle
+- Notes: No changes from cycle 5. System fully idle.
+
+## SENTINEL v3 Summary
+
+**Observation window:** 6 cycles over ~3 minutes (06:44 - 07:02 UTC, 2026-03-06)
+
+### Problem Progression
+| Metric | Cycle 1 | Cycle 6 | Delta |
+|--------|---------|---------|-------|
+| Complete | 5 | 5 | 0 |
+| Active | 0 | 0 | 0 |
+| Pending | 3 | 0 | -3 |
+| Failed | 13 | 16 | **+3** |
+
+### Net New Completions During Watch: 0
+- No problems completed during the observation window.
+
+### Net New Failures During Watch: 3
+- ac5207b5 (Sales revenue forecasting) — FAILED
+- 0ad113d0 (Customer segmentation K-means) — FAILED
+- 550e7404 (Anomaly detection in sales transactions) — FAILED
+- All 3 CORTEX+-generated problems failed. Likely cause: HTTP 500 from relay + incomplete code generation (consistent with IGNITER watchdog cycle 3 report).
+
+### CORTEX+ Module Rotation: NO
+- Perception module held broadcast monopoly across all 6 cycles (salience=1.0 throughout).
+- broadcast_log_size: 283 -> 285 (2 ticks in observation window).
+- recent_failures rose from 13 to 16 — reinforcing perception's salience lock.
+
+### Anomalies
+1. **100% failure rate on new problems:** All 3 problems started during this session failed. No completions.
+2. **Perception monopoly persists:** 285 consecutive ticks with perception winning. SHEPHERD v3 diagnosed root cause (over-sensitive failure-based salience formula).
+3. **System idle at end of watch:** 0 active, 0 pending. CORTEX+ will need to seed new problems for activity to resume.
+4. **Failure cascade risk:** 16 failed problems now feeding perception salience, making monopoly even harder to break.
+
+### Trend: STALLED
+- System processed 3 new problems but all failed.
+- No forward progress on completions.
+- Infrastructure (CORTEX+, containers) healthy but agent outputs consistently rejected by judge.
+
 ## SCRIBE Operations
 
 | Time | Agent | Event | Details |
@@ -437,3 +510,54 @@ Problems 208f5c96, c8d4f55b, and 2fded6f1 are marked "complete" in the API despi
 |------|-------|-------|---------|
 | 2026-03-06T06:46Z | IGNITER v3 | Fleet v3 launched | 3 new problems started: ac5207b5 (Sales revenue forecasting), 0ad113d0 (Customer segmentation K-means), 550e7404 (Anomaly detection) |
 | 2026-03-06T06:46Z | IGNITER v3 | Containers | 3 harness containers running (all Up) |
+| 2026-03-06T06:48Z | IGNITER watchdog | Cycle 1 | 3 running, 0 complete, 0 failed (of target 3) |
+| 2026-03-06T06:49Z | IGNITER watchdog | Cycle 2 | 3 running, 0 complete, 0 failed (of target 3) |
+| 2026-03-06T06:50Z | IGNITER watchdog | Cycle 3 | 0 running, 0 complete, 3 failed (all 3 targets) — HTTP 500 errors + incomplete code |
+| 2026-03-06T06:51Z | IGNITER watchdog | Cycle 4 | 0 running, 0 complete, 3 failed — no change, system idle |
+| 2026-03-06T06:52Z | IGNITER watchdog | Cycle 5 (final) | 0 running, 0 complete, 3 failed — system idle, watchdog complete |
+
+## Guardian Fleet v3 — HEALER v3
+
+| Time | Agent | Event | Details |
+|------|-------|-------|---------|
+| 2026-03-06T06:48Z | HEALER v3 | Workspace scan | Scanned 5 workspaces: 7a27ccf1 (churn), cc9fb02e (sales), 9fc5c831 (sales), d4a2ddd5 (csv-stats), 2fded6f1 (telemetry) |
+| 2026-03-06T06:48Z | HEALER v3 | Kernel extracted | customer-churn-classifier (probationary) — source: 7a27ccf1, RandomForestClassifier churn pipeline |
+| 2026-03-06T06:48Z | HEALER v3 | Kernel extracted | sales-analysis-pipeline (probationary) — source: cc9fb02e, LinearRegression sales KPI pipeline |
+| 2026-03-06T06:48Z | HEALER v3 | Kernel grove | 3 probationary kernels total: csv-stats-report, customer-churn-classifier, sales-analysis-pipeline |
+
+## Guardian Fleet v3 — SCRIBE v3
+
+| Time | Agent | Event | Details |
+|------|-------|-------|---------|
+| 2026-03-06T06:49Z | SCRIBE v3 | Committed + pushed | 2f1bff8 — entrypoint verdict fix + kernel grove + log updates |
+
+## SHEPHERD v3 Report
+
+| Time | Agent | Event | Details |
+|------|-------|-------|---------|
+| 2026-03-06T07:00Z | SHEPHERD v3 | CORTEX+ status | Running, tick_interval=120s, broadcast_log_size=284 |
+| 2026-03-06T07:00Z | SHEPHERD v3 | Heartbeat 1-4 | All 4 cycles: perception wins (salience=1.0), no restarts needed |
+| 2026-03-06T07:00Z | SHEPHERD v3 | GWT diagnosis | **Perception monopoly root cause identified** (see below) |
+| 2026-03-06T07:00Z | SHEPHERD v3 | Problem queue | 3 active, 4 complete, 13 failed, 0 pending |
+
+### GWT Perception Monopoly — Root Cause Analysis
+
+**Finding:** Perception has won 100% of 284 broadcast ticks. No other module has ever won.
+
+**Root cause:** The `PerceptionModule.compute()` salience formula at `api/services/cortex.py:51`:
+```python
+salience = min(1.0, failed_recent * 0.15 + len(anomalies) * 0.4)
+```
+With `recent_failures=13` (from failed problems in queue), salience = min(1.0, 13*0.15) = min(1.0, 1.95) = **1.0**.
+
+When multiple modules tie at salience=1.0 (planning also reaches 1.0 sometimes), Python's `max()` returns the **first** element — and `PerceptionModule` is index 0 in `self.modules` list (line 202).
+
+**Two compounding issues:**
+1. **Perception is over-sensitive to failures:** 7+ failed problems push salience to max (1.0). Since ACORN has 13 failed problems, perception is permanently saturated.
+2. **No tie-breaking mechanism:** `max()` at line 355 always picks the first module when tied. Perception, being first in the list, wins every tie.
+
+**Fixes needed for other modules to win:**
+1. Cap perception's failure-based salience lower (e.g., `min(0.8, ...)`) so other modules can outcompete
+2. Add tie-breaking: when modules tie, use round-robin, random selection, or recency-based demotion
+3. Add a "habituation" decay: if a module wins N consecutive ticks, dampen its salience to let others compete
+4. Raise `recent_failures` threshold: require more failures before saturating (e.g., `failed_recent * 0.05`)

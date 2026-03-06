@@ -48,7 +48,10 @@ class PerceptionModule(CortexModule):
             anomalies.append("redis_unhealthy")
 
         failed_recent = state.get("recent_failures", 0)
-        salience = min(1.0, failed_recent * 0.15 + len(anomalies) * 0.4)
+        # Cap at 0.7 so other modules can compete when failure count is high.
+        # Previously min(1.0, ...) saturated at 1.0 with ≥7 failures, causing
+        # a permanent perception monopoly (GWT never rotated to other modules).
+        salience = min(0.7, failed_recent * 0.08 + len(anomalies) * 0.4)
         return ModuleOutput(
             module=self.name,
             salience=salience,
@@ -352,7 +355,19 @@ class CortexPlus:
         if not outputs:
             return None
 
-        winner = max(outputs, key=lambda o: o.salience)
+        # Habituation decay: dampen the consecutive winner so other modules get
+        # airtime. Each win multiplies the winner's effective salience by 0.85,
+        # resetting when a different module takes over.
+        last_winner = self.current_broadcast.module if self.current_broadcast else None
+        consecutive = getattr(self, "_consecutive_wins", 0)
+        import random as _random
+        adjusted = []
+        for o in outputs:
+            decay = (0.85 ** consecutive) if o.module == last_winner else 1.0
+            adjusted.append((o.salience * decay, _random.random(), o))
+        adjusted.sort(key=lambda t: (t[0], t[1]), reverse=True)
+        winner = adjusted[0][2]
+        self._consecutive_wins = (consecutive + 1) if winner.module == last_winner else 1
         self.current_broadcast = winner
         entry = {
             "module": winner.module,
