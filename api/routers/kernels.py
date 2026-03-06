@@ -158,6 +158,75 @@ async def ingest_workspace_kernels(problem_id: str) -> dict[str, Any]:
     return {"ingested": ingested, "files_scanned": len(kernel_files)}
 
 
+@router.post("/auto-promote")
+async def auto_promote_kernels() -> dict[str, Any]:
+    """Promote all probationary kernels that meet the threshold (verified_on >= 2)."""
+    threshold = settings.acorn_kernel_promo_threshold
+    conn = await asyncpg.connect(settings.database_url)
+    try:
+        rows = await conn.fetch(
+            """
+            SELECT id, name, array_length(verified_on_problems, 1) AS verified_count
+            FROM kernels
+            WHERE status = 'probationary'
+              AND array_length(verified_on_problems, 1) >= $1
+            """,
+            threshold,
+        )
+        promoted = []
+        for row in rows:
+            await conn.execute(
+                "UPDATE kernels SET status = 'permanent' WHERE id = $1",
+                row["id"],
+            )
+            promoted.append(  # noqa: E501
+                {"id": str(row["id"]), "name": row["name"], "verified": row["verified_count"]}
+            )
+        return {"promoted": len(promoted), "kernels": promoted, "threshold": threshold}
+    finally:
+        await conn.close()
+
+
+@router.post("/{kernel_id}/record-use")
+async def record_kernel_use(kernel_id: UUID, body: dict[str, Any]) -> dict[str, Any]:
+    """Record that a kernel was retrieved and used for a problem (increments use_count)."""
+    problem_id_str = body.get("problem_id")
+    conn = await asyncpg.connect(settings.database_url)
+    try:
+        if problem_id_str:
+            await conn.execute(
+                """
+                UPDATE kernels
+                SET use_count = use_count + 1,
+                    verified_on_problems = array_append(
+                        COALESCE(verified_on_problems, ARRAY[]::uuid[]),
+                        $2::uuid
+                    )
+                WHERE id = $1
+                  AND NOT ($2::uuid = ANY(COALESCE(verified_on_problems, ARRAY[]::uuid[])))
+                """,
+                kernel_id, problem_id_str,
+            )
+        else:
+            await conn.execute(
+                "UPDATE kernels SET use_count = use_count + 1 WHERE id = $1",
+                kernel_id,
+            )
+        row = await conn.fetchrow(
+            "SELECT id, name, use_count, array_length(verified_on_problems,1) AS verified"  # noqa: E501
+            " FROM kernels WHERE id=$1",
+            kernel_id,
+        )
+        if not row:
+            raise HTTPException(status_code=404, detail="Kernel not found")
+        return {
+            "id": str(row["id"]), "name": row["name"],
+            "use_count": row["use_count"], "verified_on": row["verified"] or 0,
+        }
+    finally:
+        await conn.close()
+
+
 def _parse_kernel_md(content: str) -> tuple[str, str, str, list[str]]:
     """Extract name, description, category, and keywords from a KERNEL.md file."""
     lines = content.strip().split("\n")

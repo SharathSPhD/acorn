@@ -503,6 +503,24 @@ else:
         echo "" >> PROBLEM.md
         echo "$KERNEL_CONTEXT" >> PROBLEM.md
         log "Found relevant kernels, appended to PROBLEM.md"
+        # Record usage so kernels accumulate verified_on_problems for promotion
+        echo "$RELEVANT_KERNELS" | python3 -c "
+import sys, json, urllib.request, os
+api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
+prob = os.environ.get('ACORN_PROBLEM_UUID', '')
+try:
+    kernels = json.load(sys.stdin)
+    for k in (kernels if isinstance(kernels, list) else [])[:5]:
+        kid = k.get('id', '')
+        if not kid: continue
+        body = json.dumps({'problem_id': prob}).encode()
+        req = urllib.request.Request(
+            f'{api}/api/kernels/{kid}/record-use', data=body,
+            headers={'Content-Type': 'application/json'}, method='POST')
+        try: urllib.request.urlopen(req, timeout=5)
+        except Exception: pass
+except Exception: pass
+" 2>/dev/null || true
     fi
 fi
 
