@@ -740,13 +740,29 @@ tasks = json.load(sys.stdin)
 print('yes' if any(t.get('status')=='failed' for t in (tasks if isinstance(tasks,list) else [])) else 'no')
 " 2>/dev/null || echo "no")
 
-if [ "$HAS_FAILURES" = "yes" ]; then
+# judge_verdict.json is authoritative: when JUDGE_TASK_ID creation fails (API
+# 500/timeout), the judge still writes this file but never patches a task, so
+# HAS_FAILURES stays "no" despite a FAIL verdict. Read it directly to close gap.
+JUDGE_LOCAL_VERDICT="pass"
+if [ -f /workspace/judge_verdict.json ]; then
+    JUDGE_LOCAL_VERDICT=$(python3 -c "
+import json
+try:
+    d = json.load(open('/workspace/judge_verdict.json'))
+    print(d.get('verdict', 'pass'))
+except Exception:
+    print('pass')
+" 2>/dev/null || echo "pass")
+    log "judge_verdict.json says: $JUDGE_LOCAL_VERDICT"
+fi
+
+if [ "$HAS_FAILURES" = "yes" ] || [ "$JUDGE_LOCAL_VERDICT" = "fail" ]; then
     patch_problem "failed"
-    record_reasoning "conclusion" "Pipeline completed with failures" "0.3"
+    record_reasoning "conclusion" "Pipeline completed with failures (tasks=$HAS_FAILURES judge=$JUDGE_LOCAL_VERDICT)" "0.3"
     log "Pipeline complete with failures"
 else
     patch_problem "complete"
-    record_reasoning "conclusion" "Pipeline completed successfully" "0.9"
+    record_reasoning "conclusion" "Pipeline completed successfully (judge=$JUDGE_LOCAL_VERDICT)" "0.9"
     log "Pipeline complete successfully"
 fi
 

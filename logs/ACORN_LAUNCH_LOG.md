@@ -411,6 +411,15 @@ Problems 208f5c96, c8d4f55b, and 2fded6f1 are marked "complete" in the API despi
 - No anomalies detected by perception, 8 recent failures noted
 - Broadcast log size: 12
 
+## SENTINEL v3 Monitoring
+
+### Cycle 1 — 2026-03-06T06:44 UTC
+- Complete: 5 | Active: 0 | Pending: 3 | Failed: 13
+- New completions this cycle: none (baseline: 5 complete)
+- CORTEX+ module: perception | salience: 1.0 | log_size: 283
+- Containers: 2 running (acorn-harness-0ad113d0 Up <1s, acorn-harness-ac5207b5 Up 1s)
+- Notes: 3 new CORTEX+ problems created (ac5207b5, 0ad113d0, 550e7404) — all pending. Containers just starting for 2 of 3.
+
 ## SCRIBE Operations
 
 | Time | Agent | Event | Details |
@@ -420,3 +429,11 @@ Problems 208f5c96, c8d4f55b, and 2fded6f1 are marked "complete" in the API despi
 | 2026-03-05T21:45Z | SCRIBE v2 | Committed | b0f05b0 |
 | 2026-03-05T21:45Z | SCRIBE v2 | Pushed to GitHub | https://github.com/SharathSPhD/acorn/tree/feat/acorn-autonomous-gaps-implementation |
 | 2026-03-05T21:46Z | SCRIBE v2 | PR opened (manual) | https://github.com/SharathSPhD/acorn/compare/main...feat/acorn-autonomous-gaps-implementation?expand=1 |
+| 2026-03-05T21:50Z | SCRIBE v2 | Kernel grove committed | 1 KERNEL.md + README.md pushed to GitHub (78a4ca5) |
+
+## Guardian Fleet v3 — IGNITER v3
+
+| Time | Agent | Event | Details |
+|------|-------|-------|---------|
+| 2026-03-06T06:46Z | IGNITER v3 | Fleet v3 launched | 3 new problems started: ac5207b5 (Sales revenue forecasting), 0ad113d0 (Customer segmentation K-means), 550e7404 (Anomaly detection) |
+| 2026-03-06T06:46Z | IGNITER v3 | Containers | 3 harness containers running (all Up) |
