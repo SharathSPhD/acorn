@@ -30,7 +30,7 @@ class CortexModule:
 
     name: str = "base"
 
-    async def compute(self, state: dict[str, Any]) -> ModuleOutput:
+    async def compute(self, _state: dict[str, Any]) -> ModuleOutput:
         raise NotImplementedError
 
 
@@ -390,7 +390,7 @@ class CortexPlus:
         return winner
 
     async def execute_action(
-        self, winner: ModuleOutput, state: dict[str, Any],
+        self, winner: ModuleOutput, _state: dict[str, Any],
     ) -> None:
         """Execute the winning module's action."""
         try:
