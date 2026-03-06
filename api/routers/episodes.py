@@ -35,16 +35,20 @@ async def create_episode(body: EpisodeCreate) -> EpisodeResponse:
             except Exception:
                 pass  # Embedding generation is optional
 
+        embedding_str = None
+        if embedding is not None:
+            embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
+
         row = await conn.fetchrow(
             """INSERT INTO episodes
                (problem_id, agent_id, event_type, content, embedding, importance)
-               VALUES ($1, $2, $3, $4, $5, $6)
+               VALUES ($1, $2, $3, $4, $5::vector, $6)
                RETURNING id, problem_id, agent_id, event_type, importance, created_at""",
             UUID(body.problem_id) if isinstance(body.problem_id, str) else body.problem_id,
             "system",
             "problem_completion",
             body.summary or "",
-            embedding,
+            embedding_str,
             0.7,
         )
         return EpisodeResponse(

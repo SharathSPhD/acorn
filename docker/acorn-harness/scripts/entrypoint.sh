@@ -29,14 +29,24 @@ patch_task() {
 patch_problem() {
     local st="$1"
     local notes="${2:-}"
-    local body="{\"status\": \"$st\""
     if [ -n "$notes" ]; then
-        body="$body, \"judge_notes\": \"$(echo "$notes" | sed 's/"/\\"/g' | head -c 500)\""
+        python3 -c "
+import json, urllib.request, os
+api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
+puuid = os.environ.get('ACORN_PROBLEM_UUID', '')
+body = json.dumps({'status': '$st', 'judge_notes': '''$notes'''[:500]}).encode()
+try:
+    urllib.request.urlopen(urllib.request.Request(
+        f'{api}/api/problems/{puuid}', data=body,
+        headers={'Content-Type': 'application/json'}, method='PATCH'), timeout=10)
+except Exception as e:
+    print(f'patch_problem error: {e}')
+" 2>/dev/null || true
+    else
+        curl -sf -X PATCH "$ACORN_API/api/problems/$PROBLEM_UUID" \
+            -H "Content-Type: application/json" \
+            -d "{\"status\": \"$st\"}" > /dev/null 2>&1 || true
     fi
-    body="$body}"
-    curl -sf -X PATCH "$ACORN_API/api/problems/$PROBLEM_UUID" \
-        -H "Content-Type: application/json" \
-        -d "$body" > /dev/null 2>&1 || true
 }
 
 record_reasoning() {
@@ -1063,7 +1073,7 @@ curl -sf -X POST "$ACORN_API/api/kernels/ingest-workspace/problem-$PROBLEM_UUID"
   curl -sf -X POST "$ACORN_API/api/kernels/ingest-workspace/$PROBLEM_UUID" \
     -H "Content-Type: application/json" 2>/dev/null || true
 
-OUTPUT_COUNT=$(find /workspace -maxdepth 1 -name '*_output.md' -o -name 'SOLUTION.md' -o -name 'ANALYSIS_REPORT.md' | wc -l)
+OUTPUT_COUNT=$(find /workspace -maxdepth 1 \( -name '*_output.md' -o -name 'SOLUTION.md' -o -name 'ANALYSIS_REPORT.md' \) | wc -l)
 if [ "$JUDGE_LOCAL_VERDICT" = "fail" ] || [ "$OUTPUT_COUNT" -eq 0 ]; then
     JUDGE_NOTES_FOR_API=$(python3 -c "
 import json
