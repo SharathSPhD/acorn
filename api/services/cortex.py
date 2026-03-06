@@ -180,7 +180,9 @@ class CriticModule(CortexModule):
         penalty_count = state.get("recent_penalties", 0)
 
         if recent_fail_rate > 0.4 or penalty_count > 5:
-            salience = min(1.0, recent_fail_rate + penalty_count * 0.05)
+            # Cap penalty contribution so historical accumulation doesn't freeze planning.
+            # penalty_count at 0.001 allows up to +0.1 at 100 events — a signal, not a dominator.
+            salience = min(0.92, recent_fail_rate + penalty_count * 0.001)
             return ModuleOutput(
                 module=self.name, salience=salience,
                 action_type="identify_regression",
