@@ -127,7 +127,7 @@ async def sync_models(
         if not name:
             continue
         size_bytes = model_info.get("size", 0) or m.get("size")
-        result = await db.execute(
+        await db.execute(
             text("""
                 INSERT INTO model_registry (id, name, provider, size_bytes, pulled_at, is_available, updated_at)
                 VALUES (:id, :name, 'ollama', :size_bytes, NOW(), TRUE, NOW())
@@ -296,7 +296,7 @@ async def delete_model(
     """Remove model from Ollama and mark as unavailable in registry."""
     ollama_url = settings.ollama_base_url or "http://acorn-ollama:11434"
     async with httpx.AsyncClient(timeout=60) as client:
-        await client.delete(f"{ollama_url}/api/delete", json={"name": name})
+        await client.request("DELETE", f"{ollama_url}/api/delete", json={"name": name})
 
     await db.execute(
         text("""
