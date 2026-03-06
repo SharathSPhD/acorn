@@ -286,7 +286,7 @@ class CortexPlus:
             try:
                 rows = await conn.fetch(
                     """SELECT category, COUNT(*) as cnt
-                       FROM kernels WHERE status = 'permanent' GROUP BY category"""
+                       FROM kernels WHERE status IN ('permanent', 'probationary') GROUP BY category"""
                 )
                 cat_counts = {r["category"]: r["cnt"] for r in rows}
             finally:
@@ -401,16 +401,33 @@ class CortexPlus:
             elif winner.action_type == "prioritise_user":
                 logger.info("CORTEX+ Social: user problems take priority")
             elif winner.action_type == "propose_amendment":
-                logger.info(
-                    "CORTEX+ Metacognition: low pass rate (%.2f), roles=%s",
-                    winner.payload.get("pass_rate", 0),
-                    winner.payload.get("low_roles", []),
-                )
+                pass_rate = winner.payload.get("pass_rate", 0)
+                logger.info("CORTEX+ Metacognition: low pass rate (%.2f), attempting remediation", pass_rate)
+                if pass_rate < 0.4:
+                    try:
+                        async with httpx.AsyncClient(timeout=15) as client:
+                            await client.post(
+                                f"http://localhost:{settings.port}/api/kernels/auto-promote",
+                                json={"min_uses": 1},
+                            )
+                    except Exception:
+                        pass
             elif winner.action_type == "identify_regression":
-                logger.info(
-                    "CORTEX+ Critic: regression detected, fail_rate=%.2f",
-                    winner.payload.get("fail_rate", 0),
-                )
+                fail_rate = winner.payload.get("fail_rate", 0)
+                logger.info("CORTEX+ Critic: regression fail_rate=%.2f, cooling domain", fail_rate)
+                if fail_rate > 0.7:
+                    try:
+                        async with httpx.AsyncClient(timeout=15) as client:
+                            await client.post(
+                                f"http://localhost:{settings.port}/api/problems",
+                                json={
+                                    "title": "CORTEX+ recovery: simple data exploration",
+                                    "description": "Generate a synthetic dataset of 200 rows with columns: id, value, category, timestamp. Compute summary statistics (mean, std, min, max per category). Write findings to SOLUTION.md.",
+                                    "source": "cortex",
+                                },
+                            )
+                    except Exception:
+                        pass
             elif winner.action_type in ("diagnose", "monitor", "idle", "wait"):
                 pass
         except Exception:

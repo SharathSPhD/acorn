@@ -517,45 +517,73 @@ patch_problem "active"
 
 if [ "$USE_AGENT_TEAMS" = "true" ]; then
     # ── Agent Teams Mode ──────────────────────────────────────────────────
-    log "Step 2: Running Claude Code Agent Teams (all local models via proxy)"
-    record_reasoning "dispatch" "Launching Claude Code agent team for problem decomposition and execution"
+    # Ollama 0.17+ has native Anthropic Messages API support at /v1/messages.
+    # We can optionally bypass the relay and connect directly to Ollama for
+    # cleaner tool-call translation (no double-conversion).
+    #
+    # ACORN_AGENT_TEAM_ENDPOINT: "relay" (default) or "direct" (Ollama native)
+    TEAM_ENDPOINT="${ACORN_AGENT_TEAM_ENDPOINT:-direct}"
+    OLLAMA_DIRECT_URL="${ACORN_OLLAMA_URL:-http://acorn-ollama:11434}"
 
-    TEAM_PROMPT=$(cat <<TEAMPROMPT
-You are the ACORN Orchestrator for problem $PROBLEM_UUID. You MUST use agent teams.
-Read PROBLEM.md in the current directory for full context.
+    if [ "$TEAM_ENDPOINT" = "direct" ]; then
+        log "Agent Teams: using Ollama native Anthropic API (direct)"
+        export ANTHROPIC_BASE_URL="$OLLAMA_DIRECT_URL"
+    else
+        log "Agent Teams: using acorn-api-relay proxy"
+    fi
 
-## Problem
-Title: $TITLE
-Description: $DESCRIPTION
+    log "Step 1c: Model selection"
+    curl -sf -X POST "$ACORN_API/api/models/sync" -H "Content-Type: application/json" -d '{}' > /dev/null 2>&1 || true
+    ORCH_REC=$(curl -sf "$ACORN_API/api/models/recommend?task_type=reasoning&role=orchestrator" 2>/dev/null || echo "")
+    if [ -n "$ORCH_REC" ]; then
+        ORCH_MODEL=$(echo "$ORCH_REC" | python3 -c "import sys,json; print(json.load(sys.stdin).get('name',''))" 2>/dev/null || echo "")
+        [ -n "$ORCH_MODEL" ] && MODEL="$ORCH_MODEL" && log "Using recommended orchestrator model: $MODEL"
+    fi
 
-## Available Data
+    log "Step 2: Running Claude Code Agent Teams (all local models)"
+    record_reasoning "dispatch" "Launching Claude Code agent team (endpoint=$TEAM_ENDPOINT, model=$MODEL)"
+
+    # Detect problem type
+    IS_KERNEL_BUILD=false
+    if echo "$DESCRIPTION" | grep -iqE "kernel|reusable.*pattern|build.*pattern|analytical.*pattern"; then
+        IS_KERNEL_BUILD=true
+    fi
+
+    if [ "$IS_KERNEL_BUILD" = "true" ]; then
+        TEAM_PROMPT="You are a Python expert building reusable code templates.
+
+Problem: $TITLE
+$DESCRIPTION
+
+$(cat PROBLEM.md 2>/dev/null || echo '')
+
+Tasks (do each step with Bash):
+1. Run: cat PROBLEM.md to understand the full context
+2. For each pattern/concept described, write a parameterized Python function to /workspace/{concept_name}.py (no hardcoded paths, use arguments)
+3. Write /workspace/SOLUTION.md summarizing: what each template does, its inputs/outputs, example usage
+4. Run: ls /workspace/*.py to verify files were created
+
+Keep going until SOLUTION.md and at least one .py template exist."
+    else
+        TEAM_PROMPT="Solve: $TITLE. $DESCRIPTION
+
+$(cat PROBLEM.md 2>/dev/null || echo '')
+
+Data: /workspace/ contains:
 $DATA_PREVIEW
 
-## Instructions
+Do this step by step:
+1. Run: ls /workspace/ to see available files
+2. If CSV files exist: run a python3 command to analyze them (use pandas, sklearn, numpy)
+3. If no data exists: generate synthetic data with python3, then analyze it
+4. Run a python3 command to write /workspace/SOLUTION.md with results
 
-Create an agent team to solve this data science problem. Spawn these teammates:
-
-1. **data-engineer**: Read the data files in /workspace/, profile them (types, nulls, distributions), clean issues, and write a cleaned dataset. Save output to /workspace/data-engineer_output.md and cleaned data to /workspace/cleaned_data.csv
-
-2. **data-scientist**: After data-engineer finishes, analyze the cleaned data. Compute summary statistics, correlations, trends, and anomalies relevant to the problem. Save output to /workspace/data-scientist_output.md
-
-3. **ml-engineer**: After data-scientist finishes, build a predictive model if the problem requires one. Use scikit-learn (pre-installed). Save model metrics to /workspace/model_metrics.json and report to /workspace/ml-engineer_output.md
-
-Coordinate the team so tasks run in dependency order. When all teammates finish, synthesize their outputs into a final /workspace/SOLUTION.md that answers the problem.
-
-After synthesis, clean up the team.
-
-IMPORTANT:
-- All data files are in /workspace/
-- Use only pre-installed libraries: pandas, numpy, scikit-learn, matplotlib, seaborn
-- Each teammate should write actual Python scripts and run them, not just describe what to do
-- Write all outputs to /workspace/
-TEAMPROMPT
-)
+IMPORTANT: Always write /workspace/SOLUTION.md with your findings. Keep going until it exists."
+    fi
 
     claude --dangerously-skip-permissions \
         --model "$MODEL" \
-        --max-turns 80 \
+        --max-turns 50 \
         -p "$TEAM_PROMPT" \
         > /workspace/orchestrator_log.txt 2>&1 || true
 
@@ -635,17 +663,40 @@ for t in tasks:
 print(json.dumps(ids))
 " 2>/dev/null || echo "[]")
 
+    log "Step 2b: Model selection for legacy specialists"
+    curl -sf -X POST "$ACORN_API/api/models/sync" -H "Content-Type: application/json" -d '{}' > /dev/null 2>&1 || true
+    export ACORN_LEGACY_MODEL_MAP=$(python3 -c "
+import json, urllib.request, os
+api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
+roles = {'data-engineer': 'ingest', 'data-scientist': 'analyse', 'ml-engineer': 'model'}
+m = {}
+for role, tt in roles.items():
+    try:
+        r = urllib.request.urlopen(urllib.request.Request(f'{api}/api/models/recommend?task_type={tt}&role={role}'), timeout=5)
+        d = json.load(r)
+        m[role] = d.get('name', 'qwen3-coder')
+    except Exception:
+        m[role] = 'qwen3-coder'
+print(json.dumps(m))
+" 2>/dev/null || echo '{}')
+
     log "Step 3: Spawning specialist containers"
     echo "$TASK_IDS" | python3 -c "
 import sys, json, os, urllib.request
 api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
 puuid = os.environ.get('ACORN_PROBLEM_UUID', '')
+model_map = json.loads(os.environ.get('ACORN_LEGACY_MODEL_MAP', '{}'))
 for item in json.load(sys.stdin):
-    body = json.dumps({'role': item['role'], 'task_id': item['id']}).encode()
+    role = item.get('role', 'data-scientist')
+    payload = {'role': role, 'task_id': item['id']}
+    if role in model_map:
+        payload['model'] = model_map[role]
+    body = json.dumps(payload).encode()
     try:
         urllib.request.urlopen(urllib.request.Request(f'{api}/api/problems/{puuid}/spawn-agent', data=body,
                headers={'Content-Type': 'application/json'}, method='POST'), timeout=15)
-        print(f'Spawned {item[\"role\"]} for task {item[\"id\"]}')
+        model_info = f' (model={model_map[role]})' if role in model_map else ''
+        print(f'Spawned {role} for task {item["id"]}{model_info}')
     except Exception as e: print(f'Failed: {e}')
 " 2>/dev/null || echo "No agents spawned"
 
