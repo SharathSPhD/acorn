@@ -164,6 +164,22 @@ EOF
         -d "$payload" > /dev/null 2>&1 || true
 }
 
+run_builder_cycle() {
+    # Every 6 cycles: domain research, dataset discovery, model sync, benchmarking
+    log "Triggering builder improvement cycle..."
+    curl -sf -X POST "$ACORN_API/api/builder/improvement-cycle" \
+        -H "Content-Type: application/json" \
+        -d '{}' > /dev/null 2>&1 || true
+}
+
+run_model_sync() {
+    # Every 10 cycles: keep model registry fresh
+    log "Triggering model registry sync..."
+    curl -sf -X POST "$ACORN_API/api/models/sync" \
+        -H "Content-Type: application/json" \
+        -d '{}' > /dev/null 2>&1 || true
+}
+
 wait_for_api
 
 cycle=0
@@ -178,6 +194,13 @@ while true; do
     check_meta_agent_schedule
     check_episode_consolidation
     report_telemetry
+
+    if [ $((cycle % 6)) -eq 0 ]; then
+        run_builder_cycle
+    fi
+    if [ $((cycle % 10)) -eq 0 ]; then
+        run_model_sync
+    fi
 
     log "Cycle $cycle complete. Sleeping ${POLL_INTERVAL}s."
     sleep "$POLL_INTERVAL"

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Sidebar } from "@/components/nav";
 import { Providers } from "./providers";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export const metadata: Metadata = {
   title: "ACORN Hub",
@@ -18,7 +19,9 @@ export default function RootLayout({
       <body className="h-full">
         <Providers>
           <Sidebar />
-          <main className="page-container">{children}</main>
+          <main className="page-container">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </main>
         </Providers>
       </body>
     </html>

@@ -308,6 +308,8 @@ async def spawn_agent(
     kwargs: dict[str, str] = {"container_name": container_name}
     if body.task_id:
         kwargs["task_id"] = body.task_id
+    if body.model:
+        kwargs["model"] = body.model
     spec = factory.create(role=body.role, problem_uuid=str(problem_id), **kwargs)
     spec.network = settings.acorn_network
     spec.workspace_path = workspace_path

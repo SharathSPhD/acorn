@@ -46,7 +46,7 @@ class DGXAgentFactory(AgentFactory):
     """Concrete factory for DGX Spark profile."""
 
     def create(self, role: str, problem_uuid: str, **kwargs: str) -> AgentSpec:
-        model = settings.model_for_role(role)
+        model = kwargs.get("model") or settings.model_for_role(role)
         spec = AgentSpec(
             agent_id=kwargs.get("container_name", str(uuid4())),
             role=role,
@@ -75,7 +75,9 @@ class DGXAgentFactory(AgentFactory):
             "ACORN_ROLE": spec.role,
             "ACORN_API_URL": "http://acorn-api:8000",
             "ACORN_MODEL": spec.model,
-            "ACORN_USE_AGENT_TEAMS": "true" if is_orchestrator else "false",
+            "ACORN_USE_AGENT_TEAMS": "true",
+            "ACORN_AGENT_TEAM_ENDPOINT": "direct",
+            "ACORN_OLLAMA_URL": "http://acorn-ollama:11434",
             "REDIS_URL": settings.redis_url,
             "DATABASE_URL": settings.database_url,
         }

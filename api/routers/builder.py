@@ -9,13 +9,16 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.config import AcornSettings
 from api.db.connection import get_db
 from api.dependencies import get_settings
+from api.services.builder_intelligence import BuilderIntelligenceService
+from api.services.finetune import FinetuneService
+from api.services.model_intelligence import ModelIntelligenceService
 
 logger = logging.getLogger(__name__)
 
@@ -303,6 +306,117 @@ async def resume_builder() -> dict[str, str]:
     _builder_state["circuit_breaker"] = {"state": "closed", "consecutive_failures": 0}
     _thoughts.append("Builder resumed, circuit breaker reset")
     return {"status": "idle", "cortex_redirect": "/api/cortex/start"}
+
+
+@router.post("/model-swot")
+async def run_model_swot(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    settings: AcornSettings = Depends(get_settings),
+) -> dict[str, Any]:
+    """Run SWOT analysis on all available models."""
+    mi = ModelIntelligenceService()
+    models = await mi.list_available_models()
+    results: list[dict[str, Any]] = []
+    for m in models:
+        name = m.get("name", "")
+        if not name:
+            continue
+        try:
+            bench = await mi.benchmark_model(name)
+            swot = await mi.generate_swot(name, bench)
+            await mi.store_benchmark_results(db, name, bench, swot)
+            results.append({"model": name, "benchmark": bench, "swot": swot})
+        except Exception as e:
+            logger.warning("Model SWOT failed for %s: %s", name, e)
+    await db.commit()
+    return {"models_processed": len(results), "results": results}
+
+
+@router.post("/research-domain")
+async def research_domain(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Research a business domain and store knowledge."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    domain = body.get("domain", "sales")
+    svc = BuilderIntelligenceService()
+    return await svc.research_domain(domain, db)
+
+
+@router.post("/discover-datasets")
+async def discover_datasets_endpoint(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Discover datasets for a domain."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    domain = body.get("domain", "sales")
+    svc = BuilderIntelligenceService()
+    datasets = await svc.discover_datasets(domain, db)
+    return {"domain": domain, "datasets": datasets}
+
+
+@router.post("/improvement-cycle")
+async def improvement_cycle(
+    db: AsyncSession = Depends(get_db),
+    settings: AcornSettings = Depends(get_settings),
+) -> dict[str, Any]:
+    """Run one full improvement cycle: research + datasets + model evaluation."""
+    svc = BuilderIntelligenceService()
+    return await svc.continuous_improvement_cycle(db)
+
+
+@router.post("/finetune")
+async def finetune_model(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Create a fine-tuned model for a specific domain.
+
+    Body: {"base_model": "qwen3-coder", "domain": "sales"}
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    base_model = body.get("base_model", "qwen3-coder")
+    domain = body.get("domain", "sales")
+    svc = FinetuneService()
+    return await svc.create_domain_specialist(base_model, domain, db)
+
+
+@router.get("/finetuned-models")
+async def list_finetuned(
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """List all fine-tuned models."""
+    svc = FinetuneService()
+    models = await svc.list_finetuned_models(db)
+    return {"models": models, "count": len(models)}
+
+
+@router.post("/generate-training-data")
+async def generate_training(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Generate synthetic training data for a domain."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    domain = body.get("domain", "sales")
+    svc = FinetuneService()
+    path = await svc.generate_training_data(domain, db)
+    return {"domain": domain, "dataset_path": path, "success": bool(path)}
 
 
 @router.post("/stop")

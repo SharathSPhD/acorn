@@ -1,0 +1,1001 @@
+country_code,country,indicator,year,value
+AFE,Africa Eastern and Southern,GDP,2024,1242693542929.85
+AFE,Africa Eastern and Southern,GDP,2023,1179359054880.45
+AFE,Africa Eastern and Southern,GDP,2022,1228967879390.01
+AFE,Africa Eastern and Southern,GDP,2021,1114144799994.21
+AFE,Africa Eastern and Southern,GDP,2020,938607563405.087
+AFE,Africa Eastern and Southern,GDP,2019,1018714795912.35
+AFE,Africa Eastern and Southern,GDP,2018,1020955778298.17
+AFE,Africa Eastern and Southern,GDP,2017,978076465866.452
+AFE,Africa Eastern and Southern,GDP,2016,831868076442.431
+AFE,Africa Eastern and Southern,GDP,2015,910002035578.038
+AFE,Africa Eastern and Southern,GDP,2014,998836162271.296
+AFE,Africa Eastern and Southern,GDP,2013,981308886976.783
+AFE,Africa Eastern and Southern,GDP,2012,969265729636.028
+AFE,Africa Eastern and Southern,GDP,2011,959822476083.878
+AFE,Africa Eastern and Southern,GDP,2010,863822114606.332
+AFW,Africa Western and Central,GDP,2024,736384961061.523
+AFW,Africa Western and Central,GDP,2023,938238370514.198
+AFW,Africa Western and Central,GDP,2022,1063649130876.99
+AFW,Africa Western and Central,GDP,2021,1026651004045.79
+AFW,Africa Western and Central,GDP,2020,963784699293.976
+AFW,Africa Western and Central,GDP,2019,1026996211935.8
+AFW,Africa Western and Central,GDP,2018,777840323023.311
+AFW,Africa Western and Central,GDP,2017,694051345937.233
+AFW,Africa Western and Central,GDP,2016,700028168335.244
+AFW,Africa Western and Central,GDP,2015,778022057597.448
+AFW,Africa Western and Central,GDP,2014,904071921008.085
+AFW,Africa Western and Central,GDP,2013,844180401591.48
+AFW,Africa Western and Central,GDP,2012,748030003656.802
+AFW,Africa Western and Central,GDP,2011,691133400013.31
+AFW,Africa Western and Central,GDP,2010,605794323433.505
+ARB,Arab World,GDP,2024,3735881442514.35
+ARB,Arab World,GDP,2023,3622495663981.78
+ARB,Arab World,GDP,2022,3747416641077.46
+ARB,Arab World,GDP,2021,3085141461685.6
+ARB,Arab World,GDP,2020,2604104981819.8
+ARB,Arab World,GDP,2019,2965285548936.01
+ARB,Arab World,GDP,2018,2920829737234.67
+ARB,Arab World,GDP,2017,2611323720520
+ARB,Arab World,GDP,2016,2536564595458.87
+ARB,Arab World,GDP,2015,2580328583417.41
+ARB,Arab World,GDP,2014,2937035588682.67
+ARB,Arab World,GDP,2013,2883689839002.54
+ARB,Arab World,GDP,2012,2813567531715.43
+ARB,Arab World,GDP,2011,2573067811497.98
+ARB,Arab World,GDP,2010,2161397546202.94
+CSS,Caribbean small states,GDP,2024,90344593407.0487
+CSS,Caribbean small states,GDP,2023,79534673452.944
+CSS,Caribbean small states,GDP,2022,78506430710.7309
+CSS,Caribbean small states,GDP,2021,62687149265.4471
+CSS,Caribbean small states,GDP,2020,53320869430.7059
+CSS,Caribbean small states,GDP,2019,62185458482.7062
+CSS,Caribbean small states,GDP,2018,61252081219.8672
+CSS,Caribbean small states,GDP,2017,59690101434.3488
+CSS,Caribbean small states,GDP,2016,58073168349.5106
+CSS,Caribbean small states,GDP,2015,62545153672.0285
+CSS,Caribbean small states,GDP,2014,64075043973.1037
+CSS,Caribbean small states,GDP,2013,62064949752.4886
+CSS,Caribbean small states,GDP,2012,60427163825.0841
+CSS,Caribbean small states,GDP,2011,56828150706.0989
+CSS,Caribbean small states,GDP,2010,53047626322.0272
+CEB,Central Europe and the Baltics,GDP,2024,2462005273603.48
+CEB,Central Europe and the Baltics,GDP,2023,2273205742208.3
+CEB,Central Europe and the Baltics,GDP,2022,1954419184114.96
+CEB,Central Europe and the Baltics,GDP,2021,1926347717339
+CEB,Central Europe and the Baltics,GDP,2020,1678294256145.3
+CEB,Central Europe and the Baltics,GDP,2019,1684318282245.77
+CEB,Central Europe and the Baltics,GDP,2018,1656383422202.66
+CEB,Central Europe and the Baltics,GDP,2017,1467501784248.85
+CEB,Central Europe and the Baltics,GDP,2016,1321561415743.83
+CEB,Central Europe and the Baltics,GDP,2015,1297141271990.05
+CEB,Central Europe and the Baltics,GDP,2014,1467451281263.28
+CEB,Central Europe and the Baltics,GDP,2013,1420222538112.93
+CEB,Central Europe and the Baltics,GDP,2012,1361899009858.4
+CEB,Central Europe and the Baltics,GDP,2011,1458155270134.3
+CEB,Central Europe and the Baltics,GDP,2010,1319443729249.66
+EAR,Early-demographic dividend,GDP,2024,15808304487948.1
+EAR,Early-demographic dividend,GDP,2023,14933453330998.3
+EAR,Early-demographic dividend,GDP,2022,14034689936337.3
+EAR,Early-demographic dividend,GDP,2021,12695008338487.8
+EAR,Early-demographic dividend,GDP,2020,10823343545638.3
+EAR,Early-demographic dividend,GDP,2019,11686574879191.1
+EAR,Early-demographic dividend,GDP,2018,11478917653356.5
+EAR,Early-demographic dividend,GDP,2017,11320553240043.8
+EAR,Early-demographic dividend,GDP,2016,10423237803666.1
+EAR,Early-demographic dividend,GDP,2015,10127250782286.2
+EAR,Early-demographic dividend,GDP,2014,10533364326771.5
+EAR,Early-demographic dividend,GDP,2013,10330333855700.2
+EAR,Early-demographic dividend,GDP,2012,10275142735646.4
+EAR,Early-demographic dividend,GDP,2011,9832704039068.24
+EAR,Early-demographic dividend,GDP,2010,8719722451021.04
+EAS,East Asia & Pacific,GDP,2024,32017179839273
+EAS,East Asia & Pacific,GDP,2023,31417826880875
+EAS,East Asia & Pacific,GDP,2022,31266291368260.6
+EAS,East Asia & Pacific,GDP,2021,31675719814404.9
+EAS,East Asia & Pacific,GDP,2020,27578839610232.4
+EAS,East Asia & Pacific,GDP,2019,27427259967363.2
+EAS,East Asia & Pacific,GDP,2018,26853593303707.3
+EAS,East Asia & Pacific,GDP,2017,24656162308335.2
+EAS,East Asia & Pacific,GDP,2016,23089672188769.4
+EAS,East Asia & Pacific,GDP,2015,22299105656919.6
+EAS,East Asia & Pacific,GDP,2014,22372206647098.1
+EAS,East Asia & Pacific,GDP,2013,21659293723344.2
+EAS,East Asia & Pacific,GDP,2012,21382308600766.1
+EAS,East Asia & Pacific,GDP,2011,19978722203920.9
+EAS,East Asia & Pacific,GDP,2010,17239317220822.1
+EAP,East Asia & Pacific (excluding high income),GDP,2024,22260810771875.1
+EAP,East Asia & Pacific (excluding high income),GDP,2023,21644412635340.6
+EAP,East Asia & Pacific (excluding high income),GDP,2022,21563881384135.8
+EAP,East Asia & Pacific (excluding high income),GDP,2021,21231425978691.4
+EAP,East Asia & Pacific (excluding high income),GDP,2020,17805166443182.2
+EAP,East Asia & Pacific (excluding high income),GDP,2019,17503274977303.3
+EAP,East Asia & Pacific (excluding high income),GDP,2018,16902110052652.3
+EAP,East Asia & Pacific (excluding high income),GDP,2017,15115625540264.8
+EAP,East Asia & Pacific (excluding high income),GDP,2016,13844122751569.4
+EAP,East Asia & Pacific (excluding high income),GDP,2015,13548904084321.4
+EAP,East Asia & Pacific (excluding high income),GDP,2014,13004689014662.5
+EAP,East Asia & Pacific (excluding high income),GDP,2013,12047512338954.1
+EAP,East Asia & Pacific (excluding high income),GDP,2012,10905337947546.2
+EAP,East Asia & Pacific (excluding high income),GDP,2011,9774259220654.2
+EAP,East Asia & Pacific (excluding high income),GDP,2010,8008611577123.89
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2024,22233362919728.4
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2023,21617676926854.5
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2022,21537214774462.6
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2021,21205187136185.7
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2020,17783207218899.1
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2019,17481715455963.4
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2018,16881316789674.4
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2017,15097056837158.2
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2016,13827151057380.2
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2015,13532272043462.5
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2014,12988712786591.7
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2013,12032711129058.2
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2012,10891968350841.7
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2011,9762256276676.59
+TEA,East Asia & Pacific (IDA & IBRD countries),GDP,2010,7998796323270.31
+EMU,Euro area,GDP,2024,16485444160371
+EMU,Euro area,GDP,2023,15854782417877
+EMU,Euro area,GDP,2022,14488160081806.7
+EMU,Euro area,GDP,2021,14924551716260.4
+EMU,Euro area,GDP,2020,13267554461613.6
+EMU,Euro area,GDP,2019,13589774677631.3
+EMU,Euro area,GDP,2018,13871778197583.7
+EMU,Euro area,GDP,2017,12841960349280.8
+EMU,Euro area,GDP,2016,12123283574466.5
+EMU,Euro area,GDP,2015,11829834353286.1
+EMU,Euro area,GDP,2014,13682058707498
+EMU,Euro area,GDP,2013,13357283141903.1
+EMU,Euro area,GDP,2012,12784947379630.9
+EMU,Euro area,GDP,2011,13808563263632.6
+EMU,Euro area,GDP,2010,12784744616370.5
+ECS,Europe & Central Asia,GDP,2024,29291828957768.8
+ECS,Europe & Central Asia,GDP,2023,27732942821913.5
+ECS,Europe & Central Asia,GDP,2022,25798700454390.6
+ECS,Europe & Central Asia,GDP,2021,25572901699926.6
+ECS,Europe & Central Asia,GDP,2020,22322527185686.7
+ECS,Europe & Central Asia,GDP,2019,23067540030248.6
+ECS,Europe & Central Asia,GDP,2018,23342642668393.3
+ECS,Europe & Central Asia,GDP,2017,21791487069281.7
+ECS,Europe & Central Asia,GDP,2016,20528432079127.4
+ECS,Europe & Central Asia,GDP,2015,20603435735279.5
+ECS,Europe & Central Asia,GDP,2014,23920533649825
+ECS,Europe & Central Asia,GDP,2013,23574066317473.4
+ECS,Europe & Central Asia,GDP,2012,22560574822089.8
+ECS,Europe & Central Asia,GDP,2011,23432000301407.5
+ECS,Europe & Central Asia,GDP,2010,21118677014368.3
+ECA,Europe & Central Asia (excluding high income),GDP,2024,2451180144505.47
+ECA,Europe & Central Asia (excluding high income),GDP,2023,2143244215113.25
+ECA,Europe & Central Asia (excluding high income),GDP,2022,1820242864725.1
+ECA,Europe & Central Asia (excluding high income),GDP,2021,1680958734568.53
+ECA,Europe & Central Asia (excluding high income),GDP,2020,1446077189727.52
+ECA,Europe & Central Asia (excluding high income),GDP,2019,1508679974755.36
+ECA,Europe & Central Asia (excluding high income),GDP,2018,1477488205993.51
+ECA,Europe & Central Asia (excluding high income),GDP,2017,1499595960769.3
+ECA,Europe & Central Asia (excluding high income),GDP,2016,1450171284448.8
+ECA,Europe & Central Asia (excluding high income),GDP,2015,1510474002479.16
+ECA,Europe & Central Asia (excluding high income),GDP,2014,1735229369225.69
+ECA,Europe & Central Asia (excluding high income),GDP,2013,1808692800315.95
+ECA,Europe & Central Asia (excluding high income),GDP,2012,1658983451713.25
+ECA,Europe & Central Asia (excluding high income),GDP,2011,1574244960285.95
+ECA,Europe & Central Asia (excluding high income),GDP,2010,1385078523367.67
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2024,6131674441421.64
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2023,5562782514647.52
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2022,5264484546456.79
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2021,4637763943320.14
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2020,3924139091384.84
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2019,4184533628660.37
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2018,4098990245510.03
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2017,3927649813354.44
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2016,3492088089759.5
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2015,3633660246044.52
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2014,4653015277488.18
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2013,4924806846375.52
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2012,4656388146308.07
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2011,4461210535265.99
+TEC,Europe & Central Asia (IDA & IBRD countries),GDP,2010,3667835476746.74
+EUU,European Union,GDP,2024,19497115588443.6
+EUU,European Union,GDP,2023,18659133072074.8
+EUU,European Union,GDP,2022,17023612496380.4
+EUU,European Union,GDP,2021,17495226733585.2
+EUU,European Union,GDP,2020,15504055464107.4
+EUU,European Union,GDP,2019,15809073096211.4
+EUU,European Union,GDP,2018,16092403309151.5
+EUU,European Union,GDP,2017,14871313684625.8
+EUU,European Union,GDP,2016,13988147697216.6
+EUU,European Union,GDP,2015,13656252620703.3
+EUU,European Union,GDP,2014,15763596442222.6
+EUU,European Union,GDP,2013,15398507628838.6
+EUU,European Union,GDP,2012,14731876146120.7
+EUU,European Union,GDP,2011,15874713437636.1
+EUU,European Union,GDP,2010,14641773544950.6
+FCS,Fragile and conflict affected situations,GDP,2024,1652895518697.74
+FCS,Fragile and conflict affected situations,GDP,2023,1778723185468.2
+FCS,Fragile and conflict affected situations,GDP,2022,1918272363969.18
+FCS,Fragile and conflict affected situations,GDP,2021,1740335947472.93
+FCS,Fragile and conflict affected situations,GDP,2020,1610227321244.27
+FCS,Fragile and conflict affected situations,GDP,2019,1811454247630.6
+FCS,Fragile and conflict affected situations,GDP,2018,1556210403398.5
+FCS,Fragile and conflict affected situations,GDP,2017,1443031828638.41
+FCS,Fragile and conflict affected situations,GDP,2016,1358130757341.27
+FCS,Fragile and conflict affected situations,GDP,2015,1481660318787.67
+FCS,Fragile and conflict affected situations,GDP,2014,1787605499773.02
+FCS,Fragile and conflict affected situations,GDP,2013,1825595058878.45
+FCS,Fragile and conflict affected situations,GDP,2012,1855874824709.61
+FCS,Fragile and conflict affected situations,GDP,2011,1665506572724.03
+FCS,Fragile and conflict affected situations,GDP,2010,1596645964256.64
+HPC,Heavily indebted poor countries (HIPC),GDP,2024,1145111349262.57
+HPC,Heavily indebted poor countries (HIPC),GDP,2023,1060316071770.29
+HPC,Heavily indebted poor countries (HIPC),GDP,2022,1002501492801.3
+HPC,Heavily indebted poor countries (HIPC),GDP,2021,924417463438.7
+HPC,Heavily indebted poor countries (HIPC),GDP,2020,816029422839.446
+HPC,Heavily indebted poor countries (HIPC),GDP,2019,811372254522.343
+HPC,Heavily indebted poor countries (HIPC),GDP,2018,790373898773.381
+HPC,Heavily indebted poor countries (HIPC),GDP,2017,735068264238.844
+HPC,Heavily indebted poor countries (HIPC),GDP,2016,677200621773.188
+HPC,Heavily indebted poor countries (HIPC),GDP,2015,674606540074.897
+HPC,Heavily indebted poor countries (HIPC),GDP,2014,705465847008.08
+HPC,Heavily indebted poor countries (HIPC),GDP,2013,667314194885.704
+HPC,Heavily indebted poor countries (HIPC),GDP,2012,595155344078.424
+HPC,Heavily indebted poor countries (HIPC),GDP,2011,573517854715.366
+HPC,Heavily indebted poor countries (HIPC),GDP,2010,518754130151.746
+,High income,GDP,2024,71321142708251.1
+,High income,GDP,2023,68449582732271.4
+,High income,GDP,2022,65081334214971.5
+,High income,GDP,2021,62745314846357.3
+,High income,GDP,2020,55889737341875.4
+,High income,GDP,2019,57456170925405.3
+,High income,GDP,2018,56920619917132.1
+,High income,GDP,2017,53524059312874.9
+,High income,GDP,2016,50927970256186.1
+,High income,GDP,2015,49977567874625.5
+,High income,GDP,2014,53550117992137.3
+,High income,GDP,2013,52667085148262.9
+,High income,GDP,2012,51943717152963.8
+,High income,GDP,2011,51761995686417.4
+,High income,GDP,2010,47537047603466
+IBD,IBRD only,GDP,2024,40930410371533.4
+IBD,IBRD only,GDP,2023,39248258733753.5
+IBD,IBRD only,GDP,2022,37943329554311.5
+IBD,IBRD only,GDP,2021,35879316080995.1
+IBD,IBRD only,GDP,2020,30204027280204.5
+IBD,IBRD only,GDP,2019,31377057597389.8
+IBD,IBRD only,GDP,2018,30736778363828.6
+IBD,IBRD only,GDP,2017,28848700119389
+IBD,IBRD only,GDP,2016,26133021093477.3
+IBD,IBRD only,GDP,2015,25937609442668.8
+IBD,IBRD only,GDP,2014,27548963986382.7
+IBD,IBRD only,GDP,2013,26784320183315.7
+IBD,IBRD only,GDP,2012,25459767024749.6
+IBD,IBRD only,GDP,2011,23952863037040.9
+IBD,IBRD only,GDP,2010,20236974559592.9
+IBT,IDA & IBRD total,GDP,2024,43823204664493.9
+IBT,IDA & IBRD total,GDP,2023,42176516066439.1
+IBT,IDA & IBRD total,GDP,2022,41018485584725.7
+IBT,IDA & IBRD total,GDP,2021,38741335342414.8
+IBT,IDA & IBRD total,GDP,2020,32822847991827.3
+IBT,IDA & IBRD total,GDP,2019,34078219798939.1
+IBT,IDA & IBRD total,GDP,2018,33147599934551.5
+IBT,IDA & IBRD total,GDP,2017,31117686702333.8
+IBT,IDA & IBRD total,GDP,2016,28286257999424.7
+IBT,IDA & IBRD total,GDP,2015,28103757036548
+IBT,IDA & IBRD total,GDP,2014,29778753140210.5
+IBT,IDA & IBRD total,GDP,2013,28855638007106.6
+IBT,IDA & IBRD total,GDP,2012,27363548308329.9
+IBT,IDA & IBRD total,GDP,2011,25757259583860.6
+IBT,IDA & IBRD total,GDP,2010,21835069166669.5
+IDB,IDA blend,GDP,2024,1117411942661.72
+IDB,IDA blend,GDP,2023,1272526278004.68
+IDB,IDA blend,GDP,2022,1456880573683.68
+IDB,IDA blend,GDP,2021,1369357769886.58
+IDB,IDA blend,GDP,2020,1258453633593.25
+IDB,IDA blend,GDP,2019,1354444605559.25
+IDB,IDA blend,GDP,2018,1125278097800.27
+IDB,IDA blend,GDP,2017,1064701742324.65
+IDB,IDA blend,GDP,2016,1035761112332.6
+IDB,IDA blend,GDP,2015,1104888256132.44
+IDB,IDA blend,GDP,2014,1164584937017.84
+IDB,IDA blend,GDP,2013,1071507625598.43
+IDB,IDA blend,GDP,2012,982900021354.995
+IDB,IDA blend,GDP,2011,888614216908.754
+IDB,IDA blend,GDP,2010,780580681565.074
+IDX,IDA only,GDP,2024,1775382350298.79
+IDX,IDA only,GDP,2023,1655731054680.85
+IDX,IDA only,GDP,2022,1618275456730.5
+IDX,IDA only,GDP,2021,1492661491533.09
+IDX,IDA only,GDP,2020,1360367078029.56
+IDX,IDA only,GDP,2019,1346717595990.02
+IDX,IDA only,GDP,2018,1285543472922.62
+IDX,IDA only,GDP,2017,1204284840620.16
+IDX,IDA only,GDP,2016,1117475793614.79
+IDX,IDA only,GDP,2015,1061259337746.72
+IDX,IDA only,GDP,2014,1065204216809.97
+IDX,IDA only,GDP,2013,999810198192.524
+IDX,IDA only,GDP,2012,920881262225.338
+IDX,IDA only,GDP,2011,915782329910.959
+IDX,IDA only,GDP,2010,817513925511.557
+IDA,IDA total,GDP,2024,2892794292960.5
+IDA,IDA total,GDP,2023,2928257332685.53
+IDA,IDA total,GDP,2022,3075156030414.18
+IDA,IDA total,GDP,2021,2862019261419.67
+IDA,IDA total,GDP,2020,2618820711622.81
+IDA,IDA total,GDP,2019,2701162201549.27
+IDA,IDA total,GDP,2018,2410821570722.89
+IDA,IDA total,GDP,2017,2268986582944.81
+IDA,IDA total,GDP,2016,2153236905947.39
+IDA,IDA total,GDP,2015,2166147593879.17
+IDA,IDA total,GDP,2014,2229789153827.81
+IDA,IDA total,GDP,2013,2071317823790.95
+IDA,IDA total,GDP,2012,1903781283580.33
+IDA,IDA total,GDP,2011,1804396546819.71
+IDA,IDA total,GDP,2010,1598094607076.63
+LTE,Late-demographic dividend,GDP,2024,29979152245112.6
+LTE,Late-demographic dividend,GDP,2023,28934446547714.4
+LTE,Late-demographic dividend,GDP,2022,28550398557203.3
+LTE,Late-demographic dividend,GDP,2021,27284231194748.9
+LTE,Late-demographic dividend,GDP,2020,22869539211355
+LTE,Late-demographic dividend,GDP,2019,23366567397285.6
+LTE,Late-demographic dividend,GDP,2018,22907660419321.1
+LTE,Late-demographic dividend,GDP,2017,20889290142886.5
+LTE,Late-demographic dividend,GDP,2016,18841937712407
+LTE,Late-demographic dividend,GDP,2015,18797219107172.1
+LTE,Late-demographic dividend,GDP,2014,19998109576538.4
+LTE,Late-demographic dividend,GDP,2013,19233518032034.2
+LTE,Late-demographic dividend,GDP,2012,17836300107332
+LTE,Late-demographic dividend,GDP,2011,16665376541950.8
+LTE,Late-demographic dividend,GDP,2010,13679708028983.9
+LCN,Latin America & Caribbean,GDP,2024,7110323254687.35
+LCN,Latin America & Caribbean,GDP,2023,6910660006084.82
+LCN,Latin America & Caribbean,GDP,2022,6144995160894.64
+LCN,Latin America & Caribbean,GDP,2021,5382862734265.64
+LCN,Latin America & Caribbean,GDP,2020,4627348896643.87
+LCN,Latin America & Caribbean,GDP,2019,5473432644126.84
+LCN,Latin America & Caribbean,GDP,2018,5581100995040.84
+LCN,Latin America & Caribbean,GDP,2017,5715057427671.23
+LCN,Latin America & Caribbean,GDP,2016,5148746106826.83
+LCN,Latin America & Caribbean,GDP,2015,5289615626446.62
+LCN,Latin America & Caribbean,GDP,2014,6217846355596.35
+LCN,Latin America & Caribbean,GDP,2013,6252550709058.29
+LCN,Latin America & Caribbean,GDP,2012,6202552292365.06
+LCN,Latin America & Caribbean,GDP,2011,6139415369063.72
+LCN,Latin America & Caribbean,GDP,2010,5397900660485.76
+LAC,Latin America & Caribbean (excluding high income),GDP,2024,6168787362595.33
+LAC,Latin America & Caribbean (excluding high income),GDP,2023,6014673692976.05
+LAC,Latin America & Caribbean (excluding high income),GDP,2022,5336050967302.51
+LAC,Latin America & Caribbean (excluding high income),GDP,2021,4637976019252.06
+LAC,Latin America & Caribbean (excluding high income),GDP,2020,3991303751042.44
+LAC,Latin America & Caribbean (excluding high income),GDP,2019,4748616176252.64
+LAC,Latin America & Caribbean (excluding high income),GDP,2018,4816735877469.79
+LAC,Latin America & Caribbean (excluding high income),GDP,2017,4960873741744.95
+LAC,Latin America & Caribbean (excluding high income),GDP,2016,4438833899168.87
+LAC,Latin America & Caribbean (excluding high income),GDP,2015,4578739613722.79
+LAC,Latin America & Caribbean (excluding high income),GDP,2014,5405172001075.22
+LAC,Latin America & Caribbean (excluding high income),GDP,2013,5385615104389.87
+LAC,Latin America & Caribbean (excluding high income),GDP,2012,5250558584752.47
+LAC,Latin America & Caribbean (excluding high income),GDP,2011,5277645172887.88
+LAC,Latin America & Caribbean (excluding high income),GDP,2010,4518755264794.34
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2024,6776899040059.78
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2023,6591336702938.76
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2022,5851879329574.93
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2021,5118940165028.38
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2020,4387909128654.57
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2019,5230554354083.41
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2018,5347056434773.57
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2017,5482764267203.12
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2016,4922090097003.8
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2015,5068610305411.75
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2014,6005259453417.89
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2013,6044625148403.94
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2012,5999254994806.92
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2011,5942223639206.5
+TLA,Latin America & the Caribbean (IDA & IBRD countries),GDP,2010,5212616653053.23
+LDC,Least developed countries: UN classification,GDP,2024,1536272727812.71
+LDC,Least developed countries: UN classification,GDP,2023,1459966948607.94
+LDC,Least developed countries: UN classification,GDP,2022,1474237106700.91
+LDC,Least developed countries: UN classification,GDP,2021,1303898952961.36
+LDC,Least developed countries: UN classification,GDP,2020,1179778077659.19
+LDC,Least developed countries: UN classification,GDP,2019,1169366192253.69
+LDC,Least developed countries: UN classification,GDP,2018,1116339519831.8
+LDC,Least developed countries: UN classification,GDP,2017,1044504274790.04
+LDC,Least developed countries: UN classification,GDP,2016,952622086763.392
+LDC,Least developed countries: UN classification,GDP,2015,946044369982.556
+LDC,Least developed countries: UN classification,GDP,2014,993379212416.681
+LDC,Least developed countries: UN classification,GDP,2013,924685867947.027
+LDC,Least developed countries: UN classification,GDP,2012,849599155573.471
+LDC,Least developed countries: UN classification,GDP,2011,810122964149.02
+LDC,Least developed countries: UN classification,GDP,2010,711250147781.566
+LMY,Low & middle income,GDP,2024,39397098753614.4
+LMY,Low & middle income,GDP,2023,38059330027172.9
+LMY,Low & middle income,GDP,2022,36965295357847.5
+LMY,Low & middle income,GDP,2021,35235417682028
+LMY,Low & middle income,GDP,2020,29882663470187.9
+LMY,Low & middle income,GDP,2019,30863484502772.9
+LMY,Low & middle income,GDP,2018,29945950603040.9
+LMY,Low & middle income,GDP,2017,28123682410171.2
+LMY,Low & middle income,GDP,2016,25722739836843.3
+LMY,Low & middle income,GDP,2015,25457289049147.5
+LMY,Low & middle income,GDP,2014,26234553744932.3
+LMY,Low & middle income,GDP,2013,25060996541842.2
+LMY,Low & middle income,GDP,2012,23600257695748.4
+LMY,Low & middle income,GDP,2011,22198034859579.4
+LMY,Low & middle income,GDP,2010,18849216312613.7
+,Low income,GDP,2024,469282282632.522
+,Low income,GDP,2023,434043376409.571
+,Low income,GDP,2022,434268149844.662
+,Low income,GDP,2021,375494019860.55
+,Low income,GDP,2020,339434568554.002
+,Low income,GDP,2019,352056761148.886
+,Low income,GDP,2018,341989728902.808
+,Low income,GDP,2017,326806567421.383
+,Low income,GDP,2016,317624904429.654
+,Low income,GDP,2015,361782469708.524
+,Low income,GDP,2014,378789607464.815
+,Low income,GDP,2013,359280509583.968
+,Low income,GDP,2012,351076378355.804
+,Low income,GDP,2011,384118933677.744
+,Low income,GDP,2010,354666141780.162
+,Lower middle income,GDP,2024,7941312381464.47
+,Lower middle income,GDP,2023,7684634708973.7
+,Lower middle income,GDP,2022,7588963714927.97
+,Lower middle income,GDP,2021,7124669005626.3
+,Lower middle income,GDP,2020,6297797215276.78
+,Lower middle income,GDP,2019,6527442965633.65
+,Lower middle income,GDP,2018,6022782110520.98
+,Lower middle income,GDP,2017,5770458203695
+,Lower middle income,GDP,2016,5319173245722.59
+,Lower middle income,GDP,2015,5110516313268.72
+,Lower middle income,GDP,2014,5122618957687.69
+,Lower middle income,GDP,2013,4743115979872.43
+,Lower middle income,GDP,2012,4486071662557.55
+,Lower middle income,GDP,2011,4244475908827.19
+,Lower middle income,GDP,2010,3803232283642.59
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2024,5094721946852.29
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2023,4905729965245.33
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2022,5030925398736.26
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2021,4310652927209.13
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2020,3587451756047.23
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2019,4019889117584.4
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2018,4050508431278.92
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2017,3795353115732.68
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2016,3624240285092.23
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2015,3558416509933.66
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2014,3955125832586.57
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2013,3915741985695.48
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2012,3951058204949.1
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2011,3662713826837.54
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",GDP,2010,3041621845298.68
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2024,2203604227426.38
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2023,2094668147144.99
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2022,2160815136190.98
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2021,1939712222007.44
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2020,1667961526440.19
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2019,1834354275856.43
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2018,1877875348076.98
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2017,1878260539942.56
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2016,1849124741125.58
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2015,1780659355969.3
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2014,1919784977902.52
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2013,1930423514701.75
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2012,2052891275800.41
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2011,1906060807193.34
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",GDP,2010,1626058953369.58
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2024,2189893127426.38
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2023,2076820247144.99
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2022,2141649636190.98
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2021,1921603222007.44
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2020,1652429826440.19
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2019,1817220775856.43
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2018,1861598748076.98
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2017,1862132539942.56
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2016,1833719341125.58
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2015,1766686955969.3
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2014,1905795277902.52
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2013,1916908014701.75
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2012,2040682875800.41
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2011,1894874707193.34
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",GDP,2010,1616377453369.58
+MIC,Middle income,GDP,2024,38925709373017.7
+MIC,Middle income,GDP,2023,37622349618946.3
+MIC,Middle income,GDP,2022,36528767758177.8
+MIC,Middle income,GDP,2021,34855974285498.8
+MIC,Middle income,GDP,2020,29540859400642.8
+AFE,Africa Eastern and Southern,Inflation,2024,4.48978854243448
+AFE,Africa Eastern and Southern,Inflation,2023,7.39918558080627
+AFE,Africa Eastern and Southern,Inflation,2022,10.8834775726018
+AFE,Africa Eastern and Southern,Inflation,2021,6.82472709282067
+AFE,Africa Eastern and Southern,Inflation,2020,5.19162942092851
+AFE,Africa Eastern and Southern,Inflation,2019,4.10285075461156
+AFE,Africa Eastern and Southern,Inflation,2018,4.6898064677633
+AFE,Africa Eastern and Southern,Inflation,2017,6.22137528933118
+AFE,Africa Eastern and Southern,Inflation,2016,6.44687722255584
+AFE,Africa Eastern and Southern,Inflation,2015,5.09856164363687
+AFE,Africa Eastern and Southern,Inflation,2014,5.52581923392517
+AFE,Africa Eastern and Southern,Inflation,2013,5.74883133553454
+AFE,Africa Eastern and Southern,Inflation,2012,9.15870843167905
+AFE,Africa Eastern and Southern,Inflation,2011,8.97120640995788
+AFE,Africa Eastern and Southern,Inflation,2010,5.53753791645676
+AFW,Africa Western and Central,Inflation,2024,3.60804426950566
+AFW,Africa Western and Central,Inflation,2023,5.22116801324002
+AFW,Africa Western and Central,Inflation,2022,7.94925143524016
+AFW,Africa Western and Central,Inflation,2021,3.74556782333009
+AFW,Africa Western and Central,Inflation,2020,2.49037783931949
+AFW,Africa Western and Central,Inflation,2019,1.98309228487232
+AFW,Africa Western and Central,Inflation,2018,1.78404994832044
+AFW,Africa Western and Central,Inflation,2017,1.72548602374731
+AFW,Africa Western and Central,Inflation,2016,1.48741550755546
+AFW,Africa Western and Central,Inflation,2015,2.13081738058791
+AFW,Africa Western and Central,Inflation,2014,1.76843582146224
+AFW,Africa Western and Central,Inflation,2013,2.43920076104126
+AFW,Africa Western and Central,Inflation,2012,4.57837463515948
+AFW,Africa Western and Central,Inflation,2011,4.01869907534492
+AFW,Africa Western and Central,Inflation,2010,1.78484420477113
+ARB,Arab World,Inflation,2024,2.10135577419612
+ARB,Arab World,Inflation,2023,4.00025877060147
+ARB,Arab World,Inflation,2022,5.17980847967061
+ARB,Arab World,Inflation,2021,2.86833027751019
+ARB,Arab World,Inflation,2020,1.44703656998741
+ARB,Arab World,Inflation,2019,1.33601568147656
+ARB,Arab World,Inflation,2018,2.30874696703938
+ARB,Arab World,Inflation,2017,2.06932928164424
+ARB,Arab World,Inflation,2016,2.36503123461077
+ARB,Arab World,Inflation,2015,1.83135233156369
+ARB,Arab World,Inflation,2014,2.89947905006057
+ARB,Arab World,Inflation,2013,3.25423910998847
+ARB,Arab World,Inflation,2012,4.6118443220664
+ARB,Arab World,Inflation,2011,4.7531638888563
+ARB,Arab World,Inflation,2010,3.91106195534028
+CSS,Caribbean small states,Inflation,2024,2.56921890367726
+CSS,Caribbean small states,Inflation,2023,4.47720868651285
+CSS,Caribbean small states,Inflation,2022,5.82838638517959
+CSS,Caribbean small states,Inflation,2021,2.22891330700344
+CSS,Caribbean small states,Inflation,2020,0.121434644614894
+CSS,Caribbean small states,Inflation,2019,1.00054293027237
+CSS,Caribbean small states,Inflation,2018,1.20715793367008
+CSS,Caribbean small states,Inflation,2017,1.6992957045984
+CSS,Caribbean small states,Inflation,2016,0.402621696824957
+CSS,Caribbean small states,Inflation,2015,-0.852705497033039
+CSS,Caribbean small states,Inflation,2014,1.14542060958206
+CSS,Caribbean small states,Inflation,2013,1.08324168178149
+CSS,Caribbean small states,Inflation,2012,2.50461059084482
+CSS,Caribbean small states,Inflation,2011,3.32776554447465
+CSS,Caribbean small states,Inflation,2010,3.31018474700138
+CEB,Central Europe and the Baltics,Inflation,2024,2.75760909424272
+CEB,Central Europe and the Baltics,Inflation,2023,9.44284140088564
+CEB,Central Europe and the Baltics,Inflation,2022,14.6081439492433
+CEB,Central Europe and the Baltics,Inflation,2021,3.83984491500146
+CEB,Central Europe and the Baltics,Inflation,2020,1.67244096855756
+CEB,Central Europe and the Baltics,Inflation,2019,2.66456133425431
+CEB,Central Europe and the Baltics,Inflation,2018,2.53445424186598
+CEB,Central Europe and the Baltics,Inflation,2017,2.0759355367385
+CEB,Central Europe and the Baltics,Inflation,2016,-0.054999541670474
+CEB,Central Europe and the Baltics,Inflation,2015,-0.464499004644911
+CEB,Central Europe and the Baltics,Inflation,2014,0.0538213132399802
+CEB,Central Europe and the Baltics,Inflation,2013,1.4382978723404
+CEB,Central Europe and the Baltics,Inflation,2012,3.33492267693442
+CEB,Central Europe and the Baltics,Inflation,2011,4.13027562645085
+CEB,Central Europe and the Baltics,Inflation,2010,1.80117022137134
+EAR,Early-demographic dividend,Inflation,2024,3.29589662451998
+EAR,Early-demographic dividend,Inflation,2023,5.88585897042164
+EAR,Early-demographic dividend,Inflation,2022,7.19861615609867
+EAR,Early-demographic dividend,Inflation,2021,4.12676744440695
+EAR,Early-demographic dividend,Inflation,2020,2.96354992076065
+EAR,Early-demographic dividend,Inflation,2019,2.76252019386111
+EAR,Early-demographic dividend,Inflation,2018,3.97561015740694
+EAR,Early-demographic dividend,Inflation,2017,3.32817337461298
+EAR,Early-demographic dividend,Inflation,2016,3.52317317628473
+EAR,Early-demographic dividend,Inflation,2015,3.12900274473925
+EAR,Early-demographic dividend,Inflation,2014,4.07392957476225
+EAR,Early-demographic dividend,Inflation,2013,4.82778705505169
+EAR,Early-demographic dividend,Inflation,2012,5.01827254237431
+EAR,Early-demographic dividend,Inflation,2011,5.81149223300288
+EAR,Early-demographic dividend,Inflation,2010,4.3974138315007
+EAS,East Asia & Pacific,Inflation,2024,2.3556272611928
+EAS,East Asia & Pacific,Inflation,2023,5.21536927681554
+EAS,East Asia & Pacific,Inflation,2022,5.34595440908904
+EAS,East Asia & Pacific,Inflation,2021,2.47710241465447
+EAS,East Asia & Pacific,Inflation,2020,0.846905537459305
+EAS,East Asia & Pacific,Inflation,2019,1.70397863236257
+EAS,East Asia & Pacific,Inflation,2018,2.368549058067
+EAS,East Asia & Pacific,Inflation,2017,1.80034222468621
+EAS,East Asia & Pacific,Inflation,2016,1.27699094497324
+EAS,East Asia & Pacific,Inflation,2015,0.795279630579839
+EAS,East Asia & Pacific,Inflation,2014,2.51087633253706
+EAS,East Asia & Pacific,Inflation,2013,2.58268766141795
+EAS,East Asia & Pacific,Inflation,2012,2.97460779814468
+EAS,East Asia & Pacific,Inflation,2011,5.0214601462073
+EAS,East Asia & Pacific,Inflation,2010,3.05730563962442
+EAP,East Asia & Pacific (excluding high income),Inflation,2024,2.31848172887108
+EAP,East Asia & Pacific (excluding high income),Inflation,2023,5.97802515541409
+EAP,East Asia & Pacific (excluding high income),Inflation,2022,5.37734908193985
+EAP,East Asia & Pacific (excluding high income),Inflation,2021,2.69891859529198
+EAP,East Asia & Pacific (excluding high income),Inflation,2020,2.40629214387011
+EAP,East Asia & Pacific (excluding high income),Inflation,2019,1.94257500833107
+EAP,East Asia & Pacific (excluding high income),Inflation,2018,3.19834755924996
+EAP,East Asia & Pacific (excluding high income),Inflation,2017,2.91263557371478
+EAP,East Asia & Pacific (excluding high income),Inflation,2016,1.91731090233378
+EAP,East Asia & Pacific (excluding high income),Inflation,2015,1.22393195511119
+EAP,East Asia & Pacific (excluding high income),Inflation,2014,3.14299050879095
+EAP,East Asia & Pacific (excluding high income),Inflation,2013,2.91354193604001
+EAP,East Asia & Pacific (excluding high income),Inflation,2012,3.02696391124796
+EAP,East Asia & Pacific (excluding high income),Inflation,2011,5.29573220295508
+EAP,East Asia & Pacific (excluding high income),Inflation,2010,3.68901229670758
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2024,2.23172772921704
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2023,6.16457747898299
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2022,5.40874375479067
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2021,2.6124818577648
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2020,2.3931623931624
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2019,1.93321335810515
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2018,2.91740978470444
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2017,2.88291164981213
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2016,1.75711158908291
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2015,1.08648629940414
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2014,3.37040697371653
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2013,2.92758351575675
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2012,3.02696391124796
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2011,5.15900497684403
+TEA,East Asia & Pacific (IDA & IBRD countries),Inflation,2010,3.61196234430295
+EMU,Euro area,Inflation,2024,2.18497406958038
+EMU,Euro area,Inflation,2023,5.78431554960862
+EMU,Euro area,Inflation,2022,8.47117645590892
+EMU,Euro area,Inflation,2021,2.4865043812082
+EMU,Euro area,Inflation,2020,0.186938139702131
+EMU,Euro area,Inflation,2019,1.44123966942341
+EMU,Euro area,Inflation,2018,1.6892396580413
+EMU,Euro area,Inflation,2017,1.37503641525339
+EMU,Euro area,Inflation,2016,0.166009884375616
+EMU,Euro area,Inflation,2015,-0.0852072296963751
+EMU,Euro area,Inflation,2014,0.220195628198753
+EMU,Euro area,Inflation,2013,1.31023355618666
+EMU,Euro area,Inflation,2012,2.54154474108009
+EMU,Euro area,Inflation,2011,3.28801427219796
+EMU,Euro area,Inflation,2010,1.5205755786839
+ECS,Europe & Central Asia,Inflation,2024,2.75760909424272
+ECS,Europe & Central Asia,Inflation,2023,7.120422120899
+ECS,Europe & Central Asia,Inflation,2022,11.1136121878761
+ECS,Europe & Central Asia,Inflation,2021,3.19017771027094
+ECS,Europe & Central Asia,Inflation,2020,1.19998396936028
+ECS,Europe & Central Asia,Inflation,2019,1.76373586528842
+ECS,Europe & Central Asia,Inflation,2018,2.01321972250337
+ECS,Europe & Central Asia,Inflation,2017,1.91558846458259
+ECS,Europe & Central Asia,Inflation,2016,0.388838296895799
+ECS,Europe & Central Asia,Inflation,2015,0.36804684232536
+ECS,Europe & Central Asia,Inflation,2014,0.620490636732421
+ECS,Europe & Central Asia,Inflation,2013,1.73403963519162
+ECS,Europe & Central Asia,Inflation,2012,2.77333854051586
+ECS,Europe & Central Asia,Inflation,2011,3.8561124468282
+ECS,Europe & Central Asia,Inflation,2010,2.42447361791628
+ECA,Europe & Central Asia (excluding high income),Inflation,2024,3.48974086026947
+ECA,Europe & Central Asia (excluding high income),Inflation,2023,9.07365149809048
+ECA,Europe & Central Asia (excluding high income),Inflation,2022,13.8875841659221
+ECA,Europe & Central Asia (excluding high income),Inflation,2021,6.91756771076075
+ECA,Europe & Central Asia (excluding high income),Inflation,2020,2.74615078213777
+ECA,Europe & Central Asia (excluding high income),Inflation,2019,2.64328192719554
+ECA,Europe & Central Asia (excluding high income),Inflation,2018,2.56572880132719
+ECA,Europe & Central Asia (excluding high income),Inflation,2017,4.60357355778862
+ECA,Europe & Central Asia (excluding high income),Inflation,2016,2.13492713939121
+ECA,Europe & Central Asia (excluding high income),Inflation,2015,4.02768573742726
+ECA,Europe & Central Asia (excluding high income),Inflation,2014,3.06881210379543
+ECA,Europe & Central Asia (excluding high income),Inflation,2013,4.59787897363136
+ECA,Europe & Central Asia (excluding high income),Inflation,2012,3.31605566687647
+ECA,Europe & Central Asia (excluding high income),Inflation,2011,7.8583333333334
+ECA,Europe & Central Asia (excluding high income),Inflation,2010,6.77774669133379
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2024,3.63700046769908
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2023,9.36187249769016
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2022,13.8522590144267
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2021,5.10641129002841
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2020,2.73249209419427
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2019,2.67599202639893
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2018,2.611223782638
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2017,3.13106248590115
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2016,1.19887282892596
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2015,3.86763469978395
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2014,2.53187831406913
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2013,3.38485646137124
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2012,3.373498083874
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2011,7.66862955607738
+TEC,Europe & Central Asia (IDA & IBRD countries),Inflation,2010,6.14255360247248
+EUU,European Union,Inflation,2024,2.43531202435314
+EUU,European Union,Inflation,2023,6.29942487419125
+EUU,European Union,Inflation,2022,8.83369886749452
+EUU,European Union,Inflation,2021,2.55450699642041
+EUU,European Union,Inflation,2020,0.476498852725066
+EUU,European Union,Inflation,2019,1.63052260754344
+EUU,European Union,Inflation,2018,1.7386086198818
+EUU,European Union,Inflation,2017,1.42910743319306
+EUU,European Union,Inflation,2016,0.18333486112386
+EUU,European Union,Inflation,2015,-0.0616446800641672
+EUU,European Union,Inflation,2014,0.19934382657075
+EUU,European Union,Inflation,2013,1.21999342274306
+EUU,European Union,Inflation,2012,2.66284165508021
+EUU,European Union,Inflation,2011,3.28944939564211
+EUU,European Union,Inflation,2010,1.53112270420926
+FCS,Fragile and conflict affected situations,Inflation,2024,4.4275764904982
+FCS,Fragile and conflict affected situations,Inflation,2023,7.11459205344455
+FCS,Fragile and conflict affected situations,Inflation,2022,9.39075933985203
+FCS,Fragile and conflict affected situations,Inflation,2021,4.25936417542868
+FCS,Fragile and conflict affected situations,Inflation,2020,2.8981937602627
+FCS,Fragile and conflict affected situations,Inflation,2019,2.45280214062732
+FCS,Fragile and conflict affected situations,Inflation,2018,2.96760366004456
+FCS,Fragile and conflict affected situations,Inflation,2017,4.18072331871267
+FCS,Fragile and conflict affected situations,Inflation,2016,3.19056179723773
+FCS,Fragile and conflict affected situations,Inflation,2015,2.676235314199
+FCS,Fragile and conflict affected situations,Inflation,2014,2.4963450872176
+FCS,Fragile and conflict affected situations,Inflation,2013,4.44648435335712
+FCS,Fragile and conflict affected situations,Inflation,2012,5.9859049732401
+FCS,Fragile and conflict affected situations,Inflation,2011,5.08259403890371
+FCS,Fragile and conflict affected situations,Inflation,2010,3.55195748963008
+HPC,Heavily indebted poor countries (HIPC),Inflation,2024,4.56976223919357
+HPC,Heavily indebted poor countries (HIPC),Inflation,2023,7.12697482131851
+HPC,Heavily indebted poor countries (HIPC),Inflation,2022,9.65914753785069
+HPC,Heavily indebted poor countries (HIPC),Inflation,2021,4.37012190478157
+HPC,Heavily indebted poor countries (HIPC),Inflation,2020,3.47617372722194
+HPC,Heavily indebted poor countries (HIPC),Inflation,2019,2.83514555687506
+HPC,Heavily indebted poor countries (HIPC),Inflation,2018,3.01748181031406
+HPC,Heavily indebted poor countries (HIPC),Inflation,2017,4.5783374121255
+HPC,Heavily indebted poor countries (HIPC),Inflation,2016,4.38389195513915
+HPC,Heavily indebted poor countries (HIPC),Inflation,2015,3.55075967356746
+HPC,Heavily indebted poor countries (HIPC),Inflation,2014,4.40535234185293
+HPC,Heavily indebted poor countries (HIPC),Inflation,2013,5.16189898581494
+HPC,Heavily indebted poor countries (HIPC),Inflation,2012,6.31474450315177
+HPC,Heavily indebted poor countries (HIPC),Inflation,2011,6.4293968107234
+HPC,Heavily indebted poor countries (HIPC),Inflation,2010,4.69889064976226
+,High income,Inflation,2024,2.38554753438095
+,High income,Inflation,2023,4.85604044667119
+,High income,Inflation,2022,7.53107834634288
+,High income,Inflation,2021,2.51837109614213
+,High income,Inflation,2020,0.598986330824643
+,High income,Inflation,2019,1.61519988737213
+,High income,Inflation,2018,1.88110801380597
+,High income,Inflation,2017,1.58909413567799
+,High income,Inflation,2016,0.394769306686392
+,High income,Inflation,2015,0.330027165141066
+,High income,Inflation,2014,1.04119621178439
+,High income,Inflation,2013,1.50472330251876
+,High income,Inflation,2012,2.710119177355
+,High income,Inflation,2011,3.41374547661777
+,High income,Inflation,2010,2.13371996141622
+IBD,IBRD only,Inflation,2024,3.48974086026947
+IBD,IBRD only,Inflation,2023,6.02663450060535
+IBD,IBRD only,Inflation,2022,9.10437983075437
+IBD,IBRD only,Inflation,2021,4.27166381536798
+IBD,IBRD only,Inflation,2020,2.41513094083414
+IBD,IBRD only,Inflation,2019,2.58405829251271
+IBD,IBRD only,Inflation,2018,3.22703471046143
+IBD,IBRD only,Inflation,2017,3.32389447576097
+IBD,IBRD only,Inflation,2016,2.12081713361588
+IBD,IBRD only,Inflation,2015,3.09551722027242
+IBD,IBRD only,Inflation,2014,3.50379093139812
+IBD,IBRD only,Inflation,2013,3.89555152647667
+IBD,IBRD only,Inflation,2012,4.2795142691943
+IBD,IBRD only,Inflation,2011,5.55389892257493
+IBD,IBRD only,Inflation,2010,4.11211139315219
+IBT,IDA & IBRD total,Inflation,2024,3.62109273885843
+IBT,IDA & IBRD total,Inflation,2023,6.20657592272126
+IBT,IDA & IBRD total,Inflation,2022,8.81109209279587
+IBT,IDA & IBRD total,Inflation,2021,4.25936417542868
+IBT,IDA & IBRD total,Inflation,2020,2.8981937602627
+IBT,IDA & IBRD total,Inflation,2019,2.70590196327809
+IBT,IDA & IBRD total,Inflation,2018,3.13285375991676
+IBT,IDA & IBRD total,Inflation,2017,3.33787586109568
+IBT,IDA & IBRD total,Inflation,2016,2.81495791361944
+IBT,IDA & IBRD total,Inflation,2015,3.12900274473925
+IBT,IDA & IBRD total,Inflation,2014,3.52566203758282
+IBT,IDA & IBRD total,Inflation,2013,4.3411548980431
+IBT,IDA & IBRD total,Inflation,2012,5.00686319367273
+IBT,IDA & IBRD total,Inflation,2011,5.79911173145917
+IBT,IDA & IBRD total,Inflation,2010,4.06749555950263
+IDB,IDA blend,Inflation,2024,3.45053028131019
+IDB,IDA blend,Inflation,2023,4.56457719814894
+IDB,IDA blend,Inflation,2022,6.32752007290448
+IDB,IDA blend,Inflation,2021,3.46677876951929
+IDB,IDA blend,Inflation,2020,2.1039488213608
+IDB,IDA blend,Inflation,2019,1.98958744120896
+IDB,IDA blend,Inflation,2018,2.48030843191907
+IDB,IDA blend,Inflation,2017,1.14765339305816
+IDB,IDA blend,Inflation,2016,1.65038994431573
+IDB,IDA blend,Inflation,2015,1.37488542621446
+IDB,IDA blend,Inflation,2014,1.20139964481058
+IDB,IDA blend,Inflation,2013,2.58117037252936
+IDB,IDA blend,Inflation,2012,4.17763587102515
+IDB,IDA blend,Inflation,2011,4.47388342165023
+IDB,IDA blend,Inflation,2010,3.3434265756174
+IDX,IDA only,Inflation,2024,4.19081721344523
+IDX,IDA only,Inflation,2023,7.12142371831339
+IDX,IDA only,Inflation,2022,9.57337118555953
+IDX,IDA only,Inflation,2021,4.37012190478157
+IDX,IDA only,Inflation,2020,3.94180326908065
+IDX,IDA only,Inflation,2019,3.09342088075364
+IDX,IDA only,Inflation,2018,3.01748181031406
+IDX,IDA only,Inflation,2017,4.31421134623784
+IDX,IDA only,Inflation,2016,3.74103082110771
+IDX,IDA only,Inflation,2015,3.40274327737188
+IDX,IDA only,Inflation,2014,4.40535234185293
+IDX,IDA only,Inflation,2013,5.16189898581494
+IDX,IDA only,Inflation,2012,6.05143662139967
+IDX,IDA only,Inflation,2011,6.7395240045165
+IDX,IDA only,Inflation,2010,4.82734190074673
+IDA,IDA total,Inflation,2024,3.92206330291068
+IDA,IDA total,Inflation,2023,7.10220928557059
+IDA,IDA total,Inflation,2022,8.21619710967436
+IDA,IDA total,Inflation,2021,4.17270582217659
+IDA,IDA total,Inflation,2020,3.47617372722194
+IDA,IDA total,Inflation,2019,2.74447528387472
+IDA,IDA total,Inflation,2018,2.84578376094084
+IDA,IDA total,Inflation,2017,3.85067166284727
+IDA,IDA total,Inflation,2016,3.21988689395718
+IDA,IDA total,Inflation,2015,3.15783117980923
+IDA,IDA total,Inflation,2014,3.52566203758282
+IDA,IDA total,Inflation,2013,4.88516387595471
+IDA,IDA total,Inflation,2012,5.59607014268585
+IDA,IDA total,Inflation,2011,6.33279483849042
+IDA,IDA total,Inflation,2010,3.99639528107218
+LTE,Late-demographic dividend,Inflation,2024,2.90125149455067
+LTE,Late-demographic dividend,Inflation,2023,6.09114152504141
+LTE,Late-demographic dividend,Inflation,2022,8.64091108973855
+LTE,Late-demographic dividend,Inflation,2021,3.49505757399448
+LTE,Late-demographic dividend,Inflation,2020,1.93694126694223
+LTE,Late-demographic dividend,Inflation,2019,2.16176258133054
+LTE,Late-demographic dividend,Inflation,2018,2.47446347118434
+LTE,Late-demographic dividend,Inflation,2017,2.17727572689262
+LTE,Late-demographic dividend,Inflation,2016,1.10920805807027
+LTE,Late-demographic dividend,Inflation,2015,1.5579071134626
+LTE,Late-demographic dividend,Inflation,2014,2.04461481539333
+LTE,Late-demographic dividend,Inflation,2013,2.68229684085039
+LTE,Late-demographic dividend,Inflation,2012,3.31605566687647
+LTE,Late-demographic dividend,Inflation,2011,4.3707355993922
+LTE,Late-demographic dividend,Inflation,2010,3.29777961339846
+LCN,Latin America & Caribbean,Inflation,2024,3.46497037946077
+LCN,Latin America & Caribbean,Inflation,2023,4.78561281021135
+LCN,Latin America & Caribbean,Inflation,2022,7.71367726901419
+LCN,Latin America & Caribbean,Inflation,2021,3.87805442411131
+LCN,Latin America & Caribbean,Inflation,2020,1.49389017299587
+LCN,Latin America & Caribbean,Inflation,2019,2.37167859363036
+LCN,Latin America & Caribbean,Inflation,2018,2.37951733360489
+LCN,Latin America & Caribbean,Inflation,2017,2.19201010962985
+LCN,Latin America & Caribbean,Inflation,2016,1.65038994431573
+LCN,Latin America & Caribbean,Inflation,2015,1.86148302863371
+LCN,Latin America & Caribbean,Inflation,2014,3.38341272749477
+LCN,Latin America & Caribbean,Inflation,2013,2.5286478853837
+LCN,Latin America & Caribbean,Inflation,2012,3.78180754679678
+LCN,Latin America & Caribbean,Inflation,2011,4.9777356370697
+LCN,Latin America & Caribbean,Inflation,2010,3.491288726188
+LAC,Latin America & Caribbean (excluding high income),Inflation,2024,3.83540271728533
+LAC,Latin America & Caribbean (excluding high income),Inflation,2023,5.08677483158112
+LAC,Latin America & Caribbean (excluding high income),Inflation,2022,8.33370630096231
+LAC,Latin America & Caribbean (excluding high income),Inflation,2021,4.27166381536798
+LAC,Latin America & Caribbean (excluding high income),Inflation,2020,2.52663500084706
+LAC,Latin America & Caribbean (excluding high income),Inflation,2019,2.50460959460401
+LAC,Latin America & Caribbean (excluding high income),Inflation,2018,3.40250179472038
+LAC,Latin America & Caribbean (excluding high income),Inflation,2017,3.36296514855608
+LAC,Latin America & Caribbean (excluding high income),Inflation,2016,2.77316004021475
+LAC,Latin America & Caribbean (excluding high income),Inflation,2015,3.14341696227424
+LAC,Latin America & Caribbean (excluding high income),Inflation,2014,3.4282641481078
+LAC,Latin America & Caribbean (excluding high income),Inflation,2013,2.74483621896186
+LAC,Latin America & Caribbean (excluding high income),Inflation,2012,3.94665867874984
+LAC,Latin America & Caribbean (excluding high income),Inflation,2011,5.46284592944072
+LAC,Latin America & Caribbean (excluding high income),Inflation,2010,3.70694322200501
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2024,3.62770736940927
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2023,4.92637573192674
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2022,7.8962761916855
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2021,4.26105127422813
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2020,1.76751592356698
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2019,2.09604635327807
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2018,2.32414485367921
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2017,2.8227580554717
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2016,2.53781710390567
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2015,2.92482169718974
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2014,3.4282641481078
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2013,2.74483621896186
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2012,4.14457284086402
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2011,5.46284592944072
+TLA,Latin America & the Caribbean (IDA & IBRD countries),Inflation,2010,3.79644333768703
+LDC,Least developed countries: UN classification,Inflation,2024,4.50346801326901
+LDC,Least developed countries: UN classification,Inflation,2023,7.12697482131851
+LDC,Least developed countries: UN classification,Inflation,2022,9.45801281304023
+LDC,Least developed countries: UN classification,Inflation,2021,4.15649125482107
+LDC,Least developed countries: UN classification,Inflation,2020,4.33296874711709
+LDC,Least developed countries: UN classification,Inflation,2019,3.32255881256925
+LDC,Least developed countries: UN classification,Inflation,2018,3.46147484973729
+LDC,Least developed countries: UN classification,Inflation,2017,4.5725365531752
+LDC,Least developed countries: UN classification,Inflation,2016,5.34414600997244
+LDC,Least developed countries: UN classification,Inflation,2015,3.40274327737188
+LDC,Least developed countries: UN classification,Inflation,2014,4.40535234185293
+LDC,Least developed countries: UN classification,Inflation,2013,5.52412877994266
+LDC,Least developed countries: UN classification,Inflation,2012,6.31474450315177
+LDC,Least developed countries: UN classification,Inflation,2011,6.61038986512481
+LDC,Least developed countries: UN classification,Inflation,2010,5.04968075857402
+LMY,Low & middle income,Inflation,2024,3.6966328135552
+LMY,Low & middle income,Inflation,2023,6.20657592272126
+LMY,Low & middle income,Inflation,2022,8.48730869535043
+LMY,Low & middle income,Inflation,2021,4.22278962033194
+LMY,Low & middle income,Inflation,2020,2.99313555869912
+LMY,Low & middle income,Inflation,2019,2.75980873474443
+LMY,Low & middle income,Inflation,2018,3.23929245939142
+LMY,Low & middle income,Inflation,2017,3.63473722012434
+LMY,Low & middle income,Inflation,2016,2.95249541214558
+LMY,Low & middle income,Inflation,2015,3.16346457365876
+LMY,Low & middle income,Inflation,2014,3.53436856147324
+LMY,Low & middle income,Inflation,2013,4.63161619729461
+LMY,Low & middle income,Inflation,2012,5.01804155429246
+LMY,Low & middle income,Inflation,2011,6.16077553828675
+LMY,Low & middle income,Inflation,2010,4.11211139315219
+,Low income,Inflation,2024,4.19081721344523
+,Low income,Inflation,2023,7.11459205344455
+,Low income,Inflation,2022,9.62147608489064
+,Low income,Inflation,2021,5.13320340824963
+,Low income,Inflation,2020,4.46414437232861
+,Low income,Inflation,2019,2.83514555687506
+,Low income,Inflation,2018,2.79180778478365
+,Low income,Inflation,2017,8.15686323403372
+,Low income,Inflation,2016,5.70637504616212
+,Low income,Inflation,2015,4.37712665065654
+,Low income,Inflation,2014,3.74052951571967
+,Low income,Inflation,2013,5.61162933815824
+,Low income,Inflation,2012,6.70977471405567
+,Low income,Inflation,2011,7.20710277400571
+,Low income,Inflation,2010,4.18698335814119
+,Lower middle income,Inflation,2024,4.60621098127107
+,Lower middle income,Inflation,2023,7.38281384280984
+,Lower middle income,Inflation,2022,7.6702057938028
+,Lower middle income,Inflation,2021,4.15919657911798
+,Lower middle income,Inflation,2020,4.87167398565555
+,Lower middle income,Inflation,2019,3.46428057999021
+,Lower middle income,Inflation,2018,4.29159105337875
+,Lower middle income,Inflation,2017,3.52025688811617
+,Lower middle income,Inflation,2016,3.37153003512095
+,Lower middle income,Inflation,2015,3.32437113264095
+,Lower middle income,Inflation,2014,5.19400979076006
+,Lower middle income,Inflation,2013,5.4961444543898
+,Lower middle income,Inflation,2012,5.98172132315561
+,Lower middle income,Inflation,2011,6.38109582460691
+,Lower middle income,Inflation,2010,4.84551875852116
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2024,2.07655387954199
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2023,4.22522603168918
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2022,5.17980847967061
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2021,2.86833027751019
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2020,1.44703656998741
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2019,1.33601568147656
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2018,1.94579304594437
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2017,2.06932928164424
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2016,2.70750189418473
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2015,1.6859921764201
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2014,2.64755321246189
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2013,3.25423910998847
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2012,4.5152295667099
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2011,4.7531638888563
+MEA,"Middle East, North Africa, Afghanistan & Pakistan",Inflation,2010,3.74915727597096
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2024,4.04611455313434
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2023,6.09114152504141
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2022,8.30646124447623
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2021,5.21404940513043
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2020,2.41513094083414
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2019,2.65388100453608
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2018,4.36615064471282
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2017,4.64865184428512
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2016,3.69725926870481
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2015,2.04361764300244
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2014,2.91692692067458
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2013,4.82462314269537
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2012,6.44121280934117
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2011,5.0687139477799
+MNA,"Middle East, North Africa, Afghanistan & Pakistan (excluding high income)",Inflation,2010,3.95007875923885
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2024,3.0861361109923
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2023,7.70665764216232
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2022,8.78598837999588
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2021,5.46019980671871
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2020,3.73003191530476
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2019,3.00538949390383
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2018,4.46231108475481
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2017,4.97595150553833
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2016,3.7651191635658
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2015,2.52932817254229
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2014,3.77123895800744
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2013,5.07042922798113
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2012,6.51134364308897
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2011,5.43508465931645
+TMN,"Middle East, North Africa, Afghanistan & Pakistan (IDA & IBRD)",Inflation,2010,3.96677908889859
+MIC,Middle income,Inflation,2024,3.6045220384796
+MIC,Middle income,Inflation,2023,6.1059011284828
+MIC,Middle income,Inflation,2022,8.30646124447623
+MIC,Middle income,Inflation,2021,4.12676744440695
+MIC,Middle income,Inflation,2020,2.73249209419427

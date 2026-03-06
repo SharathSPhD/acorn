@@ -204,3 +204,37 @@ CREATE TABLE IF NOT EXISTS constitutional_violations (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_constitutional_violations_problem ON constitutional_violations (problem_id);
+
+-- Model registry: LLM models (Ollama, vLLM, Anthropic) with SWOT, benchmarks, and role recommendations
+CREATE TABLE IF NOT EXISTS model_registry (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL UNIQUE,
+    provider TEXT DEFAULT 'ollama' CHECK (provider IN ('ollama', 'vllm', 'anthropic')),
+    size_bytes BIGINT,
+    parameter_count BIGINT,
+    quantization TEXT,
+    capabilities TEXT[] DEFAULT '{}',
+    strengths TEXT,
+    weaknesses TEXT,
+    opportunities TEXT,
+    threats TEXT,
+    benchmark_scores JSONB DEFAULT '{}',
+    recommended_roles TEXT[] DEFAULT '{}',
+    avg_tokens_per_sec FLOAT,
+    avg_latency_ms FLOAT,
+    total_uses INTEGER DEFAULT 0,
+    success_rate FLOAT DEFAULT 0.0,
+    last_benchmarked_at TIMESTAMPTZ,
+    pulled_at TIMESTAMPTZ,
+    is_available BOOLEAN DEFAULT TRUE,
+    is_finetuned BOOLEAN DEFAULT FALSE,
+    base_model TEXT,
+    finetune_dataset TEXT,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_model_registry_name ON model_registry (name);
+CREATE INDEX IF NOT EXISTS idx_model_registry_capabilities ON model_registry USING GIN (capabilities);
+CREATE INDEX IF NOT EXISTS idx_model_registry_recommended_roles ON model_registry USING GIN (recommended_roles);
+CREATE INDEX IF NOT EXISTS idx_model_registry_is_available ON model_registry (is_available);

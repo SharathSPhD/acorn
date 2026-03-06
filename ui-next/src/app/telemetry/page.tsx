@@ -67,10 +67,11 @@ export default function TelemetryPage() {
             {t?.events_by_type && Object.keys(t.events_by_type).length > 0 ? (
               <div className="space-y-3">
                 {Object.entries(t.events_by_type)
-                  .sort(([, a], [, b]) => b - a)
+                  .sort(([, a], [, b]) => (Number(b) || 0) - (Number(a) || 0))
                   .map(([type, count]) => {
-                    const maxCount = Math.max(...Object.values(t.events_by_type));
-                    const pct = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                    const vals = Object.values(t.events_by_type).map(Number).filter(Boolean);
+                    const maxCount = vals.length > 0 ? Math.max(...vals) : 1;
+                    const pct = maxCount > 0 ? ((Number(count) || 0) / maxCount) * 100 : 0;
                     return (
                       <div key={type}>
                         <div className="flex items-center justify-between mb-1">
@@ -144,13 +145,24 @@ export default function TelemetryPage() {
                 <div>
                   <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Desired State (Domains)</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {(manifestStatus.data.desired as { domains?: Array<{ name: string }> })?.domains?.map((d: { name: string }) => (
-                      <span key={d.name} className="rounded bg-acorn-50 border border-acorn-200 px-2 py-0.5 text-xs text-acorn-700">
-                        {d.name}
-                      </span>
-                    )) ?? (
-                      <p className="text-xs text-slate-400">No domain targets defined.</p>
-                    )}
+                    {(() => {
+                      const domains = (manifestStatus.data.desired as Record<string, unknown>)?.domains;
+                      if (domains && typeof domains === "object" && !Array.isArray(domains)) {
+                        return Object.keys(domains).map((name) => (
+                          <span key={name} className="rounded bg-acorn-50 border border-acorn-200 px-2 py-0.5 text-xs text-acorn-700">
+                            {name.replace(/_/g, " ")}
+                          </span>
+                        ));
+                      }
+                      if (Array.isArray(domains)) {
+                        return domains.map((d: { name: string }) => (
+                          <span key={d.name} className="rounded bg-acorn-50 border border-acorn-200 px-2 py-0.5 text-xs text-acorn-700">
+                            {d.name}
+                          </span>
+                        ));
+                      }
+                      return <p className="text-xs text-slate-400">No domain targets defined.</p>;
+                    })()}
                   </div>
                 </div>
                 <div className="border-t border-slate-100 pt-3">

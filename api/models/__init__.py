@@ -74,6 +74,7 @@ class ProblemStatusUpdate(BaseModel):
 class SpawnAgentRequest(BaseModel):
     role: str
     task_id: str | None = None
+    model: str | None = None  # Optional override from model recommendation API
 
 
 # ── Tasks ────────────────────────────────────────────────────────────────────

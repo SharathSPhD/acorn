@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.config import settings
 from api.dependencies import get_event_bus
-from api.routers import agents, builder, judge, kernels, meta, problems, tasks, telemetry
+from api.routers import agents, builder, judge, kernels, meta, models, problems, tasks, telemetry
 from api.routers.context import router as context_router
 from api.routers.cortex import router as cortex_router
 from api.routers.goals import router as goals_router
@@ -49,6 +49,7 @@ app.include_router(problems.router)
 app.include_router(tasks.router)
 app.include_router(agents.router)
 app.include_router(kernels.router)
+app.include_router(models.router)
 app.include_router(telemetry.router)
 app.include_router(judge.router)
 app.include_router(meta.router)

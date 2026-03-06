@@ -65,10 +65,18 @@ class RewardService:
                    VALUES ($1, $2::bigint, $3::integer, 1)
                    ON CONFLICT (role) DO UPDATE SET
                        cumulative_points = role_scores.cumulative_points + $2::bigint,
-                       rolling_30d_points = role_scores.rolling_30d_points + $3::integer,
-                       problems_contributed = role_scores.problems_contributed + 1,
+                       rolling_30d_points = (
+                           SELECT COALESCE(SUM(points), 0)
+                           FROM reward_events
+                           WHERE role = $1 AND created_at > NOW() - INTERVAL '30 days'
+                       ),
+                       problems_contributed = (
+                           SELECT COUNT(DISTINCT problem_id)
+                           FROM reward_events
+                           WHERE role = $1 AND problem_id IS NOT NULL
+                       ),
                        last_updated = NOW()""",
-                role, points, points,
+                role, points,
             )
             return {"id": str(row["id"]), "created_at": str(row["created_at"]), "points": points}
         finally:
