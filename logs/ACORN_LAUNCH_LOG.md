@@ -493,6 +493,41 @@ Problems 208f5c96, c8d4f55b, and 2fded6f1 are marked "complete" in the API despi
 - No forward progress on completions.
 - Infrastructure (CORTEX+, containers) healthy but agent outputs consistently rejected by judge.
 
+## SENTINEL v3 Round 3 — GWT Fix Verification
+
+**Observation window:** 4 cycles, 60s apart (~07:01 - 07:05 UTC, 2026-03-06)
+
+### GWT Module Winners Per Cycle
+| Cycle | Module | Salience | Action | broadcast_log_size |
+|-------|--------|----------|--------|--------------------|
+| 1 | **planning** | 1.0 | generate_objective (14 kernel gaps, sales domain) | 3 |
+| 2 | **metacognition** | 0.865 | propose_amendment (pass_rate=23.5%, low_role=orchestrator) | 4 |
+| 3 | **metacognition** | 0.865 | propose_amendment (same payload, within tick interval) | 4 |
+| 4 | **planning** | 1.0 | generate_objective (same 14 kernel gaps) | 5 |
+
+### GWT Rotation: CONFIRMED
+- **Before fix:** perception won 285 consecutive ticks (100% monopoly).
+- **After fix:** 2 distinct modules observed in 4 cycles — planning and metacognition alternating.
+- Perception did NOT win any tick during observation. The salience formula fix is working.
+- broadcast_log_size reset from 285 to 3 (new code deployment), ticked to 5 during watch.
+
+### Warm-Started Problem: 6644b5e6
+| Cycle | Status | Notes |
+|-------|--------|-------|
+| 1 | active | Processing (created 06:57, active by 06:57) |
+| 2 | active | Still processing |
+| 3 | **failed** | Failed at 07:00:30 UTC (~3min runtime) |
+| 4 | failed | No change |
+
+Despite model pre-warming, the problem still failed. Runtime was ~3 minutes (created 06:57:33, failed 07:00:30). Root cause likely agent code quality / judge strictness rather than HTTP 500 (the cold-start fix resolved infrastructure errors but not generation quality).
+
+### Module Behavior Analysis
+- **Planning** (salience=1.0): Detecting 14 missing kernel gaps across domains. Sales domain needs 3 kernels covering pipeline_conversion, funnel_analysis, win_loss, opportunity_forecasting, territory_optimization. This is healthy — planning is driving new work generation.
+- **Metacognition** (salience=0.865): Noting 23.5% overall pass rate and flagging orchestrator role as underperforming. This is appropriate self-reflection — the system recognizes its low success rate and is proposing amendments.
+
+### Verdict
+GWT perception monopoly is **resolved**. The cognitive loop now rotates between planning (work generation) and metacognition (self-assessment). The system is self-aware of its 23.5% pass rate and actively proposing improvements. Main remaining issue: agent-generated code quality causing judge failures.
+
 ## SCRIBE Operations
 
 | Time | Agent | Event | Details |
@@ -515,6 +550,11 @@ Problems 208f5c96, c8d4f55b, and 2fded6f1 are marked "complete" in the API despi
 | 2026-03-06T06:50Z | IGNITER watchdog | Cycle 3 | 0 running, 0 complete, 3 failed (all 3 targets) — HTTP 500 errors + incomplete code |
 | 2026-03-06T06:51Z | IGNITER watchdog | Cycle 4 | 0 running, 0 complete, 3 failed — no change, system idle |
 | 2026-03-06T06:52Z | IGNITER watchdog | Cycle 5 (final) | 0 running, 0 complete, 3 failed — system idle, watchdog complete |
+| 2026-03-06T06:58Z | IGNITER v4 | Warm-start monitor | 6644b5e6 (Sales trend analysis) — container up, model pre-warmed |
+| 2026-03-06T06:58Z | IGNITER v4 watchdog | Cycle 1 | 1 running (Up 31s), status=active |
+| 2026-03-06T06:59Z | IGNITER v4 watchdog | Cycle 2 | 1 running (Up ~1min), status=active |
+| 2026-03-06T07:00Z | IGNITER v4 watchdog | Cycle 3 | Exited(0), status=failed — judge FAIL (no HTTP 500s, relay 200 OK) |
+| 2026-03-06T07:00Z | IGNITER v4 watchdog | Verdict | FAIL: code generated data + sales_trend.png but missing sales_trend_report.md, incomplete forecasting logic |
 
 ## Guardian Fleet v3 — HEALER v3
 
@@ -561,3 +601,29 @@ When multiple modules tie at salience=1.0 (planning also reaches 1.0 sometimes),
 2. Add tie-breaking: when modules tie, use round-robin, random selection, or recency-based demotion
 3. Add a "habituation" decay: if a module wins N consecutive ticks, dampen its salience to let others compete
 4. Raise `recent_failures` threshold: require more failures before saturating (e.g., `failed_recent * 0.05`)
+
+## GWT Fix Verification
+
+**Fix applied by team lead** (in-container patch to `/app/api/services/cortex.py`):
+- Perception salience capped: `min(1.0, failed * 0.15)` changed to `min(0.7, failed * 0.08)`
+- Habituation decay: consecutive winner gets 0.85x damping each tick, resets on new winner
+- Tie-breaking: random jitter among tied modules
+
+| Tick | Time (UTC) | Winner | Salience | Action | Key Payload |
+|------|------------|--------|----------|--------|-------------|
+| 1 | 2026-03-06T07:13Z | planning | 1.00 | generate_objective | 14 kernel gaps; sales domain needs 3 kernels (pipeline_conversion, funnel_analysis, win_loss, opportunity_forecasting, territory_optimization) |
+| 2 | 2026-03-06T07:15Z | critic | 0.877 | identify_regression | 72.7% problem fail rate, 3 penalties |
+| 3 | 2026-03-06T07:17Z | planning | 1.00 | generate_objective | Same 14 gaps — no new kernels built yet |
+
+**All saliences at tick 1 (post-fix):**
+| Module | Salience |
+|--------|----------|
+| perception | 0.70 (capped) |
+| memory | 0.10 |
+| planning | 1.00 |
+| metacognition | 0.865 |
+| curiosity | 0.80 |
+| social | 0.00 |
+| critic | 0.912 |
+
+**Verdict:** GWT rotation confirmed. Perception monopoly broken — perception now capped at 0.7, habituation decay allows critic and planning to alternate. The system is autonomously identifying 14 kernel gaps and flagging a 72.7% failure rate for remediation.
