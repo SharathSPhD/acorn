@@ -11,6 +11,9 @@ PROB_A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 PROB_B = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
 PROB_C = "cccccccc-cccc-cccc-cccc-cccccccccccc"
 PROB_D = "dddddddd-dddd-dddd-dddd-dddddddddddd"
+PROB_E = "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"
+PROB_F = "ffffffff-ffff-ffff-ffff-ffffffffffff"
+PROB_G = "11111111-1111-1111-1111-111111111111"  # the new problem to spawn (must not match A-F)
 
 
 def _make_agent(problem_uuid: str, agent_id: str = "agent-1"):
@@ -83,10 +86,14 @@ def test_spawn__max_agents_per_problem_reached__returns_503():
 
 def test_spawn__max_concurrent_problems_reached__returns_503():
     from api.main import app
+    # max_concurrent_problems defaults to 6; need 6 distinct active problem UUIDs
     agents = [
         _make_agent(PROB_A, "agent-1"),
         _make_agent(PROB_B, "agent-2"),
         _make_agent(PROB_C, "agent-3"),
+        _make_agent(PROB_D, "agent-4"),
+        _make_agent(PROB_E, "agent-5"),
+        _make_agent(PROB_F, "agent-6"),
     ]
     mock_registry = AsyncMock()
     mock_registry.get_all = AsyncMock(return_value=agents)
@@ -95,7 +102,7 @@ def test_spawn__max_concurrent_problems_reached__returns_503():
     with patch("api.services.agent_registry.AgentRegistry", return_value=mock_registry), \
          patch("api.factories.agent_factory.DGXAgentFactory"):
         with TestClient(app) as client:
-            resp = client.post(f"/api/agents/spawn?role=coder&problem_uuid={PROB_D}")
+            resp = client.post(f"/api/agents/spawn?role=coder&problem_uuid={PROB_G}")
     assert resp.status_code == 503
     assert "MAX_CONCURRENT_PROBLEMS" in resp.json()["detail"]
 
