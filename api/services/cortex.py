@@ -520,7 +520,6 @@ class CortexPlus:
         async with httpx.AsyncClient(timeout=30) as client:
             for delta in domains_to_fill:
                 domain = delta.get("domain", "general")
-                gap = delta.get("gap", 1)
                 concepts = delta.get("core_concepts", [domain])
                 # Limit to 2 concepts per problem — agents reliably implement 2 but
                 # fail when asked for 4. Spawn multiple focused problems instead.
