@@ -761,7 +761,7 @@ All models available at: $ANTHROPIC_BASE_URL"
 
     TEAM_PROMPT="${TEAM_PROMPT}${MODEL_ROUTING}"
 
-    HARNESS_TIMEOUT="${ACORN_HARNESS_TIMEOUT:-1200}"
+    HARNESS_TIMEOUT="${ACORN_HARNESS_TIMEOUT:-1800}"
     timeout "$HARNESS_TIMEOUT" claude --dangerously-skip-permissions \
         --model "$MODEL" \
         --max-turns 50 \
