@@ -7,6 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate, truncateId } from "@/lib/utils";
 import Link from "next/link";
 
+const moduleColors: Record<string, { bg: string; bar: string; glow: string }> = {
+  planning: { bg: "bg-blue-50", bar: "bg-blue-500", glow: "shadow-lg shadow-blue-500/50" },
+  critic: { bg: "bg-red-50", bar: "bg-red-500", glow: "shadow-lg shadow-red-500/50" },
+  metacognition: { bg: "bg-purple-50", bar: "bg-purple-500", glow: "shadow-lg shadow-purple-500/50" },
+  perception: { bg: "bg-amber-50", bar: "bg-amber-500", glow: "shadow-lg shadow-amber-500/50" },
+  memory: { bg: "bg-green-50", bar: "bg-green-500", glow: "shadow-lg shadow-green-500/50" },
+  curiosity: { bg: "bg-yellow-50", bar: "bg-yellow-500", glow: "shadow-lg shadow-yellow-500/50" },
+  social: { bg: "bg-pink-50", bar: "bg-pink-500", glow: "shadow-lg shadow-pink-500/50" },
+};
+
+const modules = [
+  "planning",
+  "critic",
+  "metacognition",
+  "perception",
+  "memory",
+  "curiosity",
+  "social",
+];
+
 export default function LivePage() {
   // GWT Cognitive State - 5s poll
   const cortexStatus = useQuery({
@@ -18,8 +38,22 @@ export default function LivePage() {
   // Broadcast log for GWT state
   const broadcastLog = useQuery({
     queryKey: ["broadcast-log"],
-    queryFn: () => api.cortex.broadcastLog(10),
+    queryFn: () => api.cortex.broadcastLog(50),
     refetchInterval: 5_000,
+  });
+
+  // Manifest deltas for planning indicator
+  const manifestDeltas = useQuery({
+    queryKey: ["manifest-deltas"],
+    queryFn: api.manifest.deltas,
+    refetchInterval: 10_000,
+  });
+
+  // Telemetry for events
+  const telemetry = useQuery({
+    queryKey: ["telemetry"],
+    queryFn: api.telemetry,
+    refetchInterval: 3_000,
   });
 
   // Active Problems - 10s poll
@@ -61,6 +95,14 @@ export default function LivePage() {
   const cortex = cortexStatus.data;
   const rewards = rewardEvents.data ?? [];
   const trails = reasoningTrails.data ?? {};
+  const logs = broadcastLog.data ?? [];
+  const deltas = manifestDeltas.data ?? [];
+  const telemetryData = telemetry.data;
+
+  // Build salience data for bar race
+  const currentBroadcast = cortex?.current_broadcast;
+  const allSaliences = currentBroadcast?.all_saliences ?? {};
+  const winningModule = currentBroadcast?.module ?? "";
 
   return (
     <div>
@@ -71,12 +113,167 @@ export default function LivePage() {
         </p>
       </div>
 
+      {/* CORTEX+ GWT Salience Bar Race */}
+      <div className="mb-8">
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold text-slate-900">
+              CORTEX+ GWT Salience Race
+            </h2>
+            <div className="flex items-center gap-2 mt-2">
+              {cortex?.running ? (
+                <Badge variant="success">Running</Badge>
+              ) : (
+                <Badge variant="secondary">Idle</Badge>
+              )}
+              <span className="text-xs text-slate-400">
+                Winner: <span className="font-semibold text-slate-700">{winningModule || "none"}</span>
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {modules.map((module) => {
+              const salience = allSaliences[module] ?? 0;
+              const isWinner = module === winningModule;
+              const colors = moduleColors[module] || moduleColors["planning"];
+
+              return (
+                <div key={module} className="space-y-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-slate-900 capitalize">
+                      {module}
+                    </span>
+                    <span className="text-sm font-mono font-bold text-slate-700">
+                      {salience.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className={`w-full h-3 rounded-full bg-slate-200 overflow-hidden transition-all ${
+                    isWinner ? colors.glow : ""
+                  }`}>
+                    <div
+                      className={`h-full transition-all duration-300 ${colors.bar} ${
+                        isWinner ? "animate-pulse" : ""
+                      }`}
+                      style={{
+                        width: `${Math.min(100, (salience / 1.0) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Multi-Domain Planning Indicator */}
+      <div className="mb-8">
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Manifest Domain Coverage
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Planning gaps across domains
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {deltas.map((delta, idx) => {
+                const domain = (delta.domain as string) || "unknown";
+                const hasGap = delta.type === "missing_kernel" || (delta.gap as number) > 0;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`rounded-lg p-3 text-center border-2 transition-all ${
+                      hasGap
+                        ? "border-amber-300 bg-amber-50 animate-pulse"
+                        : "border-green-300 bg-green-50"
+                    }`}
+                  >
+                    <div className="text-xs font-semibold text-slate-900 capitalize mb-1">
+                      {domain}
+                    </div>
+                    <div className={`text-lg font-bold ${
+                      hasGap ? "text-amber-700" : "text-green-700"
+                    }`}>
+                      {hasGap ? "⚠" : "✓"}
+                    </div>
+                    <div className="text-[10px] text-slate-600 mt-1">
+                      {hasGap ? "Gap" : "Satisfied"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Live Event Feed */}
+      <div className="mb-8">
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold text-slate-900">Live Event Feed</h2>
+            <span className="text-xs text-slate-400">
+              {telemetryData?.total_events ?? 0} total events
+            </span>
+          </CardHeader>
+          <CardContent>
+            {(telemetryData?.recent_events ?? []).length > 0 ? (
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {(telemetryData?.recent_events ?? []).slice(0, 20).map((event, idx) => {
+                  const eventData = event as any;
+                  const eventType = eventData.event_type || eventData.type || "unknown";
+                  let badgeColor = "bg-gray-100 text-gray-700";
+                  if (eventType.includes("PASS")) badgeColor = "bg-green-100 text-green-700";
+                  else if (eventType.includes("FAIL")) badgeColor = "bg-red-100 text-red-700";
+                  else if (eventType.includes("PROMOTE")) badgeColor = "bg-yellow-100 text-yellow-700";
+                  else if (eventType.includes("TICK")) badgeColor = "bg-blue-100 text-blue-700";
+
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-3 rounded-lg bg-slate-50 p-2.5 hover:bg-slate-100 transition-colors"
+                    >
+                      <div className="h-2 w-2 rounded-full bg-slate-400 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-medium text-slate-700">
+                            {eventType}
+                          </span>
+                          <Badge variant="secondary" className={`text-[10px] ${badgeColor}`}>
+                            {typeof eventData.payload === "string"
+                              ? eventData.payload.substring(0, 20)
+                              : "event"}
+                          </Badge>
+                        </div>
+                        {eventData.created_at && (
+                          <p className="text-[10px] text-slate-500 mt-0.5">
+                            {formatDate(eventData.created_at)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 text-center py-4">
+                No recent events
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       {/* GWT Cognitive State */}
       <div className="mb-8">
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold text-slate-900">GWT Cognitive State</h2>
-            <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-slate-900">GWT Detailed State</h2>
+            <div className="flex items-center gap-2 mt-2">
               {cortex?.running ? (
                 <Badge variant="success">Running</Badge>
               ) : (
