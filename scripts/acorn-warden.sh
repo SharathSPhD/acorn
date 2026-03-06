@@ -88,7 +88,7 @@ check_meta_agent_schedule() {
     # Track completed problems and trigger meta-agent after every N completions.
     local completed
     completed=$(curl -sf "$ACORN_API/api/problems" 2>/dev/null | \
-        python3 -c "import sys,json; d=json.load(sys.stdin); print(sum(1 for p in d if p.get('status')=='complete'))" 2>/dev/null || echo "0")
+        jq '[.[] | select(.status == "complete")] | length' 2>/dev/null || echo "0")
     local modulo
     modulo=$((completed % META_SCHEDULE_PROBLEMS))
     if [ "$completed" -gt 0 ] && [ "$modulo" -eq 0 ]; then
@@ -109,7 +109,7 @@ check_episode_consolidation() {
     # This extracts recurring patterns and writes KERNEL.md candidates to probationary grove.
     local episode_count
     episode_count=$(curl -sf "$ACORN_API/api/telemetry/episode-count" 2>/dev/null | \
-        python3 -c "import sys,json; print(json.load(sys.stdin).get('count', 0))" 2>/dev/null || echo "0")
+        jq '.count // 0' 2>/dev/null || echo "0")
     if [ "$episode_count" -ge "$EPISODE_CONSOLIDATION_THRESHOLD" ]; then
         local flag="/tmp/acorn_consolidation_${episode_count}"
         if [ ! -f "$flag" ]; then
@@ -123,12 +123,12 @@ check_episode_consolidation() {
 }
 
 auto_start_pending_problems() {
-    # The missing piece for full autonomy: CORTEX+ generates objectives (pending),
-    # but nobody starts them. This closes the loop.
     local max_concurrent="${ACORN_MAX_CONCURRENT:-3}"
+    local problems_json
+    problems_json=$(curl -sf "$ACORN_API/api/problems" 2>/dev/null || echo "[]")
+
     local active_count
-    active_count=$(curl -sf "$ACORN_API/api/problems" 2>/dev/null | \
-        python3 -c "import sys,json; d=json.load(sys.stdin); print(sum(1 for p in d if p.get('status')=='active'))" 2>/dev/null || echo "0")
+    active_count=$(echo "$problems_json" | jq '[.[] | select(.status == "active")] | length' 2>/dev/null || echo "0")
 
     if [ "$active_count" -ge "$max_concurrent" ]; then
         return
@@ -136,21 +136,14 @@ auto_start_pending_problems() {
 
     local slots=$((max_concurrent - active_count))
     local pending_uuids
-    pending_uuids=$(curl -sf "$ACORN_API/api/problems" 2>/dev/null | \
-        python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-pending = [p['id'] for p in data if p.get('status') == 'pending']
-for uid in pending[:$slots]:
-    print(uid)
-" 2>/dev/null || true)
+    pending_uuids=$(echo "$problems_json" | jq -r "[.[] | select(.status == \"pending\")] | .[0:$slots] | .[].id" 2>/dev/null || true)
 
     for uuid in $pending_uuids; do
         log "Auto-starting pending problem: $uuid"
         local result
         result=$(curl -sf -X POST "$ACORN_API/api/problems/$uuid/start" \
             -H "Content-Type: application/json" -d '{}' 2>/dev/null || echo "")
-        if echo "$result" | grep -q '"status":"active"'; then
+        if echo "$result" | jq -e '.status == "active"' > /dev/null 2>&1; then
             log "  -> Started successfully"
         else
             log "  -> Start failed or already active"
