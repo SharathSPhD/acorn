@@ -60,16 +60,22 @@ class DGXAgentFactory(AgentFactory):
     async def launch(self, spec: AgentSpec) -> str:
         env_pairs: list[str] = []
 
+        is_orchestrator = spec.role == "orchestrator"
+        if is_orchestrator:
+            spec.resource_limits = {"memory": "8g", "cpus": "4.0"}
+
         base_env = {
             "ANTHROPIC_BASE_URL": "http://acorn-api-relay:9000",
             "ANTHROPIC_AUTH_TOKEN": "ollama",
             "ANTHROPIC_API_KEY": "ollama",
             "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+            "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
             "ACORN_PROBLEM_UUID": spec.problem_uuid,
             "ACORN_AGENT_ID": spec.agent_id,
             "ACORN_ROLE": spec.role,
             "ACORN_API_URL": "http://acorn-api:8000",
             "ACORN_MODEL": spec.model,
+            "ACORN_USE_AGENT_TEAMS": "true" if is_orchestrator else "false",
             "REDIS_URL": settings.redis_url,
             "DATABASE_URL": settings.database_url,
         }
