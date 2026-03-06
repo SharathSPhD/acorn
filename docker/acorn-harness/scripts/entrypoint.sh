@@ -335,22 +335,29 @@ import json, urllib.request, sys, os, re
 proxy = os.environ.get('ANTHROPIC_BASE_URL', 'http://acorn-api-relay:9000')
 model = os.environ.get('ACORN_MODEL', 'qwen3-coder')
 context = os.environ.get('ACORN_JUDGE_CONTEXT', 'No files found')
+title = os.environ.get('ACORN_JUDGE_TITLE', os.environ.get('ACORN_PROBLEM_TITLE', 'Unknown'))
+desc = os.environ.get('ACORN_JUDGE_DESC', os.environ.get('ACORN_PROBLEM_DESC', ''))[:400]
+criteria = os.environ.get('ACORN_JUDGE_CRITERIA', os.environ.get('ACORN_SUCCESS_CRITERIA', ''))
 
-prompt = f"""You are the ACORN Judge Agent. Evaluate the solution quality.
+prompt = f"""You are the ACORN Judge Agent. Evaluate whether this solution addresses the specific problem.
 
-Workspace files:
+PROBLEM TITLE: {title}
+PROBLEM DESCRIPTION: {desc}
+SUCCESS CRITERIA:
+{criteria}
+
+SOLUTION FILES:
 {context}
 
-Evaluate:
-1. Does the solution address the problem?
-2. Is the code syntactically correct?
-3. Are there output artifacts (reports, plots)?
-4. Is there evidence of data analysis?
+Evaluate strictly:
+1) problem_addressed: Does the solution SPECIFICALLY address the problem title and criteria? (not just generic code)
+2) code_valid: Is there at least one .py file with syntactically correct Python?
+3) artifacts_present: Is there a SOLUTION.md with content?
+4) analysis_evident: Does SOLUTION.md show actual results/metrics (real numbers, not placeholders)?
 
 Respond with EXACTLY one JSON object:
-{{"verdict": "pass" or "fail", "checks": {{"problem_addressed": true/false, "code_valid": true/false, "artifacts_present": true/false, "analysis_evident": true/false}}, "notes": "brief summary"}}
-
-Output ONLY the JSON, no markdown, no explanation."""
+{{"verdict": "pass" or "fail", "checks": {{"problem_addressed": true/false, "code_valid": true/false, "artifacts_present": true/false, "analysis_evident": true/false}}, "notes": "specific reason"}}
+Output ONLY the JSON. verdict="pass" requires problem_addressed=true."""
 
 body = json.dumps({
     'model': model,
@@ -531,6 +538,85 @@ for f in $DATA_FILES; do
 "
 done
 
+# Step 1a: Extract structured success criteria from problem description
+export ACORN_PROBLEM_TITLE="$TITLE"
+export ACORN_PROBLEM_DESC="$DESCRIPTION"
+SUCCESS_CRITERIA=$(python3 -c "
+import re, os
+desc = os.environ.get('ACORN_PROBLEM_DESC', '')
+criteria = []
+# Match 'Step N:' patterns from structured descriptions
+for m in re.finditer(r'(?:Step\s*\d+:\s*)(.+?)(?=Step\s*\d+:|$)', desc, re.DOTALL | re.IGNORECASE):
+    c = m.group(1).strip().replace('\n', ' ')[:120]
+    if c: criteria.append(f'- [ ] {c}')
+# Fallback: sentences with action verbs
+if not criteria:
+    for sent in re.split(r'[.;]', desc):
+        sent = sent.strip()
+        if len(sent) > 20 and any(kw in sent.lower() for kw in [
+            'compute', 'calculate', 'train', 'build', 'predict', 'cluster',
+            'forecast', 'produce', 'write', 'generate', 'evaluate', 'compare',
+            'fit', 'plot', 'report', 'analyze', 'profile', 'extract', 'load'
+        ]):
+            criteria.append(f'- [ ] {sent[:120]}')
+if not criteria:
+    criteria = [
+        '- [ ] Complete the analysis specified in the description',
+        '- [ ] Write /workspace/SOLUTION.md with actual metric values (not placeholders)',
+        '- [ ] Produce at least one executable .py file in /workspace/',
+    ]
+print('\n'.join(criteria[:8]))
+" 2>/dev/null || echo "- [ ] Complete the analysis and write SOLUTION.md with actual results")
+
+# Step 1b2: Find relevant datasets from host catalog
+DATASETS_ROOT="${ACORN_ROOT:-/home/sharaths/projects/oak}/data/datasets"
+CATALOG_DATASETS=$(python3 -c "
+import os, glob
+desc = (os.environ.get('ACORN_PROBLEM_TITLE','') + ' ' + os.environ.get('ACORN_PROBLEM_DESC','')).lower()
+root = '$DATASETS_ROOT'
+paths = []
+if os.path.isdir(root):
+    for f in glob.glob(f'{root}/**/*', recursive=True):
+        if not os.path.isfile(f): continue
+        if not any(f.endswith(x) for x in ['.csv', '.json', '.parquet']): continue
+        bn = os.path.basename(f).lower()
+        key = bn.replace('.csv','').replace('.json','').replace('.parquet','').replace('_',' ').replace('-',' ')
+        words = [w for w in key.split() if len(w) > 3]
+        if any(w in desc for w in words):
+            size_kb = os.path.getsize(f) // 1024
+            paths.append((f, size_kb))
+paths.sort(key=lambda x: -x[1])
+for p, kb in paths[:5]:
+    print(f'  - {p} ({kb}KB)')
+" 2>/dev/null || echo "")
+
+# Step 1d: Fetch prior failure notes for same domain (judge feedback forward-prop)
+PRIOR_FAIL_NOTES=$(python3 -c "
+import urllib.request, json, os
+api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
+title_words = [w.lower() for w in os.environ.get('ACORN_PROBLEM_TITLE','').split() if len(w) > 3]
+notes = []
+try:
+    resp = urllib.request.urlopen(f'{api}/api/problems?status=failed&limit=20', timeout=5)
+    probs = json.load(resp)
+    items = probs if isinstance(probs, list) else probs.get('items', [])
+    for p in items:
+        t = p.get('title', '').lower()
+        if not any(w in t for w in title_words[:3]): continue
+        pid = p.get('id', '')
+        try:
+            vr = urllib.request.urlopen(f'{api}/api/judge_verdicts/{pid}', timeout=5)
+            verdicts = json.load(vr)
+            for v in (verdicts if isinstance(verdicts, list) else []):
+                if v.get('verdict') == 'fail' and v.get('notes'):
+                    notes.append(v['notes'][:200])
+        except Exception: pass
+    if notes:
+        print('## Prior Attempt Failures (avoid these mistakes):')
+        for n in notes[:3]: print(f'- {n}')
+except Exception: pass
+" 2>/dev/null || echo "")
+
 patch_problem "active"
 
 if [ "$USE_AGENT_TEAMS" = "true" ]; then
@@ -583,20 +669,56 @@ Tasks (do each step with Bash):
 
 Keep going until SOLUTION.md and at least one .py template exist."
     else
-        TEAM_PROMPT="Solve: $TITLE. $DESCRIPTION
+        # Build dataset section for prompt
+        DATASET_SECTION=""
+        if [ -n "$CATALOG_DATASETS" ]; then
+            DATASET_SECTION="## Host Datasets (prefer these over synthetic data)
+$CATALOG_DATASETS"
+        fi
+        if [ -n "$DATA_PREVIEW" ]; then
+            DATASET_SECTION="${DATASET_SECTION}
+## Workspace Files Already Copied
+$DATA_PREVIEW"
+        fi
+        # Build prior failures section
+        PRIOR_SECTION=""
+        if [ -n "$PRIOR_FAIL_NOTES" ]; then
+            PRIOR_SECTION="$PRIOR_FAIL_NOTES
+"
+        fi
 
-$(cat PROBLEM.md 2>/dev/null || echo '')
+        TEAM_PROMPT="You are a senior data scientist solving a specific problem for ACORN.
 
-Data: /workspace/ contains:
-$DATA_PREVIEW
+## Problem: $TITLE
 
-Do this step by step:
-1. Run: ls /workspace/ to see available files
-2. If CSV files exist: run a python3 command to analyze them (use pandas, sklearn, numpy)
-3. If no data exists: generate synthetic data with python3, then analyze it
-4. Run a python3 command to write /workspace/SOLUTION.md with results
+$DESCRIPTION
 
-IMPORTANT: Always write /workspace/SOLUTION.md with your findings. Keep going until it exists."
+## Success Criteria — address EVERY item explicitly
+$SUCCESS_CRITERIA
+
+$DATASET_SECTION
+
+$PRIOR_SECTION## Required Deliverables
+1. /workspace/solution.py — EXECUTABLE Python script (runs with \`python3 solution.py\`, no errors)
+2. /workspace/SOLUTION.md — must contain:
+   - ## Approach
+   - ## Results (ACTUAL metric values from running the code — not placeholders like 'X.XX')
+   - ## Evidence of Completion (for each success criterion, state exactly how you addressed it)
+
+## Execution Protocol (follow this exact order)
+1. Bash: cat PROBLEM.md
+2. Bash: ls /workspace/ — discover data
+3. Write /workspace/solution.py with complete, runnable code
+4. Bash: python3 /workspace/solution.py — MUST run this and capture output
+5. Write /workspace/SOLUTION.md using ACTUAL output from step 4
+6. Bash: ls /workspace/*.py — verify solution.py exists
+
+## Critical Rules
+- Write ACTUAL .py files. Do NOT embed code in SOLUTION.md markdown blocks.
+- solution.py must be self-contained (all imports, no missing variables, works from /workspace)
+- If a dataset path is listed above, USE IT — do not generate synthetic data when real data exists
+- SOLUTION.md Results section must show real numbers (e.g. 'Accuracy: 0.847', not 'Accuracy: TBD')
+- Keep going until solution.py AND SOLUTION.md both exist and solution.py runs without errors"
     fi
 
     # Inject model routing hints into the prompt
@@ -619,6 +741,23 @@ All models available at: $ANTHROPIC_BASE_URL"
         > /workspace/orchestrator_log.txt 2>&1 || true
 
     log "Claude Code agent team session complete"
+
+    # Recovery pass: if no .py solution file created, extract code from SOLUTION.md
+    PY_COUNT=$(find /workspace -maxdepth 1 -name "*.py" ! -name "generate_data.py" 2>/dev/null | wc -l)
+    if [ "$PY_COUNT" -eq 0 ] && [ -f /workspace/SOLUTION.md ]; then
+        log "Recovery: no .py files found — extracting code from SOLUTION.md"
+        record_reasoning "recovery" "No .py solution files — running code extraction pass"
+        claude --dangerously-skip-permissions --model "$MODEL" --max-turns 15 \
+            -p "CRITICAL RECOVERY: The previous agent wrote code inside SOLUTION.md markdown blocks but did NOT create actual .py files. Do this now:
+1. cat /workspace/SOLUTION.md — find all Python code blocks
+2. Extract the complete code into /workspace/solution.py (make it self-contained, add all imports)
+3. python3 /workspace/solution.py — run it
+4. Update the ## Results section in /workspace/SOLUTION.md with the actual output values from running it
+Do NOT rewrite the whole SOLUTION.md — just update ## Results and create solution.py." \
+            >> /workspace/orchestrator_log.txt 2>&1 || true
+        log "Recovery extraction complete"
+    fi
+
     record_reasoning "team_complete" "Agent team session finished, checking outputs"
 
 else
@@ -781,22 +920,37 @@ $(head -100 "$f" 2>/dev/null || true)
 done
 
 export ACORN_JUDGE_CONTEXT="$JUDGE_CONTEXT"
+export ACORN_JUDGE_TITLE="$TITLE"
+export ACORN_JUDGE_DESC="$DESCRIPTION"
+export ACORN_JUDGE_CRITERIA="$SUCCESS_CRITERIA"
 VERDICT=$(python3 <<'JUDGEPY'
 import json, urllib.request, sys, os, re
 proxy = os.environ.get('ANTHROPIC_BASE_URL', 'http://acorn-api-relay:9000')
 model = os.environ.get('ACORN_MODEL', 'qwen3-coder')
 context = os.environ.get('ACORN_JUDGE_CONTEXT', 'No files found')
+title = os.environ.get('ACORN_JUDGE_TITLE', 'Unknown problem')
+desc = os.environ.get('ACORN_JUDGE_DESC', '')[:500]
+criteria = os.environ.get('ACORN_JUDGE_CRITERIA', '')
 
-prompt = f"""You are the ACORN Judge Agent. Evaluate the solution quality.
+prompt = f"""You are the ACORN Judge Agent. Evaluate whether this solution addresses the specific problem.
 
-Workspace files:
+PROBLEM TITLE: {title}
+PROBLEM DESCRIPTION: {desc}
+SUCCESS CRITERIA:
+{criteria}
+
+SOLUTION FILES:
 {context}
 
-Evaluate: 1) Does the solution address the problem? 2) Is code syntactically correct? 3) Are there output artifacts? 4) Is there evidence of data analysis?
+Evaluate strictly:
+1) problem_addressed: Does the solution SPECIFICALLY address the problem title and criteria above? (not just generic code)
+2) code_valid: Is there at least one .py file with syntactically correct Python?
+3) artifacts_present: Is there a SOLUTION.md with content?
+4) analysis_evident: Does SOLUTION.md show actual results/metrics (real numbers, not placeholders)?
 
 Respond with EXACTLY one JSON object:
-{{"verdict": "pass" or "fail", "checks": {{"problem_addressed": true/false, "code_valid": true/false, "artifacts_present": true/false, "analysis_evident": true/false}}, "notes": "brief summary"}}
-Output ONLY the JSON."""
+{{"verdict": "pass" or "fail", "checks": {{"problem_addressed": true/false, "code_valid": true/false, "artifacts_present": true/false, "analysis_evident": true/false}}, "notes": "specific reason for verdict"}}
+Output ONLY the JSON. verdict="pass" requires problem_addressed=true."""
 
 body = json.dumps({'model': model, 'max_tokens': 1024,
        'messages': [{'role': 'user', 'content': prompt}]}).encode()
@@ -865,6 +1019,54 @@ if [ "$JUDGE_LOCAL_VERDICT" = "fail" ] || [ "$OUTPUT_COUNT" -eq 0 ]; then
     patch_problem "failed"
     record_reasoning "conclusion" "Pipeline failed (judge=$JUDGE_LOCAL_VERDICT, outputs=$OUTPUT_COUNT)" "0.3"
     log "Pipeline complete with failures"
+
+    # Auto-recovery: if problem_addressed=False, spawn a simplified retry with failure notes
+    PROBLEM_ADDRESSED=$(python3 -c "
+import json, os
+try:
+    d = json.load(open('/workspace/judge_verdict.json'))
+    print(d.get('checks', {}).get('problem_addressed', True))
+except Exception: print('True')
+" 2>/dev/null || echo "True")
+    FAIL_NOTES=$(python3 -c "
+import json
+try:
+    d = json.load(open('/workspace/judge_verdict.json'))
+    print(d.get('notes','')[:300])
+except Exception: print('')
+" 2>/dev/null || echo "")
+
+    if [ "$PROBLEM_ADDRESSED" = "False" ]; then
+        log "Auto-recovery: problem_addressed=False — submitting simplified recovery"
+        record_reasoning "recovery_spawn" "Judge: problem not addressed. Spawning recovery problem."
+        python3 -c "
+import json, urllib.request, os
+api = os.environ.get('ACORN_API_URL', 'http://acorn-api:8000')
+title = os.environ.get('ACORN_PROBLEM_TITLE', 'Problem')
+desc = os.environ.get('ACORN_PROBLEM_DESC', '')[:400]
+notes = '$FAIL_NOTES'
+recovery_desc = (
+    f'RECOVERY (previous attempt failed: {notes}). '
+    f'Original problem: {desc}. '
+    f'SIMPLIFIED APPROACH: 1) Load the dataset 2) Run ONE focused analysis '
+    f'3) Write /workspace/solution.py (must be executable) '
+    f'4) Run python3 /workspace/solution.py '
+    f'5) Write /workspace/SOLUTION.md with the ACTUAL output. '
+    f'Focus on addressing the core question, not perfection.'
+)
+body = json.dumps({
+    'title': f'[Recovery] {title[:70]}',
+    'description': recovery_desc,
+    'source': 'cortex',
+}).encode()
+try:
+    urllib.request.urlopen(urllib.request.Request(
+        f'{api}/api/problems', data=body,
+        headers={'Content-Type': 'application/json'}, method='POST'), timeout=10)
+    print('Recovery problem submitted')
+except Exception as e: print(f'Recovery failed: {e}')
+" 2>/dev/null || true
+    fi
 else
     patch_problem "complete"
     record_reasoning "conclusion" "Pipeline completed successfully (judge=$JUDGE_LOCAL_VERDICT, outputs=$OUTPUT_COUNT)" "0.9"

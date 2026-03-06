@@ -103,10 +103,17 @@ class PlanningModule(CortexModule):
         # Scale salience strongly with gap count so planning wins when work exists.
         # 5 gaps → 0.85, 7 gaps → 0.99, 8+ → 1.0
         salience = min(1.0, 0.5 + len(deltas) * 0.07)
+        # Pass all deltas so execute_action can spawn multi-domain problems.
+        available_slots = max_concurrent - active_problems
         return ModuleOutput(
             module=self.name, salience=salience,
             action_type="generate_objective",
-            payload={"delta": top_delta, "total_gaps": len(deltas)},
+            payload={
+                "delta": top_delta,
+                "total_gaps": len(deltas),
+                "all_deltas": deltas,
+                "available_slots": available_slots,
+            },
         )
 
 
@@ -406,14 +413,41 @@ class CortexPlus:
                 logger.info("CORTEX+ Social: user problems take priority")
             elif winner.action_type == "propose_amendment":
                 pass_rate = winner.payload.get("pass_rate", 0)
-                logger.info("CORTEX+ Metacognition: low pass rate (%.2f), attempting remediation", pass_rate)
-                if pass_rate < 0.4:
+                low_roles = winner.payload.get("low_roles", [])
+                logger.info(
+                    "CORTEX+ Metacognition: pass_rate=%.2f low_roles=%s — applying remediation",
+                    pass_rate, low_roles,
+                )
+                # Always attempt kernel auto-promotion
+                try:
+                    async with httpx.AsyncClient(timeout=15) as client:
+                        await client.post(
+                            f"http://localhost:{settings.port}/api/kernels/auto-promote",
+                            json={"min_uses": 1},
+                        )
+                except Exception:
+                    pass
+                # If pass rate critically low, submit a meta-improvement problem
+                if pass_rate < 0.35 and "orchestrator" in low_roles:
                     try:
                         async with httpx.AsyncClient(timeout=15) as client:
                             await client.post(
-                                f"http://localhost:{settings.port}/api/kernels/auto-promote",
-                                json={"min_uses": 1},
+                                f"http://localhost:{settings.port}/api/problems",
+                                json={
+                                    "title": "CORTEX+ meta: analyze recent failures and identify root causes",
+                                    "description": (
+                                        f"The system pass rate is {pass_rate:.1%}. "
+                                        "Analyze the last 10 failed problem workspaces in /home/sharaths/acorn-workspaces/. "
+                                        "For each failure: read SOLUTION.md, judge_verdict.json, and PROBLEM.md. "
+                                        "Identify the top 3 root causes of failure (e.g. 'no .py files', 'wrong dataset', 'generic output'). "
+                                        "Write a SOLUTION.md with: ## Root Causes, ## Recommendations (specific prompt improvements), "
+                                        "## Success Patterns (what the passing problems did differently). "
+                                        "This analysis will guide CORTEX+ to improve future problem framing."
+                                    ),
+                                    "source": "cortex",
+                                },
                             )
+                            logger.info("CORTEX+ Metacognition: submitted meta-analysis problem")
                     except Exception:
                         pass
             elif winner.action_type == "identify_regression":
@@ -450,28 +484,36 @@ class CortexPlus:
             )
 
     async def _submit_self_improvement(self, payload: dict[str, Any]) -> None:
-        """Submit a self-improvement problem based on manifest delta."""
-        delta = payload.get("delta", {})
-        domain = delta.get("domain", "general")
-        gap = delta.get("gap", 1)
+        """Submit self-improvement problems for multiple gap domains in parallel."""
+        all_deltas = payload.get("all_deltas", [payload.get("delta", {})])
+        available_slots = payload.get("available_slots", 1)
+        # Spawn problems for top N domains where N = available capacity (max 3)
+        domains_to_fill = all_deltas[: min(3, max(1, available_slots))]
 
-        problem_desc = (
-            f"Build {gap} kernel(s) for the '{domain}' domain. "
-            f"Concepts to cover: {', '.join(delta.get('core_concepts', [domain]))}. "
-            f"Each kernel should be a reusable analytical pattern."
-        )
-        try:
-            async with httpx.AsyncClient(timeout=30) as client:
-                await client.post(
-                    f"http://localhost:{settings.port}/api/problems",
-                    json={
-                        "title": f"CORTEX+ objective: {domain} kernels",
-                        "description": problem_desc,
-                        "source": "cortex",
-                    },
+        async with httpx.AsyncClient(timeout=30) as client:
+            for delta in domains_to_fill:
+                domain = delta.get("domain", "general")
+                gap = delta.get("gap", 1)
+                concepts = delta.get("core_concepts", [domain])
+                problem_desc = (
+                    f"Build {gap} reusable kernel(s) for the '{domain}' domain. "
+                    f"Key concepts to cover: {', '.join(concepts[:4])}. "
+                    f"For each concept: write a parameterized Python function to /workspace/{{concept}}.py, "
+                    f"test it with sample data, and write /workspace/SOLUTION.md listing each kernel's "
+                    f"inputs, outputs, and a concrete usage example with actual output values."
                 )
-        except Exception:
-            logger.warning("Failed to submit self-improvement problem", exc_info=True)
+                try:
+                    await client.post(
+                        f"http://localhost:{settings.port}/api/problems",
+                        json={
+                            "title": f"CORTEX+ objective: {domain} kernels",
+                            "description": problem_desc,
+                            "source": "cortex",
+                        },
+                    )
+                    logger.info("CORTEX+ planning: submitted kernel problem for domain '%s'", domain)
+                except Exception:
+                    logger.warning("Failed to submit self-improvement problem for domain %s", domain)
 
     async def _submit_exploration(self, payload: dict[str, Any]) -> None:
         """Submit an exploration problem for an uncovered domain."""

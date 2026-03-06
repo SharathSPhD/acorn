@@ -51,7 +51,7 @@ class AcornSettings(BaseSettings):
 
     # -- Resource caps ------------------------------------------------------------
     max_agents_per_problem: int   = 10
-    max_concurrent_problems: int  = 3
+    max_concurrent_problems: int  = 6
     max_harness_containers: int   = 20
 
     # -- Embeddings ---------------------------------------------------------------
@@ -171,8 +171,8 @@ class AcornSettings(BaseSettings):
     def apply_mode_defaults(self) -> "AcornSettings":
         """Apply platform-specific defaults when values are at their generic defaults."""
         if self.acorn_mode == AcornMode.MINI:
-            if self.max_concurrent_problems == 3:
-                object.__setattr__(self, "max_concurrent_problems", 1)
+            if self.max_concurrent_problems >= 6:
+                object.__setattr__(self, "max_concurrent_problems", 2)
         return self
 
 
