@@ -28,9 +28,15 @@ patch_task() {
 
 patch_problem() {
     local st="$1"
+    local notes="${2:-}"
+    local body="{\"status\": \"$st\""
+    if [ -n "$notes" ]; then
+        body="$body, \"judge_notes\": \"$(echo "$notes" | sed 's/"/\\"/g' | head -c 500)\""
+    fi
+    body="$body}"
     curl -sf -X PATCH "$ACORN_API/api/problems/$PROBLEM_UUID" \
         -H "Content-Type: application/json" \
-        -d "{\"status\": \"$st\"}" > /dev/null 2>&1 || true
+        -d "$body" > /dev/null 2>&1 || true
 }
 
 record_reasoning() {
@@ -49,6 +55,17 @@ if [ -z "$PROBLEM_UUID" ]; then
     log "ERROR: ACORN_PROBLEM_UUID not set" >&2
     exit 1
 fi
+
+cleanup_on_exit() {
+    local exit_code=$?
+    if [ $exit_code -ne 0 ] && [ -n "$PROBLEM_UUID" ]; then
+        log "UNEXPECTED EXIT (code=$exit_code) — marking problem as failed"
+        curl -sf -X PATCH "$ACORN_API/api/problems/$PROBLEM_UUID" \
+            -H "Content-Type: application/json" \
+            -d "{\"status\": \"failed\", \"judge_notes\": \"Harness crashed with exit code $exit_code\"}" > /dev/null 2>&1 || true
+    fi
+}
+trap cleanup_on_exit EXIT
 
 cd /workspace
 
@@ -734,13 +751,21 @@ All models available at: $ANTHROPIC_BASE_URL"
 
     TEAM_PROMPT="${TEAM_PROMPT}${MODEL_ROUTING}"
 
-    claude --dangerously-skip-permissions \
+    HARNESS_TIMEOUT="${ACORN_HARNESS_TIMEOUT:-1200}"
+    timeout "$HARNESS_TIMEOUT" claude --dangerously-skip-permissions \
         --model "$MODEL" \
         --max-turns 50 \
         -p "$TEAM_PROMPT" \
-        > /workspace/orchestrator_log.txt 2>&1 || true
+        > /workspace/orchestrator_log.txt 2>&1
+    TEAM_EXIT=$?
+    if [ $TEAM_EXIT -eq 124 ]; then
+        log "WARNING: Agent team timed out after ${HARNESS_TIMEOUT}s"
+        record_reasoning "timeout" "Agent team exceeded ${HARNESS_TIMEOUT}s wall-clock limit"
+    elif [ $TEAM_EXIT -ne 0 ]; then
+        log "WARNING: Agent team exited with code $TEAM_EXIT"
+    fi
 
-    log "Claude Code agent team session complete"
+    log "Claude Code agent team session complete (exit=$TEAM_EXIT)"
 
     # Recovery pass: if no .py solution file created, extract code from SOLUTION.md
     PY_COUNT=$(find /workspace -maxdepth 1 -name "*.py" ! -name "generate_data.py" 2>/dev/null | wc -l)
@@ -964,12 +989,15 @@ try:
     match = re.search(r'\{.*\}', text.strip(), re.DOTALL)
     if match: text = match.group(0)
     json.loads(text); print(text)
-except Exception:
-    print('{"verdict":"pass","checks":{},"notes":"auto-pass"}')
+except Exception as exc:
+    import sys
+    print(f'Judge evaluation error: {exc}', file=sys.stderr)
+    print('{"verdict":"fail","checks":{"problem_addressed":false,"code_valid":false,"artifacts_present":false,"analysis_evident":false},"notes":"Judge evaluation failed due to LLM error — defaulting to fail"}')
 JUDGEPY
 )
 
 echo "$VERDICT" > judge_verdict.json
+log "Judge raw verdict: $VERDICT"
 
 if [ -n "$JUDGE_TASK_ID" ]; then
     export ACORN_JUDGE_VERDICT_RAW="$VERDICT"
@@ -992,8 +1020,18 @@ POSTVERDICT
     patch_task "$JUDGE_TASK_ID" "$([ "$PARSED_VERDICT" = "pass" ] && echo complete || echo failed)"
 fi
 
+log "Step 5b: Reading judge verdict"
+JUDGE_LOCAL_VERDICT="pass"
+if [ -f /workspace/judge_verdict.json ]; then
+    JUDGE_LOCAL_VERDICT=$(python3 -c "
+import json
+try: print(json.load(open('/workspace/judge_verdict.json')).get('verdict','pass'))
+except Exception: print('pass')
+" 2>/dev/null || echo "pass")
+    log "Judge verdict: $JUDGE_LOCAL_VERDICT"
+fi
+
 log "Step 6: Running kernel extractor"
-# Only run extractor on PASS verdicts — don't extract from failed solutions
 if [ "$JUDGE_LOCAL_VERDICT" = "pass" ]; then
 claude --dangerously-skip-permissions --model "$MODEL" --max-turns 12 -p \
   "You are the ACORN Kernel Extractor. Scan /workspace for reusable analytical patterns worth preserving.
@@ -1025,20 +1063,17 @@ curl -sf -X POST "$ACORN_API/api/kernels/ingest-workspace/problem-$PROBLEM_UUID"
   curl -sf -X POST "$ACORN_API/api/kernels/ingest-workspace/$PROBLEM_UUID" \
     -H "Content-Type: application/json" 2>/dev/null || true
 
-log "Step 7: Marking problem status"
-JUDGE_LOCAL_VERDICT="pass"
-if [ -f /workspace/judge_verdict.json ]; then
-    JUDGE_LOCAL_VERDICT=$(python3 -c "
-import json
-try: print(json.load(open('/workspace/judge_verdict.json')).get('verdict','pass'))
-except Exception: print('pass')
-" 2>/dev/null || echo "pass")
-    log "Judge verdict: $JUDGE_LOCAL_VERDICT"
-fi
-
 OUTPUT_COUNT=$(find /workspace -maxdepth 1 -name '*_output.md' -o -name 'SOLUTION.md' -o -name 'ANALYSIS_REPORT.md' | wc -l)
 if [ "$JUDGE_LOCAL_VERDICT" = "fail" ] || [ "$OUTPUT_COUNT" -eq 0 ]; then
-    patch_problem "failed"
+    JUDGE_NOTES_FOR_API=$(python3 -c "
+import json
+try:
+    d = json.load(open('/workspace/judge_verdict.json'))
+    print(d.get('notes','No judge notes')[:500])
+except Exception:
+    print('No judge verdict file found')
+" 2>/dev/null || echo "Unknown failure")
+    patch_problem "failed" "$JUDGE_NOTES_FOR_API"
     record_reasoning "conclusion" "Pipeline failed (judge=$JUDGE_LOCAL_VERDICT, outputs=$OUTPUT_COUNT)" "0.3"
     log "Pipeline complete with failures"
 
@@ -1058,8 +1093,10 @@ try:
 except Exception: print('')
 " 2>/dev/null || echo "")
 
-    if [ "$PROBLEM_ADDRESSED" = "False" ]; then
-        log "Auto-recovery: problem_addressed=False — submitting simplified recovery"
+    # Limit recovery attempts to prevent infinite loops
+    IS_RECOVERY=$(echo "$TITLE" | grep -c '^\[Recovery\]' || echo "0")
+    if [ "$PROBLEM_ADDRESSED" = "False" ] && [ "$IS_RECOVERY" -eq 0 ]; then
+        log "Auto-recovery: problem_addressed=False — submitting simplified recovery (1st attempt)"
         record_reasoning "recovery_spawn" "Judge: problem not addressed. Spawning recovery problem."
         python3 -c "
 import json, urllib.request, os
@@ -1088,6 +1125,8 @@ try:
     print('Recovery problem submitted')
 except Exception as e: print(f'Recovery failed: {e}')
 " 2>/dev/null || true
+    elif [ "$IS_RECOVERY" -gt 0 ]; then
+        log "Skipping auto-recovery: this is already a [Recovery] problem — no infinite loops"
     fi
 
     # Record episode for failed problem
@@ -1107,7 +1146,15 @@ try:
 except Exception as e: print(f'Episode recording failed: {e}')
 " 2>/dev/null || true
 else
-    patch_problem "complete"
+    PASS_NOTES=$(python3 -c "
+import json
+try:
+    d = json.load(open('/workspace/judge_verdict.json'))
+    print(d.get('notes','Passed all checks')[:500])
+except Exception:
+    print('Passed')
+" 2>/dev/null || echo "Passed")
+    patch_problem "complete" "$PASS_NOTES"
     record_reasoning "conclusion" "Pipeline completed successfully (judge=$JUDGE_LOCAL_VERDICT, outputs=$OUTPUT_COUNT)" "0.9"
     log "Pipeline complete successfully"
 

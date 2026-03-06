@@ -127,9 +127,15 @@ async def ingest_workspace_kernels(problem_id: str) -> dict[str, Any]:
             detail=f"Workspace not found for {problem_id} (tried: {[str(c) for c in candidates]})",
         )
 
-    kernel_files = list(workspace.rglob("KERNEL.md")) + list(workspace.rglob("kernel.md"))
+    kernel_files = (
+        list(workspace.rglob("KERNEL.md"))
+        + list(workspace.rglob("kernel.md"))
+        + list(workspace.rglob("KERNEL_*.md"))
+        + list(workspace.rglob("kernel_*.md"))
+    )
+    kernel_files = list({f.resolve(): f for f in kernel_files}.values())
     if not kernel_files:
-        return {"ingested": 0, "message": "No KERNEL.md files found"}
+        return {"ingested": 0, "message": "No KERNEL.md or KERNEL_*.md files found"}
 
     ingested = 0
     conn = await asyncpg.connect(settings.database_url)
