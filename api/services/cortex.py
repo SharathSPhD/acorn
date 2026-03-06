@@ -237,7 +237,7 @@ class CortexPlus:
             state["active_problems"] = (
                 await conn.fetchval(
                     """SELECT COUNT(*) FROM problems
-                       WHERE status IN ('pending', 'assembling', 'active')"""
+                       WHERE status IN ('assembling', 'active')"""
                 ) or 0
             )
             state["pending_user_problems"] = (
