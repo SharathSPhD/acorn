@@ -422,11 +422,11 @@ class CortexPlus:
             self._consecutive_critic_wins,
         )
 
-        await self.execute_action(winner, state)
+        await self.execute_action(winner)
         return winner
 
     async def execute_action(
-        self, winner: ModuleOutput, _state: dict[str, Any],
+        self, winner: ModuleOutput,
     ) -> None:
         """Execute the winning module's action."""
         try:
@@ -462,12 +462,11 @@ class CortexPlus:
                                     "title": "CORTEX+ meta: analyze recent failures and identify root causes",
                                     "description": (
                                         f"The system pass rate is {pass_rate:.1%}. "
-                                        "Analyze the last 10 failed problem workspaces in /home/sharaths/acorn-workspaces/. "
+                                        f"Analyze recent failed problem workspaces in {settings.acorn_workspace_base}/. "
                                         "For each failure: read SOLUTION.md, judge_verdict.json, and PROBLEM.md. "
                                         "Identify the top 3 root causes of failure (e.g. 'no .py files', 'wrong dataset', 'generic output'). "
-                                        "Write a SOLUTION.md with: ## Root Causes, ## Recommendations (specific prompt improvements), "
-                                        "## Success Patterns (what the passing problems did differently). "
-                                        "This analysis will guide CORTEX+ to improve future problem framing."
+                                        "Write /workspace/SOLUTION.md with: ## Root Causes, ## Recommendations, ## Success Patterns. "
+                                        "Also write /workspace/analysis.py that prints a summary. Run it to confirm it works."
                                     ),
                                     "source": "cortex",
                                 },
