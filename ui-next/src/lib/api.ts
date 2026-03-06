@@ -62,6 +62,9 @@ export interface Kernel {
   created_at: string;
   trigger_keywords?: string[];
   filesystem_path?: string;
+  verified_on_problems?: string[];
+  source_problem_id?: string;
+  content?: string;
 }
 
 export interface HealthData {
@@ -334,6 +337,7 @@ export const api = {
           salience: number;
           action_type: string;
           payload: Record<string, unknown>;
+          all_saliences?: Record<string, number>;
         } | null;
         tick_interval: number;
         broadcast_log_size: number;

@@ -455,6 +455,8 @@ class CortexPlus:
                 # If pass rate critically low, submit a meta-improvement problem
                 if pass_rate < 0.35 and "orchestrator" in low_roles:
                     try:
+                        # Idempotency key: one meta-analysis per 4-hour window
+                        idem_key = f"meta-analysis-{pass_rate:.0%}"
                         async with httpx.AsyncClient(timeout=15) as client:
                             await client.post(
                                 f"http://localhost:{settings.port}/api/problems",
@@ -469,6 +471,7 @@ class CortexPlus:
                                         "Also write /workspace/analysis.py that prints a summary. Run it to confirm it works."
                                     ),
                                     "source": "cortex",
+                                    "idempotency_key": idem_key,
                                 },
                             )
                             logger.info("CORTEX+ Metacognition: submitted meta-analysis problem")
@@ -527,12 +530,16 @@ class CortexPlus:
                     f"inputs, outputs, and a concrete usage example with actual output values."
                 )
                 try:
+                    import time
+                    # Idempotency: one kernel problem per domain per hour
+                    idem_key = f"cortex-kernel-{domain}-{int(time.time()) // 3600}"
                     await client.post(
                         f"http://localhost:{settings.port}/api/problems",
                         json={
                             "title": f"CORTEX+ objective: {domain} kernels",
                             "description": problem_desc,
                             "source": "cortex",
+                            "idempotency_key": idem_key,
                         },
                     )
                     logger.info("CORTEX+ planning: submitted kernel problem for domain '%s'", domain)
