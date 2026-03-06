@@ -530,7 +530,6 @@ class CortexPlus:
                     f"inputs, outputs, and a concrete usage example with actual output values."
                 )
                 try:
-                    import time
                     # Idempotency: one kernel problem per domain per hour
                     idem_key = f"cortex-kernel-{domain}-{int(time.time()) // 3600}"
                     await client.post(
