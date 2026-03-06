@@ -123,7 +123,7 @@ check_episode_consolidation() {
 }
 
 auto_start_pending_problems() {
-    local max_concurrent="${ACORN_MAX_CONCURRENT:-3}"
+    local max_concurrent="${ACORN_MAX_CONCURRENT:-6}"
     local problems_json
     problems_json=$(curl -sf "$ACORN_API/api/problems" 2>/dev/null || echo "[]")
 
