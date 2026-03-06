@@ -115,8 +115,8 @@ export default function BuilderPage() {
       <div className="page-header">
         <h1 className="page-title">CORTEX+</h1>
         <p className="page-subtitle">
-          Cognitive kernel with Global Workspace Theory. 7 specialist modules
-          compete to broadcast actions for autonomous self-improvement.
+          Cognitive kernel with Global Workspace Theory (GWT). 7 specialist modules
+          compete via salience-gated broadcast with habituation decay for fair rotation.
         </p>
       </div>
 
@@ -277,6 +277,63 @@ export default function BuilderPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* GWT Rotation Health */}
+      {cortexLog.data && cortexLog.data.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <h2 className="text-sm font-semibold text-slate-900">GWT Rotation Health</h2>
+            {(() => {
+              const mods = cortexLog.data!.map((e) => e.module);
+              const unique = new Set(mods).size;
+              const total = mods.length;
+              const ratio = total > 0 ? unique / Math.min(total, 7) : 0;
+              return (
+                <Badge variant={ratio > 0.5 ? "success" : ratio > 0.2 ? "warning" : "danger"}>
+                  {ratio > 0.5 ? "Healthy" : ratio > 0.2 ? "Low Diversity" : "Monopoly Risk"}
+                </Badge>
+              );
+            })()}
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              {(() => {
+                const mods = cortexLog.data!.map((e) => e.module);
+                const counts: Record<string, number> = {};
+                for (const m of mods) counts[m] = (counts[m] ?? 0) + 1;
+                const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+                const total = mods.length;
+                const unique = new Set(mods).size;
+                return (
+                  <>
+                    <div className="flex-1 space-y-1.5">
+                      {sorted.map(([mod, count]) => (
+                        <div key={mod} className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-slate-600 w-24 truncate capitalize">{mod}</span>
+                          <div className="flex-1 h-3 rounded-full bg-slate-100 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-acorn-500 transition-all duration-500"
+                              style={{ width: `${(count / total) * 100}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-mono text-slate-400 w-12 text-right">
+                            {count}/{total}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="shrink-0 text-center px-4 border-l border-slate-100">
+                      <p className="text-3xl font-bold text-acorn-600">{unique}</p>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Unique modules</p>
+                      <p className="text-xs text-slate-500 mt-1">in {total} ticks</p>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Broadcast Log + Domain Coverage */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
